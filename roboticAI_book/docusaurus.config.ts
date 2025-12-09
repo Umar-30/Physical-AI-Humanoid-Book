@@ -31,6 +31,7 @@ const config: Config = {
   projectName: 'Physical-AI-Humanoid-Book', // Usually your repo name.
 
   onBrokenLinks: 'throw',
+  trailingSlash: true,
 
   // Even if you don't use internationalization, you can use this field to set
   // useful metadata like html lang. For example, if your site is Chinese, you
@@ -49,7 +50,7 @@ const config: Config = {
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
           editUrl:
-            'https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/',
+            'https://github.com/umar-30/Physical-AI-Humanoid-Book/tree/main/roboticAI_book/',
         },
         blog: {
           showReadingTime: true,
@@ -60,7 +61,7 @@ const config: Config = {
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
           editUrl:
-            'https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/',
+            'https://github.com/umar-30/Physical-AI-Humanoid-Book/tree/main/roboticAI_book/',
           // Useful options to enforce blogging best practices
           onInlineTags: 'warn',
           onInlineAuthors: 'warn',
