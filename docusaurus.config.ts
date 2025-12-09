@@ -29,7 +29,6 @@ const config: Config = {
   // If you aren't using GitHub pages, you don't need these.
   organizationName: 'umar-30', // Usually your GitHub org/user name.
   projectName: 'Physical-AI-Humanoid-Book', // Usually your repo name.
-
   onBrokenLinks: 'throw',
   trailingSlash: false,
 
