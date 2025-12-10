@@ -1,4 +1,4 @@
-.features {
+/* .features {
   display: flex;
   align-items: center;
   padding: 2rem 0;
@@ -8,4 +8,226 @@
 .featureSvg {
   height: 200px;
   width: 200px;
+} */
+
+
+/**
+ * CSS styles for the HomepageHeader component.
+ * Aiming for a dark, futuristic, neon-glow theme consistent with the reference.
+ */
+
+.heroBanner {
+  padding: 4rem 0;
+  text-align: center;
+  position: relative;
+  overflow: hidden; /* Ensures neon glow doesn't spill out unexpectedly */
+  background: linear-gradient(145deg, #0a0e14 0%, #10151f 50%, #0a0e14 100%); /* Dark gradient background */
+  color: #e0e0e0; /* Light text for dark background */
+}
+
+@media screen and (max-width: 996px) {
+  .heroBanner {
+    padding: 2rem 0;
+  }
+}
+
+.heroContent {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 3rem; /* Spacing between image and text content */
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+@media screen and (max-width: 996px) {
+  .heroContent {
+    flex-direction: column;
+    gap: 2rem;
+  }
+}
+
+.heroImageContainer {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+.bookCover {
+  max-width: 100%;
+  height: auto;
+  max-height: 450px; /* Set max height as requested */
+  width: auto; /* Ensure width adjusts with height */
+  border-radius: 8px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5), 0 0 10px rgba(0, 204, 255, 0.3); /* Subtle glow */
+  transition: transform 0.3s ease-in-out;
+}
+
+.bookCover:hover {
+  transform: scale(1.03); /* Slight zoom on hover */
+}
+
+.heroTextContent {
+  flex: 1;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+@media screen and (max-width: 996px) {
+  .heroTextContent {
+    text-align: center;
+    align-items: center;
+  }
+}
+
+.bookTitle {
+  font-size: 3.5rem;
+  font-weight: 800;
+  color: white; /* Big title bold white H1 */
+  text-shadow: 0 0 15px rgba(0, 255, 255, 0.8), 0 0 30px rgba(0, 255, 255, 0.6); /* Stronger neon glow */
+  line-height: 1.1;
+  margin-bottom: 0; /* Remove margin-bottom, controlled by parent gap */
+}
+
+.welcomeQuote {
+  font-size: 1.4rem; /* Already 'slightly smaller' than H1 */
+  font-weight: 700; /* Also bold */
+  color: white; /* Also bold white */
+  font-style: normal; /* Remove italic */
+  margin-top: -1rem;
+  margin-bottom: 1rem;
+}
+
+.bookSubtitle {
+  font-size: 1.3rem; /* 20-24px, 1.3rem = 20.8px */
+  color: white; /* medium white text */
+  opacity: 0.9; /* Slightly less opaque for 'medium' feel */
+  margin-bottom: 1rem; /* 16px gap between subtitle and badges */
+}
+
+.separator {
+  width: 80px; /* Thin line width */
+  height: 2px; /* Thin line height */
+  background-color: rgba(0, 255, 255, 0.4); /* Subtle neon color */
+  margin: 1.5rem auto; /* Centered under subtitle, 1.5rem (24px) gap */
+}
+
+.featureBadges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 0; /* Controlled by previous element's margin-bottom */
+  margin-bottom: 1.5rem; /* 24px gap between badges and CTA buttons (1.5rem * 16px = 24px) */
+  justify-content: flex-start; /* Align badges to the left */
+}
+
+@media screen and (max-width: 996px) {
+  .featureBadges {
+    justify-content: center; /* Center badges on smaller screens */
+  }
+}
+
+.badge {
+  display: flex;
+  align-items: center;
+  background-color: rgba(0, 204, 255, 0.1); /* Translucent bright background */
+  border: 1px solid #00cccc; /* Cyan border */
+  border-radius: 20px;
+  padding: 0.5rem 1.2rem;
+  font-size: 0.9rem;
+  color: #00ffff;
+  font-weight: 600;
+  box-shadow: 0 0 8px rgba(0, 204, 204, 0.5); /* Subtle glow for badges */
+}
+
+.badgeIcon {
+  width: 20px;
+  height: 20px;
+  margin-right: 0.5rem;
+  background-color: #00ffff; /* Example icon color */
+  border-radius: 50%;
+  box-shadow: 0 0 8px rgba(0, 255, 255, 0.7), 0 0 15px rgba(0, 255, 255, 0.4); /* Glowing neon effect */
+}
+
+/* Placeholder icon styles - these would be replaced with actual SVG/font icons */
+.icon-opensource { /* Represents a gear, a globe, or similar */ }
+.icon-colearning { /* Represents two people, or a brain + computer */ }
+.icon-specdriven { /* Represents a blueprint, or a checklist */ }
+
+.buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  margin-top: 0; /* Controlled by previous element's margin-bottom */
+  justify-content: flex-start; /* Align buttons to the left */
+}
+
+@media screen and (max-width: 996px) {
+  .buttons {
+    justify-content: center; /* Center buttons on smaller screens */
+  }
+}
+
+.ctaButton {
+  border-radius: 25px; /* Very rounded */
+  font-size: 1.1rem;
+  padding: 0.8rem 2rem;
+  font-weight: 700;
+  transition: all 0.3s ease-in-out;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 0 15px rgba(0, 255, 255, 0.4); /* Light glow shadow */
+}
+
+.ctaButtonPrimary {
+  background-color: #00bcd4; /* Very soft modern blue/teal */
+  color: #0d1117; /* Dark text */
+  border: none;
+}
+
+.ctaButtonPrimary:hover {
+  background-color: #00a0b2; /* Slightly darker blue/teal on hover */
+  transform: translateY(-3px);
+  box-shadow: 0 0 20px rgba(0, 255, 255, 0.6);
+}
+
+.ctaButtonSecondary {
+  background-color: transparent;
+  color: #00bcd4; /* Very soft modern blue/teal */
+  border: 2px solid #00bcd4;
+}
+
+.ctaButtonSecondary:hover {
+  background-color: rgba(0, 188, 212, 0.1);
+  transform: translateY(-3px);
+  box-shadow: 0 0 20px rgba(0, 188, 212, 0.6);
+}
+
+/* Neon border effect on hover for secondary button */
+.ctaButtonSecondary:hover::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: conic-gradient(transparent 0deg, transparent 90deg, #00bcd4 90deg, #00bcd4 180deg, transparent 180deg, transparent 270deg, #00bcd4 270deg, #00bcd4 360deg);
+  animation: rotateBorder 4s linear infinite;
+  z-index: -1;
+  opacity: 0.5;
+}
+
+@keyframes rotateBorder {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }

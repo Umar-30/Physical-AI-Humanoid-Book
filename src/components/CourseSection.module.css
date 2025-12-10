@@ -1,0 +1,261 @@
+/* src/components/CourseSection.module.css */
+
+/* Define some base colors for consistency with index.module.css */
+:root {
+  --pana-dark-bg: #0d1117;
+  --pana-gradient-start: #111827;
+  --pana-gradient-end: #0c0d12;
+  --pana-neon-blue: #00e5ff;
+  --pana-neon-purple: #a020f0;
+  --pana-text-light: #e0e0e0;
+  --pana-text-medium: #b0b0b0;
+  --pana-separator-color: #3f3f46;
+
+  /* Specific colors for this section */
+  --course-bg-dark: #1f2937; /* bg-gray-800 */
+  --course-bg-darker: #111827; /* bg-gray-900 */
+  --course-text-gray: #d1d5db; /* text-gray-300 */
+  --course-blue-500: #3b82f6; /* bg-blue-500 */
+  --course-blue-600: #2563eb; /* bg-blue-600 */
+  --course-blue-400: #60a5fa; /* text-blue-400 */
+  --course-purple-500: #a855f7; /* from-purple-500 */
+  --course-purple-600: #9333ea; /* to-purple-600 */
+  --course-purple-700: #7e22ce; /* hover:to-purple-700 */
+  --course-blue-300: #93c5fd; /* group-hover:text-blue-300 */
+}
+
+/* Main Section Container */
+.courseSectionContainer {
+  padding-top: 4rem; /* py-16 */
+  padding-bottom: 4rem; /* py-16 */
+  background-color: var(--course-bg-darker); /* bg-gray-900 */
+  color: var(--pana-text-light); /* text-white */
+  position: relative;
+  overflow: hidden;
+}
+
+/* Background Gradient Effect */
+.backgroundEffect {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0; /* inset-0 */
+  background: linear-gradient(to bottom right, #1f2937, #111827, #000000); /* from-gray-800 via-gray-900 to-black */
+  opacity: 0.9;
+  z-index: 0;
+}
+
+/* Main Content Wrapper (Container) */
+.mainContentWrapper {
+  max-width: 1200px; /* container mx-auto */
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1.5rem; /* px-6 */
+  padding-right: 1.5rem; /* px-6 */
+  position: relative;
+  z-index: 10;
+}
+
+/* Welcome Note Section */
+.welcomeNoteSection {
+  text-align: center;
+  margin-bottom: 4rem; /* mb-16 */
+  max-width: 48rem; /* max-w-3xl */
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.welcomeTitle {
+  font-size: 3rem; /* text-5xl */
+  font-weight: 800; /* font-extrabold */
+  margin-bottom: 1.5rem; /* mb-6 */
+  line-height: 1.25; /* leading-tight */
+  
+  /* Gradient text effect */
+  background-image: linear-gradient(to right, var(--course-blue-400), var(--course-purple-500)); /* from-blue-400 to-purple-500 */
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent; /* Fallback for browsers that don't support background-clip */
+}
+
+.welcomeText {
+  font-size: 1.125rem; /* text-lg */
+  color: var(--course-text-gray); /* text-gray-300 */
+  margin-bottom: 2rem; /* mb-8 */
+  max-width: 42rem; /* max-w-2xl */
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.startJourneyButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 2rem; /* px-8 py-3 */
+  border: 1px solid transparent;
+  font-size: 1rem; /* text-base */
+  font-weight: 500; /* font-medium */
+  border-radius: 9999px; /* rounded-full */
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* shadow-lg */
+  color: white;
+  background-image: linear-gradient(to right, var(--course-blue-500), var(--course-purple-600)); /* bg-gradient-to-r from-blue-500 to-purple-600 */
+  transition-property: all;
+  transition-duration: 300ms;
+  transition-timing-function: ease-in-out;
+  text-decoration: none; /* Remove underline from Link */
+}
+
+.startJourneyButton:hover {
+  background-image: linear-gradient(to right, var(--course-blue-600), var(--course-purple-700)); /* hover:from-blue-600 hover:to-purple-700 */
+  transform: translateY(-0.25rem); /* hover:-translate-y-1 */
+}
+
+/* Module Cards Section Title */
+.moduleSectionTitle {
+  font-size: 2.25rem; /* text-4xl */
+  font-weight: 700; /* font-bold */
+  text-align: center;
+  margin-bottom: 3rem; /* mb-12 */
+  color: var(--course-blue-400); /* text-blue-400 */
+  filter: drop-shadow(0 4px 3px rgba(0, 0, 0, 0.07)) drop-shadow(0 2px 2px rgba(0, 0, 0, 0.06)); /* drop-shadow-md */
+}
+
+/* Module Grid Layout */
+.moduleGrid {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr)); /* grid-cols-1 */
+  gap: 2rem; /* gap-8 */
+}
+
+/* Responsive grid for medium screens */
+@media (min-width: 768px) { /* md */
+  .moduleGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)); /* md:grid-cols-2 */
+  }
+}
+
+/* Responsive grid for large screens */
+@media (min-width: 1024px) { /* lg */
+  .moduleGrid {
+    grid-template-columns: repeat(4, minmax(0, 1fr)); /* lg:grid-cols-4 */
+  }
+  .welcomeTitle {
+    font-size: 3.75rem; /* text-6xl */
+  }
+}
+
+
+/* Individual Module Card */
+.moduleCard {
+  position: relative;
+  background-color: var(--course-bg-dark); /* bg-gray-800 */
+  padding: 1.5rem; /* p-6 */
+  border-radius: 0.75rem; /* rounded-xl */
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); /* shadow-xl */
+  transition-property: all;
+  transition-duration: 300ms;
+  transition-timing-function: ease-in-out;
+  transform: translateY(0); /* Initial state for hover effect */
+  cursor: pointer; /* Indicate clickability */
+}
+
+.moduleCard:hover {
+  box-shadow: 0 0 20px 5px rgba(59, 130, 246, 0.5); /* hover:shadow-blue-500/50 */
+  transform: translateY(-0.5rem); /* hover:-translate-y-2 */
+}
+
+/* Neon Border Effect on Hover for Card */
+.moduleCardBorderEffect {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0; /* inset-0 */
+  border-radius: 0.75rem; /* rounded-xl */
+  border: 2px solid transparent;
+  transition-property: all;
+  transition-duration: 300ms;
+  transition-timing-function: ease-in-out;
+}
+
+.moduleCard:hover .moduleCardBorderEffect {
+  border-color: var(--course-blue-500); /* group-hover:border-blue-500 */
+}
+
+/* Module Card Inner Content */
+.moduleCardContent {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.moduleCardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem; /* mb-4 */
+}
+
+.moduleNumberBadge {
+  font-size: 0.875rem; /* text-sm */
+  font-weight: 600; /* font-semibold */
+  padding: 0.25rem 0.75rem; /* px-3 py-1 */
+  border-radius: 9999px; /* rounded-full */
+  background-color: var(--course-blue-600); /* bg-blue-600 */
+  color: white;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06); /* shadow-md */
+}
+
+.moduleIcon {
+  font-size: 2.5rem; /* text-4xl */
+  color: var(--course-blue-400); /* text-blue-400 */
+  filter: drop-shadow(0 4px 3px rgba(0, 0, 0, 0.07)) drop-shadow(0 2px 2px rgba(0, 0, 0, 0.06)); /* drop-shadow-lg */
+}
+
+.moduleCardTitle {
+  font-size: 1.5rem; /* text-2xl */
+  font-weight: 700; /* font-bold */
+  margin-bottom: 0.75rem; /* mb-3 */
+  color: white;
+  transition-property: color;
+  transition-duration: 300ms;
+  text-decoration: none;
+}
+
+.moduleCard:hover .moduleCardTitle {
+  color: var(--course-blue-300); /* group-hover:text-blue-300 */
+}
+
+.moduleCardSummary {
+  color: var(--course-text-gray); /* text-gray-300 */
+  font-size: 1rem; /* text-base */
+  margin-bottom: 1.5rem; /* mb-6 */
+  flex-grow: 1; /* flex-grow */
+}
+
+.moduleCardButtonWrapper {
+  margin-top: auto; /* mt-auto */
+}
+
+.moduleCardButton {
+  display: inline-block;
+  background-color: var(--course-blue-500); /* bg-blue-500 */
+  color: white;
+  font-weight: 500; /* font-medium */
+  padding: 0.5rem 1rem; /* py-2 px-4 */
+  border-radius: 9999px; /* rounded-full */
+  font-size: 0.875rem; /* text-sm */
+  transition-property: all;
+  transition-duration: 300ms;
+  transition-timing-function: ease-in-out;
+  text-decoration: none; /* Remove underline from Link */
+}
+
+.moduleCardButton:hover {
+  background-color: var(--course-blue-600); /* hover:bg-blue-600 */
+  transform: scale(1.05); /* group-hover:scale-105 */
+}

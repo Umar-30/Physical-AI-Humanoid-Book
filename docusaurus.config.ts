@@ -5,8 +5,8 @@ import type * as Preset from '@docusaurus/preset-classic';
 // This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
 
 const config: Config = {
-  title: 'My Site',
-  tagline: 'Dinosaurs are cool',
+  title: 'Physical AI & Humanoid Robotics',
+  tagline: 'A Hands-On Guide to Building AI-Powered Physical Systems and Humanoid Robotics',
   favicon: 'img/favicon.ico',
 
   // Future flags, see https://docusaurus.io/docs/api/docusaurus-config#future
@@ -80,17 +80,16 @@ const config: Config = {
       respectPrefersColorScheme: true,
     },
     navbar: {
-      title: 'My Site',
+      title: 'Physical AI & Humanoid Robotics',
       logo: {
         alt: 'My Site Logo',
         src: 'img/logo.svg',
       },
       items: [
         {
-          type: 'docSidebar',
-          sidebarId: 'tutorialSidebar',
+          to: '/learning', // Connects to the new learning page
+          label: 'learning',
           position: 'left',
-          label: 'Tutorial',
         },
         {to: '/blog', label: 'Blog', position: 'left'},
         {
@@ -107,8 +106,8 @@ const config: Config = {
           title: 'Docs',
           items: [
             {
-              label: 'Tutorial',
-              to: '/docs/intro',
+              label: 'Learning',
+              to: '/learning',
             },
           ],
         },
@@ -143,7 +142,7 @@ const config: Config = {
           ],
         },
       ],
-      copyright: `Copyright © ${new Date().getFullYear()} My Project, Inc. Built with Docusaurus.`,
+      copyright: `Copyright © ${new Date().getFullYear()} Physical AI & Humanoid Robotics. Built with Docusaurus.`,
     },
     prism: {
       theme: prismThemes.github,
