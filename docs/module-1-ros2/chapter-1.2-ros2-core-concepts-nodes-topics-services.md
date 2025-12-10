@@ -6,7 +6,44 @@ sidebar_position: 2
 
 # Chapter 1.2: ROS 2 Core Concepts: Nodes, Topics, Services
 
-## Focus: Publish-subscribe pattern, service calls, actions
+# Chapter 1.2: ROS 2 Core Concepts: Nodes, Topics, Services
+
+ROS 2 provides a powerful and flexible framework for building robot applications by defining several core concepts that facilitate communication and organization. Understanding these concepts is fundamental to developing robust robotic systems.
+
+### Nodes: The Workhorses of ROS 2
+In ROS 2, a **Node** is an executable process that performs a specific task. Think of a node as an individual program or module within your robot's software system. For example, you might have one node for reading data from a camera, another for controlling motors, and yet another for performing navigation calculations.
+
+*   **Modularity:** Nodes promote modularity, allowing developers to break down complex robot behaviors into smaller, manageable, and reusable components.
+*   **Encapsulation:** Each node can be developed, tested, and deployed independently, making debugging and maintenance easier.
+*   **Communication:** Nodes communicate with each other using various mechanisms provided by ROS 2, primarily Topics, Services, and Actions.
+
+### Topics: Asynchronous Data Streaming (Publish/Subscribe)
+**Topics** are the most common way for nodes to exchange data in ROS 2, implementing a **publish/subscribe** communication model.
+
+*   **Publishers:** A node that sends data to a topic is called a publisher. It broadcasts messages without knowing which (if any) nodes are listening.
+*   **Subscribers:** A node that receives data from a topic is called a subscriber. It listens for messages on a specific topic.
+*   **One-to-Many:** Topics support one-to-many communication; a single publisher can send data to multiple subscribers, and multiple publishers can send data to a single topic (though this is less common).
+*   **Message Types:** All messages transmitted over a topic must conform to a predefined message type (e.g., `sensor_msgs/msg/Image` for camera data, `std_msgs/msg/String` for simple text). This ensures data consistency.
+*   **Asynchronous:** Communication via topics is asynchronous and non-blocking, meaning the publisher doesn't wait for a response from the subscriber. This is ideal for continuous data streams like sensor readings, joint states, or velocity commands.
+
+### Services: Synchronous Request/Response Interaction
+**Services** provide a **request/response** communication model, allowing nodes to make synchronous calls to other nodes and wait for a result.
+
+*   **Client:** A node that requests a service is called a client.
+*   **Server:** A node that provides a service is called a server. It waits for requests from clients and sends back a response.
+*   **Synchronous:** Unlike topics, services are synchronous and blocking. The client sends a request and waits until it receives a response (or a timeout occurs).
+*   **Use Cases:** Services are suitable for operations that require an immediate result, such as triggering a specific action (e.g., "take a picture," "move arm to position X"), querying a database, or performing a complex calculation.
+
+### Actions: Long-Running Goal-Oriented Tasks
+**Actions** are a more complex communication primitive built on top of topics and services, designed for **long-running, goal-oriented tasks**.
+
+*   **Goal:** A client sends a goal to an action server (e.g., "navigate to X, Y").
+*   **Feedback:** The action server provides continuous feedback as it progresses towards the goal (e.g., "current position," "progress percentage").
+*   **Result:** Once the goal is achieved (or fails), the action server sends a final result back to the client.
+*   **Preemptable:** Actions are preemptable, meaning a client can cancel a goal that is currently being executed by the server.
+*   **Use Cases:** Ideal for tasks like navigation, complex manipulation sequences, or any operation that takes a significant amount of time and for which continuous feedback is desirable.
+
+These core concepts—Nodes, Topics, Services, and Actions—form the backbone of communication and control in ROS 2, enabling the creation of highly distributed, modular, and robust robotic applications.
 ## Learning objectives: Implement basic ROS 2 communication
 
 ### Understanding Publish/Subscribe Communication
