@@ -1,5 +1,7 @@
 # Dependencies
 /node_modules
+/dist
+*.log
 
 # Production
 /build
@@ -18,3 +20,29 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Docker
+Dockerfile*
+.dockerignore
+coverage/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.egg-info/
+
+# C# / .NET
+bin/
+obj/
+*.user
+*.suo
+packages/
+
+# Universal ignore patterns
+Thumbs.db
+*.tmp
+*.swp
+.vscode/
+.idea/

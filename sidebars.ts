@@ -28,6 +28,10 @@ const sidebars: SidebarsConfig = {
         slug: '/category/module-2-digital-twin',
       },
       items: [
+        'module-2-digital-twin/index',
+        'module-2-digital-twin/environment-setup',
+        'module-2-digital-twin/gazebo-installation',
+        'module-2-digital-twin/unity-installation',
         'module-2-digital-twin/chapter-2-1-gazebo-physics-simulation-fundamentals',
         'module-2-digital-twin/chapter-2-2-advanced-urdf-for-simulation',
         'module-2-digital-twin/chapter-2-3-unity-for-human-robot-interaction',
@@ -44,10 +48,12 @@ const sidebars: SidebarsConfig = {
         slug: '/category/module-3-ai-brain',
       },
       items: [
-        'module-3-ai-brain/chapter-3-1-introduction-to-nvidia-isaac-sim',
-        'module-3-ai-brain/chapter-3-2-perception-with-isaac-ros',
-        'module-3-ai-brain/chapter-3-3-navigation-for-bipedal-robots',
-        'module-3-ai-brain/chapter-3-4-reinforcement-learning-for-robot-control',
+        'module-3-ai-brain/index',
+        'module-3-ai-brain/environment-setup',
+        // Placeholder for Chapter 1 content
+        // Placeholder for Chapter 2 content
+        // Placeholder for Chapter 3 content
+        // Placeholder for Chapter 4 content
       ],
     },
     {
@@ -60,10 +66,10 @@ const sidebars: SidebarsConfig = {
         slug: '/category/module-4-vla',
       },
       items: [
-        'module-4-vla/chapter-4-1-voice-interface-with-openai-whisper',
-        'module-4-vla/chapter-4-2-llm-based-cognitive-planning',
-        'module-4-vla/chapter-4-3-vla-pipeline-integration',
-        'module-4-vla/chapter-4-4-capstone-project-autonomous-humanoid',
+        'module-4-vla/chapter-4.1-voice-interface-with-openai-whisper',
+        'module-4-vla/chapter-4.2-llm-based-cognitive-planning',
+        'module-4-vla/chapter-4.3-vla-pipeline-integration',
+        'module-4-vla/chapter-4.4-capstone-project-autonomous-humanoid',
       ],
     },
     {

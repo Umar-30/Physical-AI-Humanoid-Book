@@ -1,0 +1,45 @@
+---
+id: 3
+title: Tasks for Module 3 AI Robot Brain Content
+stage: tasks
+date: 2025-12-12
+surface: agent
+model: gemini-1.5-flash-latest
+feature: 001-module-3-ai-robot-brain
+branch: 001-module-3-ai-robot-brain
+user: user
+command: /sp.tasks generate an actionable, dependency-ordered tasks.md for the feature based on available design artifacts.
+labels: ["tasks", "ai-robotics", "nvidia-isaac", "module-3"]
+links:
+  spec: specs/001-module-3-ai-robot-brain/spec.md
+  ticket: null
+  adr: null
+  pr: null
+files:
+  - specs/001-module-3-ai-robot-brain/tasks.md
+tests:
+  - null
+---
+
+## Prompt
+
+Generate an actionable, dependency-ordered tasks.md for the feature based on available design artifacts.
+
+## Response snapshot
+
+Successfully generated the actionable, dependency-ordered tasks.md for 'Module 3: The AI-Robot Brain Content'. The tasks are organized into phases, with clear user story assignments and identified parallel opportunities. This document is ready for implementation.
+
+## Outcome
+
+- ✅ Impact: Created a detailed, actionable task list for implementing the Module 3 content.
+- 🧪 Tests: Manual validation of task format and organization.
+- 📁 Files: Created `specs/001-module-3-ai-robot-brain/tasks.md`.
+- 🔁 Next prompts: User can now start implementing the tasks outlined in tasks.md.
+- 🧠 Reflection: Successfully translated detailed specification and plan into granular, executable tasks, adhering to strict formatting requirements.
+
+## Evaluation notes (flywheel)
+
+- Failure modes observed: None observed during task generation.
+- Graders run and results (PASS/FAIL): null
+- Prompt variant (if applicable): null
+- Next experiment (smallest change to try): null
