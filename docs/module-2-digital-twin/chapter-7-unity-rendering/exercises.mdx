@@ -1,0 +1,68 @@
+---
+id: exercises
+title: Chapter 7 Exercises
+---
+
+# Unity Rendering Exercises
+
+## Exercise 7.1: Complete Robot Visualization
+
+**Task**: Import and visualize your humanoid robot in Unity
+
+**Steps**:
+1. Import URDF from Chapter 6
+2. Create RobotVisualizer script to display joint states
+3. Connect to Gazebo and verify synchronization
+
+**Success**: Robot in Unity mirrors Gazebo movements with < 100ms delay
+
+---
+
+## Exercise 7.2: HRI Scene
+
+**Task**: Create a human approaching the robot
+
+**Requirements**:
+- Human avatar walks towards robot
+- Robot head tracks human position
+- Display safety zone (1.5m radius)
+
+**Test**: Human enters safety zone → Warning indicator appears
+
+---
+
+## Exercise 7.3: Control Dashboard
+
+**Task**: Build UI with controls and data display
+
+**Requirements**:
+- Connection status indicator (green/red)
+- Real-time joint position display
+- Reset button that calls ROS service
+- FPS counter
+
+**Success**: Dashboard updates at 30+ FPS
+
+---
+
+## Bonus: WebGL Build
+
+Export Unity scene to web browser:
+
+1. **File → Build Settings → WebGL**
+2. **Build**
+3. Test in browser
+
+<details>
+<summary>Solution Hints</summary>
+
+- Use `RobotVisualizer.cs` from Section 7.3
+- Human movement: `Vector3.MoveTowards()`
+- UI updates: Subscribe to ROS topics in UI scripts
+- WebGL: May need to adjust ROS connection settings
+
+</details>
+
+---
+
+👉 **[Continue to Chapter 8: Multi-Simulator →](/docs/module-2-digital-twin/chapter-8-multi-simulator/chapter-8-overview)**

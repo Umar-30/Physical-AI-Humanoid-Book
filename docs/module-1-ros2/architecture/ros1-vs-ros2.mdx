@@ -1,0 +1,249 @@
+---
+sidebar_position: 4
+title: ROS 1 vs ROS 2
+description: Key differences between ROS 1 and ROS 2 and why ROS 2 was created
+keywords: [ros1, ros2, comparison, migration, differences]
+---
+
+# ROS 1 vs ROS 2
+
+If you've heard of "ROS" before, you might be wondering: **What's the difference between ROS 1 and ROS 2?** And **why was ROS 2 created?**
+
+## The Short Answer
+
+:::tip Quick Summary
+
+**ROS 1** was groundbreaking for research but had architectural limitations for production robots. **ROS 2** is a complete redesign addressing real-time, security, multi-platform, and production needs while maintaining the same core concepts.
+
+:::
+
+## Why ROS 2 Was Created
+
+ROS 1 (started in 2007) revolutionized robotics research. But as robots moved from labs to production, several limitations became apparent:
+
+### 1. **No Real-Time Support**
+
+**ROS 1**: Custom middleware with no real-time guarantees
+- Unpredictable communication timing
+- Not suitable for hard real-time control loops
+- Couldn't run on RTOSes
+
+**ROS 2**: Built on DDS with real-time capabilities
+- Deterministic communication timing
+- RTOS support (e.g., VxWorks, QNX)
+- Suitable for industrial control
+
+### 2. **Single Master Dependency**
+
+**ROS 1**: Centralized master node (`roscore`)
+- Single point of failure
+- Must be running before any nodes start
+- Complicated distributed setups
+
+**ROS 2**: Fully distributed discovery via DDS
+- No central master
+- Nodes discover each other automatically
+- More resilient to failures
+
+### 3. **No Built-In Security**
+
+**ROS 1**: No authentication or encryption
+- Anyone on network can publish/subscribe
+- No way to verify node identity
+- Unsuitable for deployed robots
+
+**ROS 2**: DDS Security standard (SROS2)
+- Authentication, encryption, access control
+- Certificate-based identity
+- Production-ready security
+
+### 4. **TCP-Only Communication**
+
+**ROS 1**: Primarily TCP connections
+- Higher latency than UDP
+- Less efficient for local communication
+- Limited scalability
+
+**ROS 2**: DDS supports UDP, TCP, and shared memory
+- Low-latency UDP for local nodes
+- Shared memory for same-machine communication
+- Better performance
+
+### 5. **Limited Platform Support**
+
+**ROS 1**: Primarily Ubuntu/Linux
+- Difficult to run on Windows or macOS
+- Porting required significant effort
+
+**ROS 2**: Native multi-platform support
+- First-class Windows and macOS support
+- Easier embedded system integration
+- Broader developer accessibility
+
+### 6. **Python 2 Dependency**
+
+**ROS 1**: Built on Python 2
+- Python 2 reached End-of-Life in 2020
+- Security and maintenance concerns
+
+**ROS 2**: Modern Python 3
+- Up-to-date language features
+- Long-term maintainability
+
+## Detailed Comparison
+
+| Aspect | ROS 1 (Noetic) | ROS 2 (Humble) |
+|--------|----------------|----------------|
+| **Architecture** | Custom middleware | DDS-based middleware |
+| **Discovery** | Central master (`roscore`) | Distributed (DDS) |
+| **Real-Time** | No | Yes (with RTOS) |
+| **Security** | No | DDS-Security (SROS2) |
+| **Languages** | C++03, Python 2 | C++17, Python 3.10 |
+| **Platforms** | Primarily Linux | Linux, Windows, macOS |
+| **Communication** | TCP (mostly) | UDP, TCP, shared memory |
+| **Lifecycle** | Basic | Managed lifecycle states |
+| **QoS** | Limited | Full DDS QoS policies |
+| **Build System** | catkin | colcon + ament |
+| **Support** | EOL May 2025 | LTS until May 2027 |
+
+## Key Architectural Differences
+
+### Node Lifecycle
+
+**ROS 1**: Nodes have simple on/off states
+
+**ROS 2**: Managed lifecycle with states:
+- **Unconfigured**: Node created but not ready
+- **Inactive**: Configured but not running
+- **Active**: Fully operational
+- **Finalized**: Shutting down
+
+This enables controlled startup/shutdown sequencing.
+
+### Quality of Service (QoS)
+
+**ROS 1**: Topics have fixed communication properties
+
+**ROS 2**: Per-topic QoS configuration:
+
+```python
+# ROS 2: Configure reliability, durability, history, etc.
+qos_profile = QoSProfile(
+    reliability=ReliabilityPolicy.RELIABLE,
+    durability=DurabilityPolicy.TRANSIENT_LOCAL,
+    history=HistoryPolicy.KEEP_LAST,
+    depth=10
+)
+self.publisher = self.create_publisher(String, 'topic', qos_profile)
+```
+
+### Actions
+
+**ROS 1**: actionlib (separate package, complex)
+
+**ROS 2**: Actions are first-class primitives
+- Integrated into core ROS 2
+- Better performance
+- Simpler API
+
+### Launch System
+
+**ROS 1**: XML-based launch files
+
+**ROS 2**: Python-based launch files
+- Programmatic control
+- Conditional logic, loops, functions
+- Type checking and IDE support
+
+```python
+# ROS 2 launch file (Python)
+def generate_launch_description():
+    return LaunchDescription([
+        Node(package='demo', executable='talker'),
+        Node(package='demo', executable='listener'),
+    ])
+```
+
+## What Stayed the Same
+
+Despite the redesign, core concepts remain:
+
+- **Nodes** - Still the fundamental unit
+- **Topics** - Still pub/sub messaging
+- **Services** - Still request/response
+- **Actions** - Still goal-oriented (improved)
+- **Parameters** - Still configuration mechanism (improved)
+- **tf2** - Transform library (mostly compatible)
+
+**Philosophy**: If you understand ROS 1 concepts, you understand ROS 2 concepts. The implementation changed, not the ideas.
+
+## Timeline and Support
+
+### ROS 1 Timeline
+
+- **2007**: ROS 1 initial release (Willow Garage)
+- **2020**: Noetic Ninjemys (final ROS 1 release)
+- **May 2025**: ROS 1 Noetic EOL (End of Life)
+
+**Status**: Maintenance mode only. No new features.
+
+### ROS 2 Timeline
+
+- **2017**: ROS 2 Ardent (first release)
+- **2020**: Foxy Fitzroy (first LTS)
+- **2022**: Humble Hawksbill (current LTS)
+- **May 2027**: Humble EOL
+
+**Status**: Active development. This is the future of ROS.
+
+## Should You Learn ROS 1 or ROS 2?
+
+:::tip Our Recommendation
+
+**Learn ROS 2** (specifically Humble Hawksbill). Here's why:
+
+1. **ROS 1 is ending**: EOL in May 2025
+2. **Industry is migrating**: New projects use ROS 2
+3. **Better for learning**: Modern language features (Python 3, C++17)
+4. **Future-proof**: All new development happens in ROS 2
+5. **Easier transition**: Going ROS 2 → ROS 1 (if needed) is easier than ROS 1 → ROS 2
+
+:::
+
+## Migration from ROS 1
+
+If you have ROS 1 code:
+
+### Migration Tools
+
+- **ros1_bridge**: Run ROS 1 and ROS 2 nodes simultaneously
+- **ros2 bag**: Record/replay data (replaces rosbag)
+- Migration guides for common packages
+
+### What to Expect
+
+- **Concepts**: Very similar
+- **API**: Changed syntax, same ideas
+- **Dependencies**: May need ROS 2 versions of packages
+- **Effort**: Small nodes (hours), large projects (weeks)
+
+Most migration is **mechanical translation**, not redesign.
+
+## Key Takeaways
+
+:::note Summary
+
+- **ROS 2** addresses ROS 1's limitations: real-time, security, multi-platform
+- **Architecture**: DDS-based, distributed, no central master
+- **Modern stack**: Python 3, C++17, native Windows/macOS
+- **Core concepts**: Nodes, topics, services, actions remain the same
+- **ROS 1 EOL**: May 2025 - ROS 2 is the future
+- **For new projects**: Use ROS 2 Humble (LTS until 2027)
+
+:::
+
+---
+
+**Next**: [DDS Explained →](./dds-explained.mdx) - Understanding the middleware layer
+
+**Previous**: [← ROS 2 Overview](./ros2-overview.mdx)

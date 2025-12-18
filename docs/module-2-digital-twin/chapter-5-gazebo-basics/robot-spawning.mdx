@@ -1,0 +1,116 @@
+---
+id: robot-spawning
+title: "5.3: Robot Spawning Methods"
+sidebar_label: "5.3 Robot Spawning"
+sidebar_position: 4
+description: Learn to spawn humanoid robots in Gazebo using command-line and launch files
+keywords: [gazebo, robot, spawn, urdf, launch-file]
+---
+
+# 5.3: Robot Spawning Methods
+
+## Overview
+
+Learn two methods to spawn robots in Gazebo: command-line (quick testing) and launch files (automation).
+
+**Time**: 30 minutes
+
+## Method 1: Command-Line Spawning
+
+### Step 1: Start Gazebo
+```bash
+gz sim humanoid_world.sdf
+```
+
+### Step 2: Spawn Robot (New Terminal)
+```bash
+gz service -s /world/humanoid_world/create \
+  --reqtype gz.msgs.EntityFactory \
+  --reptype gz.msgs.Boolean \
+  --timeout 1000 \
+  --req 'sdf_filename: "/path/to/example_humanoid.urdf", name: "my_robot", pose: {position: {x: 0, y: 0, z: 1.0}}'
+```
+
+**Parameters**:
+- `sdf_filename`: Path to URDF/SDF file
+- `name`: Robot instance name
+- `pose`: Spawn position (x, y, z in meters)
+
+### Verify Robot Spawned
+```bash
+gz topic -l | grep joint_states
+```
+
+Should see: `/world/humanoid_world/model/my_robot/joint_state`
+
+## Method 2: Launch Files (Recommended)
+
+### Using ROS 2 Launch
+
+**Launch file**: `spawn_robot.launch.py`
+
+📁 [Download: spawn_robot.launch.py](/files/module-2/launch/spawn_robot.launch.py)
+
+**Usage**:
+```bash
+ros2 launch spawn_robot.launch.py
+```
+
+**With custom parameters**:
+```bash
+ros2 launch spawn_robot.launch.py \
+  world:=/path/to/my_world.sdf \
+  robot:=/path/to/my_robot.urdf \
+  name:=my_robot_name
+```
+
+### Launch File Structure
+
+```python
+ExecuteProcess(
+    cmd=['gz', 'sim', world_file, '-r'],  # Start Gazebo
+),
+Node(
+    package='ros_gz_sim',
+    executable='create',  # Spawn robot
+    arguments=['-name', robot_name, '-file', robot_file, ...]
+),
+```
+
+## Spawn Position Tips
+
+**At ground level**: `z: 0.05` (slightly above to avoid collision)
+**Dropping from height**: `z: 1.0` (tests physics/balance)
+**Offset from origin**: `x: 2, y: 3` (useful for multi-robot)
+
+## Common Issues
+
+**Robot falls through ground**:
+- Spawn higher: `z: 1.0`
+- Check URDF has collision geometries
+- Verify ground plane friction
+
+**"Model not found" error**:
+- Use absolute path to URDF
+- Check file exists: `ls -la /path/to/robot.urdf`
+
+**Robot spawns but is invisible**:
+- Check URDF has `<visual>` elements
+- Verify Gazebo materials exist
+
+## Quick Reference
+
+| Method | Use Case | Pros | Cons |
+|--------|----------|------|------|
+| Command-line | Quick testing | Fast, flexible | Manual, not repeatable |
+| Launch file | Production | Automated, repeatable | Requires setup |
+
+## What's Next
+
+Learn to configure physics parameters for stable simulation!
+
+👉 **[Next: Physics Configuration →](./physics-configuration)**
+
+---
+
+**Summary**: You can now spawn robots using command-line (quick) or launch files (automated). ✓

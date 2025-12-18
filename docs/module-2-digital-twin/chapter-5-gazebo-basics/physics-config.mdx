@@ -1,0 +1,131 @@
+---
+id: physics-configuration
+title: "5.4: Physics Engine Configuration"
+sidebar_label: "5.4 Physics Config"
+sidebar_position: 5
+description: Configure Gazebo physics parameters for stable humanoid robot simulation
+keywords: [gazebo, physics, bullet, timestep, configuration]
+---
+
+# 5.4: Physics Engine Configuration
+
+## Overview
+
+Optimize physics settings for stable, accurate humanoid robot simulation.
+
+**Time**: 20 minutes
+
+## Key Physics Parameters
+
+### 1. Timestep (`max_step_size`)
+
+```xml
+<max_step_size>0.001</max_step_size>  <!-- 1ms = 1000 Hz -->
+```
+
+**Effect**:
+- **Smaller** (0.0005): More accurate, slower
+- **Larger** (0.002): Faster, less stable
+- **Recommended for humanoids**: 0.001 (1ms)
+
+### 2. Real-Time Factor
+
+```xml
+<real_time_factor>1.0</real_time_factor>
+```
+
+**Values**:
+- `1.0`: Real-time speed
+- `<1.0`: Slow motion (for observation)
+- `>1.0`: Fast forward (if CPU allows)
+
+### 3. Physics Engine Selection
+
+```xml
+<physics name="physics" type="bullet">  <!-- or "dart", "ode" -->
+```
+
+| Engine | Speed | Accuracy | Best For |
+|--------|-------|----------|----------|
+| **Bullet** | Fast | Good | General use (default) |
+| **DART** | Medium | Excellent | Precise contact |
+| **ODE** | Fast | Moderate | Simple robots |
+
+**Recommendation**: Use **Bullet** for humanoid robots (good balance).
+
+## Common Configurations
+
+### High-Accuracy (Slow)
+```xml
+<physics name="high_accuracy" type="dart">
+  <max_step_size>0.0005</max_step_size>  <!-- 2000 Hz -->
+  <real_time_factor>1.0</real_time_factor>
+</physics>
+```
+
+### Balanced (Recommended)
+```xml
+<physics name="balanced" type="bullet">
+  <max_step_size>0.001</max_step_size>  <!-- 1000 Hz -->
+  <real_time_factor>1.0</real_time_factor>
+</physics>
+```
+
+### Fast (Lower Accuracy)
+```xml
+<physics name="fast" type="bullet">
+  <max_step_size>0.002</max_step_size>  <!-- 500 Hz -->
+  <real_time_factor>1.0</real_time_factor>
+</physics>
+```
+
+## Testing Physics Performance
+
+### Check Real-Time Factor
+While Gazebo running:
+```bash
+gz topic -e -t /stats
+```
+
+Look for: `real_time_factor: 0.9` (should be close to 1.0)
+
+### Monitor Update Rate
+```bash
+gz topic -e -t /world/*/stats | grep sim_time
+```
+
+**Target**: Consistent updates at configured Hz (e.g., 1000 Hz for 0.001 timestep)
+
+## Tuning for Humanoids
+
+**Stability issues** (robot falls/shakes):
+- ✅ Decrease timestep: 0.001 → 0.0005
+- ✅ Increase ground friction (see world files)
+- ✅ Check URDF inertia values (Chapter 6)
+
+**Performance issues** (slow simulation):
+- ✅ Increase timestep: 0.001 → 0.002
+- ✅ Simplify collision geometries
+- ✅ Use headless mode: `gz sim -s`
+
+## Quick Reference
+
+**Timestep Impact**:
+- 0.0005s (2000 Hz): Very stable, CPU intensive
+- 0.001s (1000 Hz): **Recommended**, good balance
+- 0.002s (500 Hz): Faster, may have instability
+
+**When to Use Each Engine**:
+- **Bullet**: Default choice for most robots
+- **DART**: Need precise contact physics
+- **ODE**: Simple wheeled robots
+
+## What's Next
+
+Learn to troubleshoot common Gazebo issues!
+
+👉 **[Next: Troubleshooting →](./troubleshooting)**
+
+---
+
+**Summary**: Configure physics timestep (0.001 recommended), choose engine (Bullet), monitor performance. ✓

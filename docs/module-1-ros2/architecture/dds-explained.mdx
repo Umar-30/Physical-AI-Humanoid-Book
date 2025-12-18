@@ -1,0 +1,296 @@
+---
+sidebar_position: 5
+title: DDS Explained
+description: Understanding the Data Distribution Service middleware that powers ROS 2
+keywords: [dds, middleware, ros2, rtps, discovery, qos]
+---
+
+# DDS Explained
+
+ROS 2 is built on top of **DDS** (Data Distribution Service). Understanding DDS helps you understand why ROS 2 works the way it does.
+
+## What is DDS?
+
+:::tip Definition
+
+**DDS** (Data Distribution Service) is an **OMG standard** for real-time, distributed data communication. It's a proven middleware technology used in military systems, industrial automation, medical devices, and autonomous vehicles.
+
+:::
+
+Think of DDS as the "postal system" for distributed applications:
+- **Publishers** send letters (messages)
+- **Subscribers** receive letters they've registered interest in
+- **Topics** are like address categories (e.g., "sensor data", "commands")
+- The postal service (DDS) handles **delivery, routing, and quality of service**
+
+## Why ROS 2 Uses DDS
+
+### 1. **Industry Standard**
+
+DDS is an **Object Management Group (OMG) standard**, not proprietary:
+- Open specification
+- Multiple commercial and open-source implementations
+- Battle-tested in safety-critical systems
+
+### 2. **Real-Time Capable**
+
+DDS was designed for real-time systems:
+- Predictable latency
+- Deterministic behavior
+- Works with real-time operating systems (RTOS)
+
+### 3. **Quality of Service (QoS)**
+
+Fine-grained control over communication tradeoffs:
+- Reliability vs. performance
+- Durability vs. memory
+- Latency vs. throughput
+
+### 4. **Automatic Discovery**
+
+Nodes find each other automatically:
+- No configuration needed
+- Works across networks
+- Dynamic system composition
+
+### 5. **Security**
+
+Built-in DDS-Security standard:
+- Authentication (prove identity)
+- Encryption (protect data)
+- Access control (permission management)
+
+## DDS Architecture
+
+DDS consists of several layers:
+
+### 1. RTPS (Real-Time Publish-Subscribe) Protocol
+
+The **wire protocol** that DDS uses:
+- UDP-based for low latency
+- Multicast for efficient discovery
+- Heartbeats and acknowledgments for reliability
+
+### 2. DDS API
+
+The application programming interface:
+- DataWriter (publisher)
+- DataReader (subscriber)
+- Topic definitions
+- QoS policy configuration
+
+### 3. Domain
+
+A **domain** is an isolated communication space:
+- Nodes in the same domain can communicate
+- Different domains are completely separate
+- Default domain: 0
+- Useful for running multiple robot systems on same network
+
+```bash
+# Set ROS_DOMAIN_ID to isolate robots
+export ROS_DOMAIN_ID=42
+```
+
+## How DDS Discovery Works
+
+One of DDS's most powerful features is **automatic discovery**:
+
+### Discovery Process
+
+1. **Node starts**: New participant joins the domain
+2. **Announcement**: Broadcasts "I exist!" via UDP multicast
+3. **Matching**: Existing nodes respond with their topics/services
+4. **Endpoints**: Publishers and subscribers discover each other
+5. **Communication**: Data flows between matched endpoints
+
+**No manual configuration needed!**
+
+:::note Example
+
+When you run `ros2 run demo_nodes_cpp talker`:
+
+1. Talker node joins domain 0
+2. Announces it publishes to `/chatter` topic
+3. Any node subscribed to `/chatter` automatically connects
+4. Data flows talker → listener
+
+All automatic. No IP addresses, no config files.
+
+:::
+
+## Quality of Service (QoS) Policies
+
+DDS provides **22 QoS policies**. ROS 2 exposes the most important ones:
+
+### 1. **Reliability**
+
+How delivery is guaranteed:
+
+- **RELIABLE**: Guarantee delivery (TCP-like)
+  - Use for: Commands, critical data
+  - Tradeoff: Higher latency, more bandwidth
+
+- **BEST_EFFORT**: Send and forget (UDP-like)
+  - Use for: High-frequency sensor data
+  - Tradeoff: May lose messages, lower latency
+
+### 2. **Durability**
+
+Whether late-joiners get past data:
+
+- **VOLATILE**: No history (default)
+  - Late subscribers only get new messages
+
+- **TRANSIENT_LOCAL**: Save last messages
+  - Late subscribers get last N messages
+  - Use for: Configuration, parameters
+
+### 3. **History**
+
+How many messages to keep:
+
+- **KEEP_LAST**: Keep last N messages (e.g., depth=10)
+  - Use for: Most topics
+
+- **KEEP_ALL**: Keep all messages
+  - Use for: Critical data, logging
+
+### 4. **Deadline**
+
+Max time between messages:
+
+- If messages don't arrive in time, trigger warning
+- Use for: Detecting failed sensors
+
+### 5. **Liveliness**
+
+How to detect if publisher is alive:
+
+- **AUTOMATIC**: Assume alive if process exists
+- **MANUAL_BY_TOPIC**: Publisher must assert liveliness
+
+## DDS Implementations
+
+ROS 2 can use different DDS implementations via the **rmw** (ROS Middleware) abstraction:
+
+| Implementation | Type | Best For |
+|----------------|------|----------|
+| **Fast DDS** (eProsima) | Open Source | Default, well-tested |
+| **CycloneDDS** (Eclipse) | Open Source | Performance, embedded |
+| **Connext DDS** (RTI) | Commercial | Safety-critical, certified |
+
+You can switch implementations without changing your code:
+
+```bash
+# Use CycloneDDS instead of Fast DDS
+export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+ros2 run demo_nodes_cpp talker
+```
+
+### Why Multiple Implementations?
+
+- **Flexibility**: Choose based on needs (performance, certification, licensing)
+- **Vendor independence**: Not locked into one provider
+- **Experimentation**: Test different implementations easily
+
+## DDS vs Custom Middleware
+
+Why use DDS instead of building custom middleware?
+
+| Aspect | Custom Middleware | DDS |
+|--------|-------------------|-----|
+| Development time | Months/years | Days |
+| Real-time guarantees | Hard to achieve | Built-in |
+| Security | Must implement yourself | DDS-Security standard |
+| Maintenance | Your responsibility | Vendor-supported |
+| Reliability | Prone to bugs | Battle-tested |
+| Interoperability | Custom protocol | Industry standard |
+
+**Verdict**: For production robots, DDS is the pragmatic choice.
+
+## Common DDS Misconceptions
+
+### ❌ "DDS is complicated"
+
+**Reality**: ROS 2 abstracts DDS complexity. You use simple `create_publisher()` calls.
+
+### ❌ "DDS is slow"
+
+**Reality**: DDS is used in high-frequency trading and fighter jets. It's extremely fast.
+
+### ❌ "DDS is only for big systems"
+
+**Reality**: DDS scales from embedded devices to cloud systems.
+
+### ❌ "I need to learn DDS to use ROS 2"
+
+**Reality**: You don't. ROS 2 provides a simpler API. DDS knowledge helps for advanced tuning.
+
+## When You Interact with DDS
+
+Most of the time, you don't think about DDS:
+
+```python
+# You write this (ROS 2 API)
+self.publisher = self.create_publisher(String, 'topic', 10)
+
+# Under the hood: ROS 2 → rmw → DDS DataWriter
+# But you don't see it!
+```
+
+You **do** interact with DDS concepts when:
+
+1. **Setting QoS policies** - Reliability, durability, history
+2. **Debugging communication** - Understanding why nodes don't connect
+3. **Performance tuning** - Optimizing for latency or throughput
+4. **Security setup** - Configuring DDS-Security (SROS2)
+
+## Debugging DDS Issues
+
+Common issues and solutions:
+
+### Issue: Nodes can't discover each other
+
+**Check**:
+1. Same `ROS_DOMAIN_ID`?
+2. Network allows UDP multicast?
+3. Firewall blocking ports?
+4. QoS policies compatible?
+
+**Debug tools**:
+```bash
+# List all nodes (uses DDS discovery)
+ros2 node list
+
+# Check topic endpoints
+ros2 topic info /topic --verbose
+```
+
+### Issue: QoS mismatch
+
+**Error**: "Could not match existing subscription"
+
+**Solution**: Ensure publisher and subscriber have compatible QoS:
+- RELIABLE publisher can → BEST_EFFORT subscriber ✓
+- BEST_EFFORT publisher can → RELIABLE subscriber ✗
+
+## Key Takeaways
+
+:::note Summary
+
+- **DDS** is an industry-standard middleware for real-time distributed systems
+- **ROS 2** uses DDS for communication, discovery, and QoS
+- **Automatic discovery**: Nodes find each other without configuration
+- **QoS policies**: Fine-tune reliability, durability, history, deadlines
+- **Multiple implementations**: Fast DDS, CycloneDDS, Connext DDS
+- **You rarely interact directly**: ROS 2 abstracts DDS complexity
+- **Understanding DDS helps**: Debug communication issues, tune performance
+
+:::
+
+---
+
+**Next**: [Getting Started →](./getting-started.mdx) - Install ROS 2 and run your first nodes
+
+**Previous**: [← ROS 1 vs ROS 2](./ros1-vs-ros2.mdx)

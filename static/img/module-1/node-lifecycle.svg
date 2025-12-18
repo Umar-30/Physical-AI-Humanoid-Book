@@ -1,0 +1,91 @@
+<svg width="800" height="650" xmlns="http://www.w3.org/2000/svg">
+  <!-- Title -->
+  <text x="400" y="30" font-size="20" font-weight="bold" text-anchor="middle" fill="#333">ROS 2 Node Lifecycle</text>
+
+  <!-- Arrows -->
+  <defs>
+    <marker id="arrowLifecycle" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#666" />
+    </marker>
+  </defs>
+
+  <!-- Phase 1: Initialization -->
+  <rect x="50" y="60" width="700" height="140" fill="#e3f2fd" stroke="#1976d2" stroke-width="2" rx="5"/>
+  <text x="400" y="85" font-size="16" font-weight="bold" text-anchor="middle" fill="#1565c0">Phase 1: Initialization</text>
+
+  <rect x="80" y="100" width="200" height="80" fill="white" stroke="#1976d2" stroke-width="1" rx="3"/>
+  <text x="180" y="125" font-size="12" font-weight="bold" text-anchor="middle" fill="#333">1. rclpy.init()</text>
+  <text x="180" y="145" font-size="10" text-anchor="middle" fill="#555">Initialize ROS 2</text>
+  <text x="180" y="165" font-size="10" text-anchor="middle" fill="#555">communication system</text>
+
+  <line x1="280" y1="140" x2="310" y2="140" stroke="#666" stroke-width="2" marker-end="url(#arrowLifecycle)"/>
+
+  <rect x="310" y="100" width="200" height="80" fill="white" stroke="#1976d2" stroke-width="1" rx="3"/>
+  <text x="410" y="125" font-size="12" font-weight="bold" text-anchor="middle" fill="#333">2. Create Node</text>
+  <text x="410" y="145" font-size="10" text-anchor="middle" fill="#555">node = MyNode()</text>
+  <text x="410" y="165" font-size="10" text-anchor="middle" fill="#555">Set up pubs/subs/services</text>
+
+  <line x1="510" y1="140" x2="540" y2="140" stroke="#666" stroke-width="2" marker-end="url(#arrowLifecycle)"/>
+
+  <rect x="540" y="100" width="180" height="80" fill="white" stroke="#1976d2" stroke-width="1" rx="3"/>
+  <text x="630" y="125" font-size="12" font-weight="bold" text-anchor="middle" fill="#333">3. Configure</text>
+  <text x="630" y="145" font-size="10" text-anchor="middle" fill="#555">Set parameters</text>
+  <text x="630" y="165" font-size="10" text-anchor="middle" fill="#555">Initialize state</text>
+
+  <!-- Arrow to Phase 2 -->
+  <line x1="400" y1="200" x2="400" y2="230" stroke="#666" stroke-width="3" marker-end="url(#arrowLifecycle)"/>
+
+  <!-- Phase 2: Spin (Active Operation) -->
+  <rect x="50" y="230" width="700" height="250" fill="#fff3e0" stroke="#f57c00" stroke-width="2" rx="5"/>
+  <text x="400" y="255" font-size="16" font-weight="bold" text-anchor="middle" fill="#e65100">Phase 2: Spin (Active Operation)</text>
+
+  <rect x="150" y="270" width="500" height="190" fill="white" stroke="#f57c00" stroke-width="2" rx="4"/>
+  <text x="400" y="295" font-size="14" font-weight="bold" text-anchor="middle" fill="#333">rclpy.spin(node)</text>
+  <text x="400" y="315" font-size="11" text-anchor="middle" fill="#555">Event loop runs continuously...</text>
+
+  <!-- Callback Loop -->
+  <ellipse cx="250" cy="370" rx="80" ry="40" fill="#e3f2fd" stroke="#1976d2" stroke-width="1"/>
+  <text x="250" y="365" font-size="11" font-weight="bold" text-anchor="middle" fill="#1565c0">Subscriber</text>
+  <text x="250" y="380" font-size="9" text-anchor="middle" fill="#555">Callbacks</text>
+
+  <ellipse cx="400" cy="370" rx="80" ry="40" fill="#e8f5e9" stroke="#388e3c" stroke-width="1"/>
+  <text x="400" y="365" font-size="11" font-weight="bold" text-anchor="middle" fill="#2e7d32">Timer</text>
+  <text x="400" y="380" font-size="9" text-anchor="middle" fill="#555">Callbacks</text>
+
+  <ellipse cx="550" cy="370" rx="80" ry="40" fill="#f3e5f5" stroke="#7b1fa2" stroke-width="1"/>
+  <text x="550" y="365" font-size="11" font-weight="bold" text-anchor="middle" fill="#6a1b9a">Service</text>
+  <text x="550" y="380" font-size="9" text-anchor="middle" fill="#555">Callbacks</text>
+
+  <!-- Circular arrows indicating loop -->
+  <path d="M 330 370 Q 350 350 370 370" fill="none" stroke="#999" stroke-width="2" marker-end="url(#arrowLifecycle)"/>
+  <path d="M 470 370 Q 490 350 510 370" fill="none" stroke="#999" stroke-width="2" marker-end="url(#arrowLifecycle)"/>
+
+  <text x="400" y="430" font-size="10" text-anchor="middle" fill="#666" font-style="italic">Node processes messages, executes callbacks, publishes data...</text>
+
+  <!-- Interrupt annotation -->
+  <text x="680" y="390" font-size="10" fill="#d32f2f" font-weight="bold">Ctrl+C</text>
+  <line x1="665" y1="380" x2="650" y2="370" stroke="#d32f2f" stroke-width="2" marker-end="url(#arrowLifecycle)"/>
+
+  <!-- Arrow to Phase 3 -->
+  <line x1="400" y1="480" x2="400" y2="510" stroke="#666" stroke-width="3" marker-end="url(#arrowLifecycle)"/>
+
+  <!-- Phase 3: Shutdown -->
+  <rect x="50" y="510" width="700" height="120" fill="#ffebee" stroke="#d32f2f" stroke-width="2" rx="5"/>
+  <text x="400" y="535" font-size="16" font-weight="bold" text-anchor="middle" fill="#c62828">Phase 3: Shutdown</text>
+
+  <rect x="80" y="550" width="200" height="60" fill="white" stroke="#d32f2f" stroke-width="1" rx="3"/>
+  <text x="180" y="575" font-size="12" font-weight="bold" text-anchor="middle" fill="#333">4. Cleanup</text>
+  <text x="180" y="595" font-size="10" text-anchor="middle" fill="#555">node.destroy_node()</text>
+
+  <line x1="280" y1="580" x2="310" y2="580" stroke="#666" stroke-width="2" marker-end="url(#arrowLifecycle)"/>
+
+  <rect x="310" y="550" width="200" height="60" fill="white" stroke="#d32f2f" stroke-width="1" rx="3"/>
+  <text x="410" y="575" font-size="12" font-weight="bold" text-anchor="middle" fill="#333">5. Shutdown</text>
+  <text x="410" y="595" font-size="10" text-anchor="middle" fill="#555">rclpy.shutdown()</text>
+
+  <line x1="510" y1="580" x2="540" y2="580" stroke="#666" stroke-width="2" marker-end="url(#arrowLifecycle)"/>
+
+  <rect x="540" y="550" width="180" height="60" fill="white" stroke="#d32f2f" stroke-width="1" rx="3"/>
+  <text x="630" y="575" font-size="12" font-weight="bold" text-anchor="middle" fill="#333">6. Exit</text>
+  <text x="630" y="595" font-size="10" text-anchor="middle" fill="#555">Program terminates</text>
+</svg>

@@ -1,0 +1,257 @@
+---
+sidebar_position: 3
+title: ROS 2 Overview
+description: Understanding ROS 2 architecture, nodes, topics, and communication patterns
+keywords: [ros2, architecture, nodes, topics, services, actions, dds]
+---
+
+# ROS 2 Overview
+
+Now that you understand why middleware is essential, let's explore **ROS 2** (Robot Operating System 2) in detail.
+
+:::tip What ROS 2 Is (and Isn't)
+
+- **Is**: A middleware framework for building robot applications
+- **Is**: A collection of libraries, tools, and conventions
+- **Is Not**: An operating system (despite the name!)
+- **Is Not**: A single monolithic program
+
+:::
+
+## Core Concepts
+
+### 1. Nodes
+
+**Nodes** are the fundamental building blocks in ROS 2.
+
+:::note Definition
+
+A **node** is a process that performs a specific computation. Each node is responsible for one modular task (e.g., reading a sensor, planning a path, controlling a motor).
+
+:::
+
+**Key characteristics**:
+- Each node runs in its own process
+- Nodes communicate by passing messages
+- Nodes can be written in Python, C++, or other languages
+- Multiple nodes can run on the same computer or distributed across a network
+
+**Example nodes in a delivery robot**:
+- `/camera_node` - Captures images
+- `/object_detector` - Identifies objects in images
+- `/path_planner` - Plans routes to destinations
+- `/motor_controller` - Sends commands to wheels
+
+### 2. The Computation Graph
+
+The **computation graph** is the network of nodes and their communication channels.
+
+![ROS 2 Computation Graph](/img/module-1/simple-node-graph.svg)
+
+In this example:
+- The **camera node** publishes images
+- The **planner node** subscribes to images and publishes velocity commands
+- The **controller node** subscribes to velocity commands
+
+This creates a **data flow** from sensors → planning → actuation.
+
+### 3. Communication Patterns
+
+ROS 2 provides three primary communication patterns:
+
+#### Topics (Publish/Subscribe)
+
+**Use for**: Streaming data, sensors, continuous information flow
+
+- Many-to-many communication
+- Asynchronous (fire-and-forget)
+- Best for high-frequency data streams
+
+```python
+# Publisher
+self.publisher = self.create_publisher(String, '/chatter', 10)
+self.publisher.publish(msg)
+
+# Subscriber
+self.subscription = self.create_subscription(String, '/chatter', self.callback, 10)
+```
+
+#### Services (Request/Response)
+
+**Use for**: Triggered actions with return values, queries
+
+- One-to-one communication
+- Synchronous (client waits for response)
+- Best for occasional transactions
+
+```python
+# Service Server
+self.srv = self.create_service(AddTwoInts, 'add_two_ints', self.handle_request)
+
+# Service Client
+client = self.create_client(AddTwoInts, 'add_two_ints')
+response = client.call(request)
+```
+
+#### Actions (Goal-Oriented)
+
+**Use for**: Long-running tasks with feedback and cancellation
+
+- Goal, feedback, and result
+- Can be preempted or cancelled
+- Best for operations that take time (navigation, grasping, etc.)
+
+```python
+# Action Server provides feedback during execution
+# Action Client can cancel goals mid-execution
+```
+
+We'll explore these in depth in Chapter 2.
+
+## ROS 2 Architecture
+
+ROS 2 uses a **layered architecture**:
+
+![ROS 2 Architecture](/img/module-1/ros2-architecture.svg)
+
+### Layer Breakdown
+
+#### 1. Application Layer (Your Code)
+
+This is where **you** work:
+- Write nodes in Python or C++
+- Implement robot behavior and algorithms
+- Use ROS 2 APIs to communicate
+
+#### 2. ROS 2 Client Libraries
+
+**rclpy** (Python) and **rclcpp** (C++) provide:
+- Node creation and lifecycle management
+- Publisher/subscriber APIs
+- Service and action APIs
+- Parameter handling
+- Timer and callback management
+
+These libraries abstract away lower-level details.
+
+#### 3. ROS 2 Middleware Interface (rmw)
+
+The **rmw** layer is an abstraction that allows ROS 2 to work with different DDS implementations:
+- Fast DDS (default)
+- CycloneDDS
+- Connext DDS
+
+You rarely interact with this layer directly, but it's crucial for flexibility.
+
+#### 4. DDS Implementation
+
+**DDS** (Data Distribution Service) is an OMG standard for real-time, distributed communication:
+- Handles discovery (finding nodes)
+- Manages serialization (converting data to bytes)
+- Implements QoS policies (reliability, durability, etc.)
+- Provides transport (UDP, TCP, shared memory)
+
+#### 5. Operating System / Network
+
+The foundation:
+- Linux, Windows, or macOS
+- Network stack (UDP/TCP)
+- Process management
+
+## Key Features of ROS 2
+
+### 1. **Distributed by Design**
+
+Nodes can run:
+- On the same machine (via shared memory)
+- Across multiple machines (via network)
+- On embedded systems, workstations, or cloud servers
+
+No central "master" process (unlike ROS 1).
+
+### 2. **Real-Time Capable**
+
+ROS 2 supports:
+- Deterministic communication timing
+- Real-time operating systems (RTOS)
+- Critical control loops that must execute on time
+
+### 3. **Quality of Service (QoS)**
+
+Fine-grained control over communication:
+- **Reliability**: Guaranteed delivery vs. best-effort
+- **Durability**: Transient (save last message) vs. volatile
+- **History**: Keep last N messages vs. keep all
+- **Deadline**: Max time between messages
+- **Liveliness**: Detect inactive publishers
+
+### 4. **Security**
+
+Built-in DDS Security (SROS2):
+- Encryption of data
+- Authentication of nodes
+- Authorization of operations
+- Protection from malicious actors
+
+### 5. **Multi-Platform**
+
+Runs natively on:
+- Ubuntu, Debian, RHEL (Linux)
+- Windows 10+
+- macOS
+
+## ROS 2 Distributions
+
+ROS 2 releases follow a **time-based** schedule with **LTS** (Long Term Support) versions:
+
+| Distribution | Release Date | EOL | Type |
+|--------------|--------------|-----|------|
+| Foxy Fitzroy | June 2020 | May 2023 | LTS |
+| Galactic Geochelone | May 2021 | Nov 2022 | Standard |
+| Humble Hawksbill | May 2022 | **May 2027** | **LTS** ← **We use this** |
+| Iron Irwini | May 2023 | Nov 2024 | Standard |
+
+:::tip Why Humble?
+
+**Humble Hawksbill** is the recommended LTS release for learning and production use. It's stable, well-supported, and will receive updates until 2027.
+
+:::
+
+## The Ecosystem
+
+Beyond the core middleware, ROS 2 includes:
+
+### Common Packages
+- **tf2**: Transform library for coordinate frames
+- **robot_state_publisher**: Publishes robot description
+- **rviz2**: 3D visualization tool
+- **rqt**: Qt-based GUI tools
+
+### Standard Message Types
+- **std_msgs**: Basic types (String, Int, Float, etc.)
+- **sensor_msgs**: Sensor data (Image, LaserScan, IMU, etc.)
+- **geometry_msgs**: Poses, velocities, transforms
+- **nav_msgs**: Navigation messages (Path, Odometry, etc.)
+
+### Build Tools
+- **colcon**: Build system for ROS 2 packages
+- **ament**: CMake extensions for ROS 2
+
+## Key Takeaways
+
+:::note Summary
+
+- **ROS 2** is a middleware framework for building modular, distributed robot systems
+- **Nodes** are independent processes that communicate via messages
+- **Three patterns**: Topics (streaming), Services (request/response), Actions (goals with feedback)
+- **Layered architecture**: Your code → Client libraries → rmw → DDS → OS/Network
+- **Key features**: Distributed, real-time capable, QoS policies, secure, multi-platform
+- **Humble Hawksbill** is the current LTS release (supported until 2027)
+
+:::
+
+---
+
+**Next**: [ROS 1 vs ROS 2 →](./ros1-vs-ros2.mdx) - What changed and why?
+
+**Previous**: [← The Role of Middleware](./middleware-role.mdx)

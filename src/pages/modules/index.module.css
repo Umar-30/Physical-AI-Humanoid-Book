@@ -1,0 +1,378 @@
+/* ============================================
+   MODULES PAGE - DOCUSAURUS V3 COMPATIBLE
+   ============================================ */
+
+.modulesPage {
+  background: #0a0a0f;
+  min-height: 100vh;
+}
+
+/* ============================================
+   WELCOME SECTION
+   ============================================ */
+
+.welcomeSection {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  padding: 5rem 2rem;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.welcomeSection::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image:
+    linear-gradient(rgba(0, 240, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 240, 255, 0.03) 1px, transparent 1px);
+  background-size: 50px 50px;
+  opacity: 0.5;
+}
+
+.welcomeContainer {
+  max-width: 900px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+.welcomeTitle {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 1.5rem;
+  line-height: 1.3;
+}
+
+.welcomeSubtitle {
+  font-size: 1.15rem;
+  color: #ccc;
+  line-height: 1.8;
+  margin-bottom: 2rem;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.welcomeDivider {
+  width: 100px;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, #00f0ff, transparent);
+  margin: 0 auto;
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.5);
+}
+
+/* ============================================
+   MODULES SECTION
+   ============================================ */
+
+.modulesSection {
+  padding: 4rem 2rem;
+  background: #0a0a0f;
+}
+
+.modulesContainer {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* ============================================
+   MODULES GRID - RESPONSIVE
+   ============================================ */
+
+.modulesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+  padding: 0;
+}
+
+/* Desktop: 4 cards in one row */
+@media screen and (min-width: 996px) {
+  .modulesGrid {
+    grid-template-columns: repeat(4, 1fr);
+    max-width: 1400px;
+    margin: 0 auto;
+    gap: 1.5rem;
+  }
+}
+
+/* Tablet: 2 columns */
+@media screen and (min-width: 768px) and (max-width: 995px) {
+  .modulesGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Mobile: 1 column */
+@media screen and (max-width: 767px) {
+  .modulesGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ============================================
+   MODULE CARD STYLING
+   ============================================ */
+
+.moduleCard {
+  background: rgba(255, 255, 255, 0.03);
+  border: 2px solid rgba(0, 240, 255, 0.2);
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow:
+    0 4px 15px rgba(0, 0, 0, 0.3),
+    0 0 30px rgba(0, 240, 255, 0.1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+}
+
+.moduleCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(0, 240, 255, 0.05) 0%, transparent 100%);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.moduleCard:hover {
+  transform: translateY(-8px);
+  border-color: #00f0ff;
+  box-shadow:
+    0 8px 30px rgba(0, 0, 0, 0.5),
+    0 0 40px rgba(0, 240, 255, 0.4);
+}
+
+.moduleCard:hover::before {
+  opacity: 1;
+}
+
+/* ============================================
+   CARD HEADER
+   ============================================ */
+
+.moduleHeader {
+  margin-bottom: 1rem;
+}
+
+.moduleNumber {
+  display: inline-block;
+  font-size: 1.8rem;
+  font-weight: 900;
+  color: #00f0ff;
+  text-shadow: 0 0 20px rgba(0, 240, 255, 0.6);
+  opacity: 0.4;
+  line-height: 1;
+}
+
+/* ============================================
+   CARD CONTENT
+   ============================================ */
+
+.moduleTitle {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 0.75rem;
+  line-height: 1.3;
+}
+
+.moduleFocus {
+  font-size: 0.85rem;
+  color: #00f0ff;
+  margin-bottom: 1rem;
+  font-style: italic;
+}
+
+.moduleFocus strong {
+  font-weight: 700;
+  color: #00f0ff;
+}
+
+/* ============================================
+   BULLET LIST
+   ============================================ */
+
+.moduleBullets {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1.5rem 0;
+  flex: 1;
+}
+
+.moduleBullets li {
+  position: relative;
+  padding-left: 1.5rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: #bbb;
+}
+
+.moduleBullets li::before {
+  content: '▹';
+  position: absolute;
+  left: 0;
+  color: #00f0ff;
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+/* ============================================
+   CTA BUTTON
+   ============================================ */
+
+.moduleButton {
+  display: inline-block;
+  padding: 0.6rem 1.5rem;
+  background: #00f0ff;
+  color: #000;
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-align: center;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  box-shadow:
+    0 4px 15px rgba(0, 240, 255, 0.3),
+    0 0 20px rgba(0, 240, 255, 0.2);
+  border: none;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  align-self: flex-start;
+}
+
+.moduleButton::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.5s, height 0.5s;
+}
+
+.moduleButton:hover {
+  background: #00d4e6;
+  transform: translateY(-2px);
+  box-shadow:
+    0 6px 25px rgba(0, 240, 255, 0.5),
+    0 0 40px rgba(0, 240, 255, 0.4);
+  text-decoration: none;
+  color: #000;
+}
+
+.moduleButton:hover::before {
+  width: 300px;
+  height: 300px;
+}
+
+.moduleButton:active {
+  transform: translateY(0);
+}
+
+/* ============================================
+   RESPONSIVE ADJUSTMENTS
+   ============================================ */
+
+@media screen and (max-width: 996px) {
+  .welcomeTitle {
+    font-size: 2rem;
+  }
+
+  .welcomeSubtitle {
+    font-size: 1rem;
+  }
+
+  .modulesSection {
+    padding: 3rem 1.5rem;
+  }
+
+  .moduleCard {
+    padding: 1.75rem;
+  }
+
+  .moduleTitle {
+    font-size: 1.25rem;
+  }
+
+  .moduleBullets li {
+    font-size: 0.9rem;
+  }
+}
+
+@media screen and (max-width: 600px) {
+  .welcomeSection {
+    padding: 3rem 1.5rem;
+  }
+
+  .welcomeTitle {
+    font-size: 1.75rem;
+  }
+
+  .welcomeSubtitle {
+    font-size: 0.95rem;
+  }
+
+  .modulesGrid {
+    gap: 1.5rem;
+  }
+
+  .moduleCard {
+    padding: 1.5rem;
+  }
+
+  .moduleNumber {
+    font-size: 2rem;
+  }
+
+  .moduleTitle {
+    font-size: 1.15rem;
+  }
+
+  .moduleButton {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+/* ============================================
+   ACCESSIBILITY
+   ============================================ */
+
+.moduleButton:focus {
+  outline: 3px solid #00f0ff;
+  outline-offset: 3px;
+}
+
+.moduleCard:focus-within {
+  border-color: #00f0ff;
+  box-shadow:
+    0 8px 30px rgba(0, 0, 0, 0.5),
+    0 0 40px rgba(0, 240, 255, 0.4);
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  .moduleCard,
+  .moduleButton,
+  .moduleCard::before {
+    transition: none;
+  }
+}

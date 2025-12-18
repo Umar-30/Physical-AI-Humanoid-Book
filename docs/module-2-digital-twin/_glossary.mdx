@@ -1,0 +1,158 @@
+---
+id: module-2-glossary
+title: Glossary
+---
+
+# Module 2 Glossary
+
+## Key Terms and Concepts
+
+### Simulation & Physics
+
+**Digital Twin**
+: A virtual replica of a physical robot that accurately mimics its behavior, physics, and sensor responses in simulation. Enables safe testing and development without physical hardware.
+
+**Physics Engine**
+: Software that computes the motion, collisions, and forces acting on objects in a simulated environment. Examples: Bullet, DART, ODE.
+
+**Real-Time Factor**
+: The ratio of simulation time to wall-clock time. A factor of 1.0 means simulation runs at real-time speed; 0.5 means half-speed; 2.0 means twice as fast.
+
+**Timestep (dt)**
+: The fixed time interval between physics updates in simulation, typically 0.001-0.002 seconds (1-2ms). Smaller timesteps improve accuracy but reduce performance.
+
+**Collision Detection**
+: The process of determining when two objects in simulation come into contact, triggering appropriate physical responses.
+
+### File Formats
+
+**SDF (Simulation Description Format)**
+: XML-based format used by Gazebo to describe worlds, models, lights, and physics. Extension: `.sdf`
+
+**URDF (Unified Robot Description Format)**
+: XML-based format describing robot structure (links, joints), visual appearance, collision geometries, and physical properties. Extension: `.urdf`
+
+**XACRO**
+: XML Macro language that extends URDF with variables, conditionals, and macros for more maintainable robot descriptions. Extension: `.xacro`
+
+### Robot Structure
+
+**Link**
+: A rigid body component of a robot (e.g., torso, thigh, foot). Contains visual, collision, and inertial properties.
+
+**Joint**
+: A connection between two links that defines their relative motion. Types include revolute (rotational), prismatic (sliding), fixed, and continuous.
+
+**Inertia Tensor**
+: A 3x3 matrix describing how mass is distributed in a link, determining its rotational behavior. Components: Ixx, Iyy, Izz (diagonal), Ixy, Ixz, Iyz (off-diagonal).
+
+**Collision Geometry**
+: Simplified shapes (boxes, spheres, cylinders, meshes) used for fast collision detection, typically simpler than visual meshes.
+
+**Degrees of Freedom (DOF)**
+: The number of independent parameters defining a robot's configuration. A humanoid might have 20-30 DOF (one per joint).
+
+### Sensors
+
+**IMU (Inertial Measurement Unit)**
+: Sensor measuring linear acceleration and angular velocity. Essential for robot orientation and balance.
+
+**Lidar (Light Detection and Ranging)**
+: Sensor that uses laser pulses to measure distances to surrounding objects, creating a 2D or 3D point cloud.
+
+**RGB-D Camera**
+: Camera providing both color (RGB) images and depth information for each pixel.
+
+**Force-Torque Sensor**
+: Measures forces and torques applied at a specific location, often placed in robot feet or wrists.
+
+### ROS 2 Concepts
+
+**Topic**
+: A named communication channel in ROS 2 where nodes publish and subscribe to messages. Example: `/joint_states`
+
+**Node**
+: An independent process in ROS 2 that performs computation, publishes, and/or subscribes to topics.
+
+**Message**
+: Structured data sent over ROS 2 topics. Examples: `sensor_msgs/JointState`, `geometry_msgs/Pose`
+
+**TF (Transform)**
+: ROS 2 system for tracking coordinate frame relationships over time, enabling spatial transformations between robot links.
+
+**DDS (Data Distribution Service)**
+: The middleware standard underlying ROS 2, enabling decentralized peer-to-peer communication.
+
+### Gazebo Architecture
+
+**Entity-Component-System (ECS)**
+: Gazebo Harmonic's architectural pattern where entities (robots, objects) have components (physics, sensors) managed by systems (solvers, rendering).
+
+**Plugin**
+: Dynamically loaded C++ library that extends Gazebo functionality, such as custom sensors or actuators.
+
+**World**
+: The complete simulation environment including models, lighting, physics configuration, and environment settings.
+
+### Unity Integration
+
+**TCP/IP Bridge**
+: Network connection between ROS 2 (running ros_tcp_endpoint) and Unity (using ROS-TCP-Connector), enabling message exchange.
+
+**ArticulationBody**
+: Unity physics component representing a robot joint, used to synchronize with ROS 2 joint states.
+
+**ROS-TCP-Connector**
+: Unity package enabling ROS 2 topic subscription and publication via TCP/IP.
+
+**URDF Importer**
+: Unity tool that converts URDF robot models into Unity GameObject hierarchies with ArticulationBodies.
+
+### Performance Metrics
+
+**Hz (Hertz)**
+: Update frequency, measured in cycles per second. Physics: 100-1000 Hz, rendering: 30-60 Hz.
+
+**FPS (Frames Per Second)**
+: Number of rendered frames per second in Unity or Gazebo visualization.
+
+**Latency**
+: Time delay between an event occurring in Gazebo and being displayed in Unity, target: &lt;100ms.
+
+**Bandwidth**
+: Network data transfer rate between simulators, measured in Mbps (megabits per second).
+
+### Physics Properties
+
+**Mass**
+: The quantity of matter in a link, measured in kilograms (kg). Affects inertia and response to forces.
+
+**Friction (μ)**
+: Resistance to motion between surfaces. Two types: static (μs) and kinetic/dynamic (μk).
+
+**Damping**
+: Energy dissipation in joints that opposes motion, preventing oscillations. Units: Ns/m (linear) or Nms/rad (angular).
+
+**Elasticity / Restitution**
+: How "bouncy" a collision is, ranging from 0 (perfectly inelastic) to 1 (perfectly elastic).
+
+**Gravity**
+: Acceleration due to Earth's gravitational field, typically -9.81 m/s² in the Z-axis (downward).
+
+### Common Abbreviations
+
+- **DOF**: Degrees of Freedom
+- **ECS**: Entity-Component-System
+- **GUI**: Graphical User Interface
+- **HRI**: Human-Robot Interaction
+- **LOD**: Level of Detail
+- **SDK**: Software Development Kit
+- **SDF**: Simulation Description Format
+- **URDF**: Unified Robot Description Format
+- **XML**: Extensible Markup Language
+
+---
+
+:::tip Using This Glossary
+Throughout Module 2, terms in **bold** on first use link back to this glossary. Bookmark this page for quick reference while working through the chapters.
+:::

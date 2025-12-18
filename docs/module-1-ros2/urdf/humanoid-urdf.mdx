@@ -1,0 +1,291 @@
+---
+sidebar_position: 5
+title: Building a Humanoid Robot URDF
+description: Complete example of a humanoid robot description
+keywords: [ros2, urdf, humanoid, robot, bipedal]
+---
+
+# Building a Humanoid Robot URDF
+
+Create a URDF for a humanoid robot with torso, head, arms, and legs.
+
+## Humanoid Structure
+
+Basic humanoid components:
+- **Torso** (base)
+- **Head** (1-2 DOF)
+- **Arms** (2 × 3-7 DOF)
+- **Legs** (2 × 6 DOF)
+
+**Our simplified humanoid**: 14 DOF
+- 1 torso
+- 1 head (2 DOF: pitch, yaw)
+- 2 arms (3 DOF each: shoulder pitch/roll, elbow)
+- 2 legs (3 DOF each: hip pitch/roll, knee)
+
+## Key Sections
+
+Due to length, showing abbreviated structure. Full URDF follows this pattern:
+
+### 1. Materials
+
+```xml
+<material name="blue"><color rgba="0 0 0.8 1"/></material>
+<material name="gray"><color rgba="0.5 0.5 0.5 1"/></material>
+<material name="white"><color rgba="1 1 1 1"/></material>
+```
+
+### 2. Torso (Base Link)
+
+```xml
+<link name="base_link">
+  <visual>
+    <geometry>
+      <box size="0.3 0.4 0.6"/>
+    </geometry>
+    <material name="blue"/>
+  </visual>
+  <collision>
+    <geometry><box size="0.3 0.4 0.6"/></geometry>
+  </collision>
+  <inertial>
+    <mass value="10.0"/>
+    <inertia ixx="0.3" ixy="0" ixz="0" iyy="0.25" iyz="0" izz="0.18"/>
+  </inertial>
+</link>
+```
+
+### 3. Head (2 DOF)
+
+```xml
+<!-- Neck yaw -->
+<link name="neck">
+  <visual>
+    <geometry><cylinder radius="0.05" length="0.1"/></geometry>
+    <material name="gray"/>
+  </visual>
+  <inertial>
+    <mass value="0.5"/>
+    <inertia ixx="0.001" ixy="0" ixz="0" iyy="0.001" iyz="0" izz="0.001"/>
+  </inertial>
+</link>
+
+<joint name="neck_yaw" type="revolute">
+  <parent link="base_link"/>
+  <child link="neck"/>
+  <origin xyz="0 0 0.35" rpy="0 0 0"/>
+  <axis xyz="0 0 1"/>
+  <limit lower="-1.57" upper="1.57" effort="10" velocity="1.0"/>
+</joint>
+
+<!-- Head pitch -->
+<link name="head">
+  <visual>
+    <geometry><sphere radius="0.15"/></geometry>
+    <material name="white"/>
+  </visual>
+  <inertial>
+    <mass value="2.0"/>
+    <inertia ixx="0.009" ixy="0" ixz="0" iyy="0.009" iyz="0" izz="0.009"/>
+  </inertial>
+</link>
+
+<joint name="head_pitch" type="revolute">
+  <parent link="neck"/>
+  <child link="head"/>
+  <origin xyz="0 0 0.2" rpy="0 0 0"/>
+  <axis xyz="0 1 0"/>
+  <limit lower="-0.785" upper="0.785" effort="5" velocity="1.0"/>
+</joint>
+```
+
+### 4. Arm Pattern (Repeat for Left/Right)
+
+```xml
+<!-- Shoulder -->
+<link name="left_shoulder">
+  <visual>
+    <geometry><sphere radius="0.06"/></geometry>
+    <material name="gray"/>
+  </visual>
+  <inertial>
+    <mass value="0.5"/>
+    <inertia ixx="0.001" ixy="0" ixz="0" iyy="0.001" iyz="0" izz="0.001"/>
+  </inertial>
+</link>
+
+<joint name="left_shoulder_pitch" type="revolute">
+  <parent link="base_link"/>
+  <child link="left_shoulder"/>
+  <origin xyz="0 0.25 0.2" rpy="0 0 0"/>
+  <axis xyz="0 1 0"/>
+  <limit lower="-3.14" upper="3.14" effort="20" velocity="2.0"/>
+</joint>
+
+<!-- Upper arm -->
+<link name="left_upper_arm">
+  <visual>
+    <origin xyz="0 0 -0.15" rpy="0 0 0"/>
+    <geometry><cylinder radius="0.04" length="0.3"/></geometry>
+    <material name="blue"/>
+  </visual>
+  <inertial>
+    <origin xyz="0 0 -0.15" rpy="0 0 0"/>
+    <mass value="1.0"/>
+    <inertia ixx="0.008" ixy="0" ixz="0" iyy="0.008" iyz="0" izz="0.001"/>
+  </inertial>
+</link>
+
+<joint name="left_shoulder_roll" type="revolute">
+  <parent link="left_shoulder"/>
+  <child link="left_upper_arm"/>
+  <origin xyz="0 0 0" rpy="0 0 0"/>
+  <axis xyz="1 0 0"/>
+  <limit lower="0" upper="3.14" effort="20" velocity="2.0"/>
+</joint>
+
+<!-- Forearm + hand similar pattern... -->
+```
+
+### 5. Leg Pattern (Repeat for Left/Right)
+
+```xml
+<!-- Hip -->
+<link name="left_hip">
+  <visual>
+    <geometry><sphere radius="0.07"/></geometry>
+    <material name="gray"/>
+  </visual>
+  <inertial>
+    <mass value="0.8"/>
+    <inertia ixx="0.002" ixy="0" ixz="0" iyy="0.002" iyz="0" izz="0.002"/>
+  </inertial>
+</link>
+
+<joint name="left_hip_pitch" type="revolute">
+  <parent link="base_link"/>
+  <child link="left_hip"/>
+  <origin xyz="0 0.1 -0.3" rpy="0 0 0"/>
+  <axis xyz="0 1 0"/>
+  <limit lower="-1.57" upper="1.57" effort="50" velocity="2.0"/>
+</joint>
+
+<!-- Thigh, shin, foot similar pattern... -->
+```
+
+## Using Xacro for Symmetry
+
+Instead of duplicating left/right arms and legs, use Xacro:
+
+```xml
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="humanoid">
+
+  <!-- Properties -->
+  <xacro:property name="arm_length" value="0.3"/>
+  <xacro:property name="leg_length" value="0.4"/>
+
+  <!-- Arm macro -->
+  <xacro:macro name="arm" params="prefix reflect">
+    <link name="${prefix}_shoulder">
+      <visual>
+        <geometry><sphere radius="0.06"/></geometry>
+      </visual>
+      <inertial>
+        <mass value="0.5"/>
+        <inertia ixx="0.001" ixy="0" ixz="0" iyy="0.001" iyz="0" izz="0.001"/>
+      </inertial>
+    </link>
+
+    <joint name="${prefix}_shoulder_pitch" type="revolute">
+      <parent link="base_link"/>
+      <child link="${prefix}_shoulder"/>
+      <origin xyz="0 ${reflect*0.25} 0.2" rpy="0 0 0"/>
+      <axis xyz="0 1 0"/>
+      <limit lower="-3.14" upper="3.14" effort="20" velocity="2.0"/>
+    </joint>
+
+    <!-- Upper arm, forearm, hand... -->
+  </xacro:macro>
+
+  <!-- Leg macro -->
+  <xacro:macro name="leg" params="prefix reflect">
+    <!-- Similar pattern for leg -->
+  </xacro:macro>
+
+  <!-- Torso -->
+  <link name="base_link">
+    <visual>
+      <geometry><box size="0.3 0.4 0.6"/></geometry>
+    </visual>
+    <inertial>
+      <mass value="10.0"/>
+      <inertia ixx="0.3" ixy="0" ixz="0" iyy="0.25" iyz="0" izz="0.18"/>
+    </inertial>
+  </link>
+
+  <!-- Instantiate limbs -->
+  <xacro:arm prefix="left" reflect="1"/>
+  <xacro:arm prefix="right" reflect="-1"/>
+  <xacro:leg prefix="left" reflect="1"/>
+  <xacro:leg prefix="right" reflect="-1"/>
+
+</robot>
+```
+
+## Joint Naming Conventions
+
+Format: `{side}_{part}_{motion}`
+
+Examples:
+- `left_shoulder_pitch` - Forward/backward rotation
+- `right_hip_roll` - Left/right tilt
+- `neck_yaw` - Turning
+
+**Motion names**:
+- `pitch` - Y-axis rotation (forward/back)
+- `roll` - X-axis rotation (tilt)
+- `yaw` - Z-axis rotation (turn)
+
+## Typical DOF Counts
+
+| Robot | DOF | Notes |
+|-------|-----|-------|
+| **Simple** | 14 | Basic humanoid |
+| **Intermediate** | 25 | + hand joints |
+| **Advanced** | 40+ | Full hands, ankles |
+| **Atlas** | 28 | Boston Dynamics |
+| **ASIMO** | 34 | Honda |
+
+## Best Practices
+
+:::tip Humanoid URDF Tips
+
+1. **Use Xacro** - Avoid duplication for symmetric limbs
+2. **Consistent naming** - `{side}_{part}_{motion}`
+3. **Realistic masses** - Critical for simulation
+4. **Simplified collision** - Use primitives (spheres, cylinders)
+5. **Joint limits** - Match human range of motion
+6. **Reflection parameter** - `+1` for left, `-1` for right
+
+:::
+
+## Key Takeaways
+
+:::note Summary
+
+- **Humanoid**: Torso + head + 2 arms + 2 legs
+- **Typical DOF**: 14-40+ joints
+- **Xacro macros**: Eliminate repetition
+- **Naming**: `{side}_{part}_{motion}`
+- **Symmetry**: Use reflect parameter (±1)
+- **Joint types**: Mostly revolute for arms/legs
+- **Realistic properties**: Mass and inertia matter
+
+:::
+
+---
+
+**Next**: [Visualization →](./visualization)
+
+**Previous**: [← Coordinate Frames](./coordinate-frames)

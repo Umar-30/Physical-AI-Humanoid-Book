@@ -1,0 +1,368 @@
+---
+sidebar_position: 6
+title: Getting Started with ROS 2
+description: Install ROS 2 Humble and run your first nodes
+keywords: [ros2, installation, humble, ubuntu, commands, tutorial]
+---
+
+# Getting Started with ROS 2
+
+Now that you understand the concepts, let's get hands-on! In this section, you'll install ROS 2 Humble and run your first nodes.
+
+## Prerequisites
+
+### System Requirements
+
+- **Operating System**: Ubuntu 22.04 (Jammy Jellyfish)
+- **Architecture**: x86_64 (64-bit)
+- **Disk Space**: At least 5 GB free
+- **Internet Connection**: For downloading packages
+
+:::note Why Ubuntu 22.04?
+
+Ubuntu 22.04 LTS is the officially supported platform for ROS 2 Humble. While ROS 2 can run on Windows and macOS, Ubuntu provides the best experience for learning.
+
+:::
+
+### Check Your Ubuntu Version
+
+```bash
+lsb_release -a
+```
+
+**Expected output**:
+```
+Distributor ID: Ubuntu
+Description:    Ubuntu 22.04.x LTS
+Release:        22.04
+Codename:       jammy
+```
+
+## Installing ROS 2 Humble
+
+### Step 1: Set Up Sources
+
+```bash
+# Ensure UTF-8 locale
+sudo apt update && sudo apt install locales
+sudo locale-gen en_US en_US.UTF-8
+sudo update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
+export LANG=en_US.UTF-8
+
+# Add ROS 2 apt repository
+sudo apt install software-properties-common
+sudo add-apt-repository universe
+
+# Add ROS 2 GPG key
+sudo apt update && sudo apt install curl -y
+sudo curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg
+
+# Add repository to sources list
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(. /etc/os-release && echo $UBUNTU_CODENAME) main" | sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null
+```
+
+### Step 2: Install ROS 2 Packages
+
+```bash
+# Update apt repository caches
+sudo apt update
+
+# Upgrade existing packages
+sudo apt upgrade
+
+# Install ROS 2 Humble Desktop (recommended)
+sudo apt install ros-humble-desktop
+
+# Install development tools (colcon, etc.)
+sudo apt install python3-colcon-common-extensions
+```
+
+**Installation time**: 10-15 minutes depending on internet speed.
+
+### Step 3: Source the Setup Script
+
+```bash
+# Source ROS 2 (required in every new terminal)
+source /opt/ros/humble/setup.bash
+
+# Add to ~/.bashrc for automatic sourcing
+echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc
+```
+
+### Step 4: Verify Installation
+
+```bash
+ros2 --version
+```
+
+**Expected output**:
+```
+ros2 run humble
+```
+
+If you see this, **congratulations!** 🎉 ROS 2 Humble is installed.
+
+## Running Your First Nodes
+
+Let's run the classic "talker" and "listener" demo.
+
+### Step 1: Open Two Terminals
+
+You'll need two terminal windows (or tabs).
+
+### Step 2: Run the Talker
+
+In **Terminal 1**:
+
+```bash
+source /opt/ros/humble/setup.bash
+ros2 run demo_nodes_cpp talker
+```
+
+**Expected output**:
+```
+[INFO] [talker]: Publishing: 'Hello World: 1'
+[INFO] [talker]: Publishing: 'Hello World: 2'
+[INFO] [talker]: Publishing: 'Hello World: 3'
+...
+```
+
+The talker node is **publishing** messages to a topic.
+
+### Step 3: Run the Listener
+
+In **Terminal 2**:
+
+```bash
+source /opt/ros/humble/setup.bash
+ros2 run demo_nodes_cpp listener
+```
+
+**Expected output**:
+```
+[INFO] [listener]: I heard: [Hello World: 1]
+[INFO] [listener]: I heard: [Hello World: 2]
+[INFO] [listener]: I heard: [Hello World: 3]
+...
+```
+
+The listener node is **subscribing** to messages from the same topic!
+
+### What Just Happened?
+
+1. **Talker node** publishes string messages to the `/chatter` topic
+2. **Listener node** subscribes to the `/chatter` topic
+3. **DDS** handles discovery and data delivery
+4. **No configuration** was needed - nodes found each other automatically!
+
+## Essential ROS 2 Commands
+
+Now let's explore the system with CLI tools.
+
+### Node Commands
+
+**List all running nodes**:
+
+```bash
+ros2 node list
+```
+
+**Output** (with talker and listener running):
+```
+/talker
+/listener
+```
+
+**Get information about a node**:
+
+```bash
+ros2 node info /talker
+```
+
+**Output**:
+```
+/talker
+  Subscribers:
+
+  Publishers:
+    /chatter: std_msgs/msg/String
+    /parameter_events: rcl_interfaces/msg/ParameterEvent
+    /rosout: rcl_interfaces/msg/Log
+  Service Servers:
+
+  Service Clients:
+
+  Action Servers:
+
+  Action Clients:
+```
+
+### Topic Commands
+
+**List all topics**:
+
+```bash
+ros2 topic list
+```
+
+**Output**:
+```
+/chatter
+/parameter_events
+/rosout
+```
+
+**Show topic type**:
+
+```bash
+ros2 topic type /chatter
+```
+
+**Output**:
+```
+std_msgs/msg/String
+```
+
+**Echo topic messages** (see live data):
+
+```bash
+ros2 topic echo /chatter
+```
+
+**Output**:
+```
+data: 'Hello World: 42'
+---
+data: 'Hello World: 43'
+---
+...
+```
+
+Press `Ctrl+C` to stop.
+
+**Get topic info**:
+
+```bash
+ros2 topic info /chatter
+```
+
+**Output**:
+```
+Type: std_msgs/msg/String
+Publisher count: 1
+Subscription count: 1
+```
+
+**Publish to a topic manually**:
+
+```bash
+ros2 topic pub --once /chatter std_msgs/msg/String "{data: 'Hello from CLI!'}"
+```
+
+The listener will receive your message!
+
+### Interface Commands
+
+**List all message types**:
+
+```bash
+ros2 interface list msg
+```
+
+**Show message definition**:
+
+```bash
+ros2 interface show std_msgs/msg/String
+```
+
+**Output**:
+```
+# This is a message that holds a single string value
+
+string data
+```
+
+## Troubleshooting
+
+### Problem: `ros2: command not found`
+
+**Solution**: Source the setup script:
+
+```bash
+source /opt/ros/humble/setup.bash
+```
+
+Add this to your `~/.bashrc` to make it permanent.
+
+### Problem: Nodes can't see each other
+
+**Solutions**:
+
+1. **Check ROS_DOMAIN_ID**: Ensure both terminals have the same domain:
+   ```bash
+   echo $ROS_DOMAIN_ID
+   ```
+   If unset, it defaults to 0 (which is fine).
+
+2. **Check firewall**: Allow UDP multicast (required for DDS discovery):
+   ```bash
+   sudo ufw allow from 224.0.0.0/4
+   ```
+
+3. **Restart nodes**: Sometimes discovery takes a moment. Try stopping and restarting.
+
+### Problem: Package not found
+
+**Solution**: Install the package:
+
+```bash
+sudo apt update
+sudo apt install ros-humble-<package-name>
+```
+
+Example:
+```bash
+sudo apt install ros-humble-turtlesim
+```
+
+## What's Next?
+
+You've successfully:
+
+✅ Installed ROS 2 Humble
+✅ Run your first nodes (talker and listener)
+✅ Used CLI tools to inspect the system
+✅ Published and subscribed to topics
+
+### Continue Learning
+
+- **Chapter 2**: Learn about communication patterns in depth (topics, services, actions)
+- **Chapter 3**: Write your own nodes in Python
+- **Chapter 4**: Define robot structures with URDF
+
+## Useful Resources
+
+- **Official ROS 2 Documentation**: [https://docs.ros.org/en/humble/](https://docs.ros.org/en/humble/)
+- **ROS 2 Tutorials**: [https://docs.ros.org/en/humble/Tutorials.html](https://docs.ros.org/en/humble/Tutorials.html)
+- **ROS Answers** (Q&A): [https://answers.ros.org/](https://answers.ros.org/)
+- **ROS Discourse** (Forum): [https://discourse.ros.org/](https://discourse.ros.org/)
+
+## Key Takeaways
+
+:::note Summary
+
+- **ROS 2 Humble** is installed via apt on Ubuntu 22.04
+- **Source setup script** in every terminal: `source /opt/ros/humble/setup.bash`
+- **Talker/Listener demo** shows automatic node discovery and communication
+- **CLI tools**: `ros2 node`, `ros2 topic`, `ros2 interface` for system introspection
+- **Troubleshooting**: Check sourcing, domain ID, and firewall settings
+
+:::
+
+---
+
+**Congratulations!** 🎉 You've completed Chapter 1: ROS 2 Architecture & Philosophy!
+
+**Next**: [Chapter 2: Communication Primitives →](../communication/index.mdx)
+
+**Previous**: [← DDS Explained](./dds-explained.mdx)

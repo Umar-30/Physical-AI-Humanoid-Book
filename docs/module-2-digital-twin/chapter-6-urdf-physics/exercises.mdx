@@ -1,0 +1,66 @@
+---
+id: exercises
+title: Chapter 6 Exercises
+---
+
+# URDF Physics Exercises
+
+## Exercise 6.1: Add IMU Sensor
+
+**Task**: Add IMU sensor to humanoid torso
+
+**Steps**:
+1. Take Chapter 5's `example_humanoid.urdf`
+2. Add `<gazebo>` block with IMU sensor to torso link
+3. Test: `ros2 topic echo /imu/data`
+
+**Success**: IMU publishes at 100 Hz with angular velocity data
+
+---
+
+## Exercise 6.2: Configure Joint Limits
+
+**Task**: Set realistic knee joint limits
+
+**Requirements**:
+- Knee can only flex (negative angles)
+- Range: 0° to -120° (-2.09 rad)
+- Max torque: 150 N⋅m
+- Max velocity: 10 rad/s
+
+**Test**: Manually command joint, verify it stops at limits
+
+---
+
+## Exercise 6.3: Fix Unstable Robot
+
+**Scenario**: Robot falls over immediately when spawned
+
+**Investigate**:
+1. Check `check_urdf` output
+2. Verify foot collision geometry exists
+3. Check torso mass (should be 15-25 kg)
+4. Verify ground friction (mu=0.8)
+
+**Success**: Robot stands for 10+ seconds without falling
+
+---
+
+##  Bonus: Calculate Foot Inertia
+
+Given foot dimensions: 0.25m × 0.1m × 0.05m, mass = 1.5 kg
+
+Calculate ixx, iyy, izz using box formula.
+
+<details>
+<summary>Solution</summary>
+
+- ixx = 1.5(0.1² + 0.05²)/12 = 0.00156
+- iyy = 1.5(0.25² + 0.05²)/12 = 0.00816
+- izz = 1.5(0.25² + 0.1²)/12 = 0.00938
+
+</details>
+
+---
+
+👉 **[Continue to Chapter 7: Unity Rendering →](/docs/module-2-digital-twin/chapter-7-unity-rendering/chapter-7-overview)**

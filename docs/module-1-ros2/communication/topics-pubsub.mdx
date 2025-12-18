@@ -1,0 +1,461 @@
+---
+sidebar_position: 2
+title: Topics - Publish/Subscribe Pattern
+description: Understanding ROS 2 topics and the pub/sub communication pattern
+keywords: [ros2, topics, publish, subscribe, pubsub, messaging]
+---
+
+# Topics: Publish/Subscribe Pattern
+
+Topics are the most commonly used communication mechanism in ROS 2. They implement the **publish/subscribe pattern** for streaming data.
+
+## What is a Topic?
+
+:::tip Definition
+
+A **topic** is a named channel for transmitting messages. Publishers send messages to topics, and subscribers receive messages from topics. Many publishers and many subscribers can use the same topic simultaneously.
+
+:::
+
+Think of a topic like a **radio station**:
+- The station broadcasts on a frequency (topic name)
+- Anyone can tune in to listen (subscribe)
+- Multiple stations can broadcast (multiple publishers)
+- Multiple radios can listen (multiple subscribers)
+- Communication is **one-way**: station → listener
+
+## The Publish/Subscribe Pattern
+
+![Publish/Subscribe Flow](/img/module-1/pubsub-flow.svg)
+
+### Key Characteristics
+
+**Many-to-Many Communication**
+- Multiple publishers can publish to the same topic
+- Multiple subscribers can subscribe to the same topic
+- Publishers don't know who (if anyone) is listening
+- Subscribers don't know who is publishing
+
+**Asynchronous**
+- Publishers send messages and continue immediately
+- No waiting for acknowledgments
+- Subscribers process messages when they arrive
+- Fire-and-forget model
+
+**Decoupled**
+- Publishers and subscribers don't need to know about each other
+- They only need to agree on the topic name and message type
+- Can start and stop independently
+
+## When to Use Topics
+
+Use topics for:
+
+✅ **Continuous data streams** - Sensor data, video frames, telemetry
+✅ **High-frequency updates** - Position, velocity, state information
+✅ **Broadcasting** - One source, many consumers
+✅ **Fire-and-forget** - Don't need confirmation of receipt
+✅ **Asynchronous communication** - Don't want to block waiting
+
+Don't use topics for:
+
+❌ **Request-response patterns** - Use services instead
+❌ **Long-running tasks** - Use actions instead
+❌ **Guaranteed delivery critical** - Topics can lose messages (depending on QoS)
+
+## Topic Names
+
+Topics have names that follow a hierarchical structure:
+
+```
+/robot_1/camera/image_raw
+/robot_1/lidar/scan
+/robot_2/camera/image_raw
+/cmd_vel
+/odom
+```
+
+### Naming Conventions
+
+- Start with `/` for global topics
+- Use `_` to separate words (not camelCase)
+- Use `/` to create hierarchy
+- Be descriptive but concise
+- Follow ROS 2 naming standards
+
+**Good names**:
+- `/camera/image_raw`
+- `/scan`
+- `/cmd_vel`
+- `/robot_1/odometry`
+
+**Bad names**:
+- `/CameraImage` (should be lowercase with underscores)
+- `/data` (too vague)
+- `/x` (not descriptive)
+
+## Message Types
+
+Every topic has a specific **message type**. Common types:
+
+| Message Type | Package | Use Case |
+|--------------|---------|----------|
+| `std_msgs/String` | std_msgs | Simple text messages |
+| `std_msgs/Int32` | std_msgs | Integer values |
+| `sensor_msgs/Image` | sensor_msgs | Camera images |
+| `sensor_msgs/LaserScan` | sensor_msgs | Lidar scans |
+| `geometry_msgs/Twist` | geometry_msgs | Velocity commands |
+| `nav_msgs/Odometry` | nav_msgs | Robot position and velocity |
+
+### Message Structure Example
+
+```bash
+ros2 interface show std_msgs/msg/String
+```
+
+**Output**:
+```
+# This is a message that holds a single string value
+
+string data
+```
+
+```bash
+ros2 interface show geometry_msgs/msg/Twist
+```
+
+**Output**:
+```
+# Linear and angular velocity
+Vector3 linear
+  float64 x
+  float64 y
+  float64 z
+Vector3 angular
+  float64 x
+  float64 y
+  float64 z
+```
+
+## Topic CLI Commands
+
+### List All Topics
+
+```bash
+ros2 topic list
+```
+
+**Example output**:
+```
+/chatter
+/parameter_events
+/rosout
+/cmd_vel
+/scan
+```
+
+### List Topics with Types
+
+```bash
+ros2 topic list -t
+```
+
+**Example output**:
+```
+/chatter [std_msgs/msg/String]
+/cmd_vel [geometry_msgs/msg/Twist]
+/scan [sensor_msgs/msg/LaserScan]
+```
+
+### Echo Topic Messages
+
+See live data flowing on a topic:
+
+```bash
+ros2 topic echo /chatter
+```
+
+**Output**:
+```
+data: 'Hello World: 1'
+---
+data: 'Hello World: 2'
+---
+data: 'Hello World: 3'
+---
+```
+
+Press `Ctrl+C` to stop.
+
+### Topic Info
+
+Get detailed information:
+
+```bash
+ros2 topic info /chatter
+```
+
+**Output**:
+```
+Type: std_msgs/msg/String
+Publisher count: 1
+Subscription count: 2
+```
+
+### Topic Info (Verbose)
+
+Show QoS settings:
+
+```bash
+ros2 topic info /chatter --verbose
+```
+
+**Output**:
+```
+Type: std_msgs/msg/String
+
+Publisher count: 1
+
+Node name: /talker
+Node namespace: /
+Topic type: std_msgs/msg/String
+Endpoint type: PUBLISHER
+QoS profile:
+  Reliability: RELIABLE
+  History (Depth): KEEP_LAST (10)
+  Durability: VOLATILE
+  Liveliness: AUTOMATIC
+
+Subscription count: 1
+...
+```
+
+### Publish to a Topic (CLI)
+
+Manually publish messages from command line:
+
+**Publish once**:
+```bash
+ros2 topic pub --once /chatter std_msgs/msg/String "{data: 'Hello from CLI'}"
+```
+
+**Publish continuously at 1 Hz**:
+```bash
+ros2 topic pub --rate 1 /chatter std_msgs/msg/String "{data: 'Repeating message'}"
+```
+
+**Publish at 10 Hz** (default rate):
+```bash
+ros2 topic pub /cmd_vel geometry_msgs/msg/Twist "{linear: {x: 0.5, y: 0.0, z: 0.0}, angular: {x: 0.0, y: 0.0, z: 0.1}}"
+```
+
+### Topic Frequency
+
+Check how fast messages are being published:
+
+```bash
+ros2 topic hz /scan
+```
+
+**Output**:
+```
+average rate: 10.002
+	min: 0.099s max: 0.101s std dev: 0.00050s window: 10
+```
+
+### Topic Bandwidth
+
+Check data rate:
+
+```bash
+ros2 topic bw /camera/image_raw
+```
+
+**Output**:
+```
+Subscribed to [/camera/image_raw]
+average: 8.32MB/s
+	mean: 276.99KB min: 276.99KB max: 276.99KB window: 30
+```
+
+## Python Publisher Example
+
+Here's a minimal publisher in Python:
+
+```python
+import rclpy
+from rclpy.node import Node
+from std_msgs.msg import String
+
+class MinimalPublisher(Node):
+    def __init__(self):
+        super().__init__('minimal_publisher')
+
+        # Create publisher: (message_type, topic_name, queue_size)
+        self.publisher = self.create_publisher(String, 'chatter', 10)
+
+        # Create timer to publish at 2 Hz
+        self.timer = self.create_timer(0.5, self.timer_callback)
+        self.counter = 0
+
+        self.get_logger().info('Publisher node started')
+
+    def timer_callback(self):
+        msg = String()
+        msg.data = f'Hello World: {self.counter}'
+
+        self.publisher.publish(msg)
+        self.get_logger().info(f'Publishing: "{msg.data}"')
+
+        self.counter += 1
+
+def main(args=None):
+    rclpy.init(args=args)
+    node = MinimalPublisher()
+
+    try:
+        rclpy.spin(node)
+    except KeyboardInterrupt:
+        pass
+
+    node.destroy_node()
+    rclpy.shutdown()
+
+if __name__ == '__main__':
+    main()
+```
+
+**Key points**:
+- `create_publisher(msg_type, topic_name, queue_size)` - Creates publisher
+- `publish(msg)` - Sends message to topic
+- `create_timer(period, callback)` - Publishes periodically
+- Queue size (10) - How many messages to buffer
+
+## Python Subscriber Example
+
+Here's a minimal subscriber:
+
+```python
+import rclpy
+from rclpy.node import Node
+from std_msgs.msg import String
+
+class MinimalSubscriber(Node):
+    def __init__(self):
+        super().__init__('minimal_subscriber')
+
+        # Create subscriber: (message_type, topic_name, callback, queue_size)
+        self.subscription = self.create_subscription(
+            String,
+            'chatter',
+            self.listener_callback,
+            10
+        )
+
+        self.get_logger().info('Subscriber node started')
+
+    def listener_callback(self, msg):
+        self.get_logger().info(f'I heard: "{msg.data}"')
+
+def main(args=None):
+    rclpy.init(args=args)
+    node = MinimalSubscriber()
+
+    try:
+        rclpy.spin(node)
+    except KeyboardInterrupt:
+        pass
+
+    node.destroy_node()
+    rclpy.shutdown()
+
+if __name__ == '__main__':
+    main()
+```
+
+**Key points**:
+- `create_subscription(msg_type, topic_name, callback, queue_size)` - Creates subscriber
+- `callback(msg)` - Function called when message arrives
+- `spin()` - Keeps node running and processing callbacks
+
+## Common Use Cases
+
+### 1. Sensor Data Publishing
+
+```python
+# Camera publishing images
+self.publisher = self.create_publisher(
+    Image,
+    '/camera/image_raw',
+    10
+)
+```
+
+### 2. Command Publishing
+
+```python
+# Publishing velocity commands to robot
+self.cmd_vel_pub = self.create_publisher(
+    Twist,
+    '/cmd_vel',
+    10
+)
+
+msg = Twist()
+msg.linear.x = 0.5  # Move forward
+msg.angular.z = 0.2  # Turn slightly
+self.cmd_vel_pub.publish(msg)
+```
+
+### 3. State Broadcasting
+
+```python
+# Publishing robot state
+self.state_pub = self.create_publisher(
+    RobotState,
+    '/robot_state',
+    10
+)
+```
+
+## Best Practices
+
+:::tip Publishing Best Practices
+
+1. **Choose appropriate frequency** - Don't publish faster than necessary
+2. **Use appropriate QoS** - BEST_EFFORT for sensor data, RELIABLE for commands
+3. **Keep messages small** - Large messages slow down the system
+4. **One topic, one purpose** - Don't mix different data types conceptually
+5. **Document your topics** - Make it clear what data they carry
+
+:::
+
+:::tip Subscribing Best Practices
+
+1. **Keep callbacks fast** - Don't block in callbacks
+2. **Avoid heavy processing** - Offload to separate threads if needed
+3. **Check message timestamps** - Ensure data is recent
+4. **Handle missing data** - Topics may not publish immediately
+5. **Unsubscribe when done** - Clean up resources
+
+:::
+
+## Key Takeaways
+
+:::note Summary
+
+- **Topics** implement publish/subscribe pattern for streaming data
+- **Many-to-many**: Multiple publishers and subscribers on same topic
+- **Asynchronous**: Fire-and-forget, no blocking
+- **Named channels**: `/topic_name` with specific message type
+- **CLI tools**: `ros2 topic list`, `echo`, `info`, `pub`, `hz`, `bw`
+- **Use for**: Continuous data streams, sensor data, broadcasting
+- **Don't use for**: Request-response (use services) or long tasks (use actions)
+
+:::
+
+---
+
+**Next**: [Services - Request/Response →](./services-reqrep) - Synchronous request-response pattern
+
+**Previous**: [← Chapter 2 Introduction](./index)

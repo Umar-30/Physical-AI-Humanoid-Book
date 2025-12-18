@@ -1,0 +1,120 @@
+---
+id: ros-integration
+title: 7.2 ROS-Unity Integration
+---
+
+# ROS-Unity Integration
+
+Connect Unity to ROS 2 using the TCP Endpoint bridge.
+
+## Install ROS-TCP-Endpoint
+
+On ROS 2 machine:
+
+```bash
+cd ~/ros2_ws/src
+git clone https://github.com/Unity-Technologies/ROS-TCP-Endpoint
+cd ~/ros2_ws
+colcon build --packages-select ros_tcp_endpoint
+source install/setup.bash
+```
+
+## Launch TCP Endpoint
+
+```bash
+ros2 run ros_tcp_endpoint default_server_endpoint --ros-args -p ROS_IP:=0.0.0.0
+```
+
+**Output**: `[INFO] Starting server on 0.0.0.0:10000`
+
+## Unity Configuration
+
+1. **Robotics → ROS Settings**
+2. Set parameters:
+   - ROS IP Address: `192.168.1.100` (your ROS PC IP)
+   - ROS Port: `10000`
+   - Protocol: `ROS 2`
+
+## Test Connection
+
+Create `Assets/Scripts/ROSConnectionTest.cs`:
+
+```csharp
+using Unity.Robotics.ROSTCPConnector;
+using RosMessageTypes.Std;
+using UnityEngine;
+
+public class ROSConnectionTest : MonoBehaviour
+{
+    ROSConnection ros;
+
+    void Start()
+    {
+        ros = ROSConnection.GetOrCreateInstance();
+        ros.RegisterPublisher<StringMsg>("test_topic");
+    }
+
+    void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            StringMsg msg = new StringMsg("Hello from Unity!");
+            ros.Publish("test_topic", msg);
+            Debug.Log("Published message");
+        }
+    }
+}
+```
+
+Attach script to any GameObject, press Play, then Space. Check ROS:
+
+```bash
+ros2 topic echo /test_topic
+```
+
+## Subscribe to Joint States
+
+Create `Assets/Scripts/JointStateSubscriber.cs`:
+
+```csharp
+using Unity.Robotics.ROSTCPConnector;
+using RosMessageTypes.Sensor;
+using UnityEngine;
+
+public class JointStateSubscriber : MonoBehaviour
+{
+    void Start()
+    {
+        ROSConnection.GetOrCreateInstance().Subscribe<JointStateMsg>("/joint_states", OnJointStateReceived);
+    }
+
+    void OnJointStateReceived(JointStateMsg msg)
+    {
+        for (int i = 0; i < msg.name.Length; i++)
+        {
+            Debug.Log($"{msg.name[i]}: {msg.position[i]}");
+        }
+    }
+}
+```
+
+## Publish from Gazebo
+
+In Gazebo, ensure robot publishes joint states. Test:
+
+```bash
+ros2 topic hz /joint_states
+# Should show 50-100 Hz
+```
+
+## Troubleshooting
+
+| Issue | Solution |
+|-------|----------|
+| Connection failed | Check ROS IP, firewall rules |
+| No data received | Verify topic names match |
+| Slow updates | Check QoS settings, network bandwidth |
+
+---
+
+👉 **[Next: Scene Creation →](./scene-creation)**

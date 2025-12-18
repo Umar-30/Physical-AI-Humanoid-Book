@@ -1,0 +1,144 @@
+---
+id: troubleshooting
+title: "5.5: Troubleshooting Common Issues"
+sidebar_label: "5.5 Troubleshooting"
+sidebar_position: 6
+description: Solutions to common Gazebo installation and runtime problems
+keywords: [gazebo, troubleshooting, errors, debugging]
+---
+
+# 5.5: Troubleshooting Common Issues
+
+## Quick Troubleshooting Guide
+
+### Gazebo Won't Launch
+
+**Error**: `gz: command not found`
+
+**Solution**:
+```bash
+source /usr/share/gz/gz-harmonic-setup.sh
+# Add to ~/.bashrc for permanent fix
+```
+
+---
+
+**Error**: Gazebo crashes on startup
+
+**Solutions**:
+1. Check GPU drivers: `glxinfo | grep "OpenGL"`
+2. Run headless: `gz sim -s world.sdf`
+3. Update graphics drivers (see [Installation](./installation#gpu-issues))
+
+### Robot Issues
+
+**Robot falls through ground**
+
+**Causes & Solutions**:
+- Spawn higher: `z: 1.0` instead of `z: 0`
+- Check collision geometry in URDF
+- Verify ground plane has collision element
+
+---
+
+**Robot shakes/unstable**
+
+**Solutions**:
+- Decrease physics timestep: 0.001 → 0.0005
+- Check inertia values (covered in Chapter 6)
+- Increase ground friction in world file
+
+---
+
+**Robot not visible**
+
+**Solutions**:
+- Verify URDF has `<visual>` elements
+- Check Gazebo materials exist
+- Camera may be inside robot: reset view (Ctrl+R)
+
+### Performance Issues
+
+**Slow simulation (`<50%` real-time)**
+
+**Solutions**:
+1. **Simplify collision geometries**
+2. **Increase timestep** (0.001 → 0.002)
+3. **Run headless**: `gz sim -s`
+4. **Close unnecessary apps**
+5. **Check CPU usage**: `top` or `htop`
+
+---
+
+**High CPU usage (>80%)**
+
+**Expected**: Gazebo is CPU intensive
+**Solutions**:
+- Limit real-time factor: `<real_time_factor>0.8</real_time_factor>`
+- Use simpler world files
+- Reduce sensor update rates (Chapter 6)
+
+### World File Errors
+
+**Error**: `Failed to load world file`
+
+**Solutions**:
+- Check XML syntax: `xmllint world.sdf`
+- Verify SDF version matches Gazebo (1.9 for Harmonic)
+- Check file path is correct (use absolute paths)
+
+---
+
+**Error**: `Model not found`
+
+**Solutions**:
+- Use absolute paths to URDF files
+- Check file exists: `ls -la /path/to/robot.urdf`
+- Verify `GZ_SIM_RESOURCE_PATH` set
+
+### Common Error Messages
+
+| Error | Likely Cause | Solution |
+|-------|--------------|----------|
+| `Cannot create physics engine` | Invalid physics config | Check `<physics>` block syntax |
+| `No renderable geometry` | Missing visual elements | Add `<visual>` to URDF |
+| `Collision detected at spawn` | Robot intersects ground | Spawn higher (z: 1.0) |
+| `Joint limit violation` | URDF joint limits too tight | Adjust limits in URDF |
+
+## Getting Help
+
+**Still stuck?**
+
+1. **Check logs**: `~/.gz/sim/server.log`
+2. **Gazebo Forums**: [gazebosim.org/docs/all/forum](https://gazebosim.org/docs/all/forum)
+3. **GitHub Issues**: [github.com/gazebosim/gz-sim/issues](https://github.com/gazebosim/gz-sim/issues)
+4. **ROS Answers**: [answers.ros.org](https://answers.ros.org)
+
+## Diagnostic Commands
+
+```bash
+# Check Gazebo version
+gz sim --version
+
+# List running simulations
+gz sim -l
+
+# Check topics
+gz topic -l
+
+# Monitor stats
+gz topic -e -t /stats
+
+# Test GPU
+glxinfo | grep "OpenGL"
+```
+
+## What's Next
+
+Practice everything you've learned with hands-on exercises!
+
+👉 **[Next: Exercises →](./chapter-5-exercises)**
+
+---
+
+**Summary**: Know how to diagnose and fix common Gazebo issues: launch problems, robot issues, performance, world errors. ✓

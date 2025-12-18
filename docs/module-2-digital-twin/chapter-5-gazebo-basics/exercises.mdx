@@ -1,0 +1,193 @@
+---
+id: chapter-5-exercises
+title: "5.6: Hands-On Exercises"
+sidebar_label: "5.6 Exercises"
+sidebar_position: 7
+description: Practice creating Gazebo worlds and spawning robots with these hands-on exercises
+keywords: [gazebo, exercises, practice, hands-on]
+---
+
+# 5.6: Hands-On Exercises
+
+## Overview
+
+Apply what you've learned in Chapter 5 with these practical exercises.
+
+**Target Time**: 30 minutes total
+**Difficulty**: Beginner to Intermediate
+
+:::tip Success Criteria
+You've mastered Chapter 5 when you can complete all 3 exercises within 30 minutes!
+:::
+
+## Exercise 5.1: Create Custom World
+
+**Objective**: Create a world file from scratch with specific requirements
+
+**Requirements**:
+1. Name the world `my_custom_world`
+2. Use Bullet physics with 1ms timestep
+3. Include a ground plane with high friction (μ=1.0)
+4. Add 2 static obstacles (your choice of shapes)
+5. Configure 2 light sources (1 directional, 1 point)
+6. Set background color to light blue (0.7 0.8 0.9)
+
+**Steps**:
+1. Copy `minimal_world.sdf` as starting template
+2. Modify as per requirements above
+3. Save as `my_custom_world.sdf`
+4. Test: `gz sim my_custom_world.sdf`
+
+**Success Criteria**:
+- ✅ World launches without errors
+- ✅ Ground and obstacles visible
+- ✅ Good lighting (no dark areas)
+- ✅ Background is light blue
+
+<details>
+<summary><strong>💡 Hints</strong></summary>
+
+- For high friction: Add `<surface><friction><ode><mu>1.0</mu>...` to ground plane
+- For obstacles: Copy `<model>` blocks from `complex_world.sdf`
+- For point light: Use `<light type="point">` with `<pose>x y z ...</pose>`
+- Background: Add `<scene><background>R G B A</background></scene>`
+
+</details>
+
+📁 **Solution**: *(Coming soon)*
+
+---
+
+## Exercise 5.2: Spawn Robot at Different Positions
+
+**Objective**: Practice command-line robot spawning at various positions
+
+**Tasks**:
+1. Start Gazebo with `humanoid_world.sdf`
+2. Spawn robot at origin (0, 0, 1.0)
+3. Spawn second robot at (2, 0, 1.0) - name it `robot_2`
+4. Spawn third robot at (-2, 0, 1.0) - name it `robot_3`
+5. Verify all 3 robots are visible and standing
+
+**Command Template**:
+```bash
+gz service -s /world/humanoid_world/create \
+  --reqtype gz.msgs.EntityFactory \
+  --reptype gz.msgs.Boolean \
+  --timeout 1000 \
+  --req 'sdf_filename: "PATH_TO_URDF", name: "ROBOT_NAME", pose: {position: {x: X, y: Y, z: Z}}'
+```
+
+**Success Criteria**:
+- ✅ All 3 robots spawned successfully
+- ✅ Robots have different names
+- ✅ Robots positioned correctly (2m apart)
+- ✅ All robots standing (not fallen)
+
+<details>
+<summary><strong>💡 Hints</strong></summary>
+
+- Use absolute path to `example_humanoid.urdf`
+- Each spawn must have unique `name` parameter
+- Keep `z: 1.0` to spawn above ground (prevents collision)
+- Wait 2-3 seconds between spawns for stability
+
+</details>
+
+---
+
+## Exercise 5.3: Optimize Physics for Performance
+
+**Objective**: Modify physics settings and measure performance impact
+
+**Tasks**:
+1. Create 3 versions of `humanoid_world.sdf`:
+   - `world_fast.sdf`: timestep 0.002 (500 Hz)
+   - `world_balanced.sdf`: timestep 0.001 (1000 Hz)
+   - `world_accurate.sdf`: timestep 0.0005 (2000 Hz)
+2. Spawn robot in each world
+3. Measure real-time factor for each
+4. Document observations
+
+**Measurement Command**:
+```bash
+gz topic -e -t /stats | grep real_time_factor
+```
+
+**Success Criteria**:
+- ✅ 3 world files created with correct timesteps
+- ✅ Measured real-time factor for each
+- ✅ Can explain trade-offs (speed vs accuracy)
+
+**Observation Template**:
+```
+Configuration      | Timestep | Real-Time Factor | Stability | Notes
+-------------------|----------|------------------|-----------|-------
+Fast (500 Hz)      | 0.002    | ___             | ___       | ___
+Balanced (1000 Hz) | 0.001    | ___             | ___       | ___
+Accurate (2000 Hz) | 0.0005   | ___             | ___       | ___
+```
+
+<details>
+<summary><strong>💡 Hints</strong></summary>
+
+- Copy `humanoid_world.sdf` 3 times
+- Only change `<max_step_size>` value
+- Real-time factor ~1.0 = good performance
+- Real-time factor `<0.5` = simulation too slow for hardware
+
+</details>
+
+📁 **Solution Files**: *(Coming soon)*
+
+---
+
+## Bonus Challenge (Optional)
+
+**Create a Launch File**
+
+**Objective**: Automate Exercise 5.2 using a ROS 2 launch file
+
+**Requirements**:
+- Launch Gazebo with your custom world
+- Spawn 3 robots automatically at different positions
+- Add parameters for robot names and positions
+
+**Starting Point**: Use `spawn_robot.launch.py` as template
+
+---
+
+## Review Checklist
+
+Before moving to Chapter 6, ensure you can:
+
+- [ ] Install and verify Gazebo Harmonic
+- [ ] Explain SDF world file structure
+- [ ] Create world files with physics, ground, lighting
+- [ ] Spawn robots using command-line
+- [ ] Spawn robots using launch files
+- [ ] Configure physics parameters (timestep, engine)
+- [ ] Troubleshoot common issues
+- [ ] Complete all exercises within 30 minutes
+
+## What's Next
+
+Excellent work! You've mastered Gazebo basics. Now learn to configure realistic robot physics!
+
+👉 **[Continue to Chapter 6: URDF Physics →](/docs/module-2-digital-twin/chapter-6-urdf-physics/chapter-6-overview)**
+
+---
+
+## Exercise Solutions
+
+Solutions will be provided after you attempt the exercises. Focus on understanding concepts, not just copying answers!
+
+**Self-Assessment**:
+- **Score 0-1 exercises**: Review sections 5.1-5.4 again
+- **Score 2 exercises**: Good progress, practice more
+- **Score 3 exercises**: Excellent! Ready for Chapter 6
+
+---
+
+**Chapter 5 Complete!** 🎉
+**Time Invested**: ~3 hours | **Skills Gained**: Gazebo setup, world creation, robot spawning ✓

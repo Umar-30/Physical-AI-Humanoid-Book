@@ -1,0 +1,285 @@
+---
+sidebar_position: 3
+title: Creating ROS 2 Python Packages
+description: Structure and create ROS 2 Python packages
+keywords: [ros2, python, package, setup, workspace, colcon]
+---
+
+# Creating ROS 2 Python Packages
+
+Learn how to structure and build ROS 2 Python packages.
+
+## What is a ROS 2 Package?
+
+:::tip Definition
+
+A **ROS 2 package** is a self-contained unit containing nodes, launch files, configs, and dependencies.
+
+:::
+
+## Package Structure
+
+```
+my_robot_pkg/
+├── my_robot_pkg/          # Python module
+│   ├── __init__.py
+│   ├── node_1.py
+│   └── node_2.py
+├── launch/                # Launch files
+│   └── my_launch.py
+├── config/                # Configs
+│   └── params.yaml
+├── test/                  # Tests
+│   └── test_node.py
+├── package.xml            # Metadata
+├── setup.py               # Python config
+├── setup.cfg              # Entry points
+└── README.md
+```
+
+## Create Package
+
+```bash
+# Create workspace
+mkdir -p ~/ros2_ws/src
+cd ~/ros2_ws/src
+
+# Create package
+ros2 pkg create my_robot_pkg \
+  --build-type ament_python \
+  --dependencies rclpy std_msgs geometry_msgs
+```
+
+## package.xml
+
+```xml
+<?xml version="1.0"?>
+<package format="3">
+  <name>my_robot_pkg</name>
+  <version>0.0.1</version>
+  <description>My robot package</description>
+  <maintainer email="you@example.com">Your Name</maintainer>
+  <license>Apache License 2.0</license>
+
+  <buildtool_depend>ament_python</buildtool_depend>
+
+  <exec_depend>rclpy</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
+  <exec_depend>geometry_msgs</exec_depend>
+
+  <test_depend>ament_copyright</test_depend>
+  <test_depend>python3-pytest</test_depend>
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>
+```
+
+## setup.py
+
+```python
+from setuptools import setup
+
+package_name = 'my_robot_pkg'
+
+setup(
+    name=package_name,
+    version='0.0.1',
+    packages=[package_name],
+    data_files=[
+        ('share/ament_index/resource_index/packages',
+            ['resource/' + package_name]),
+        ('share/' + package_name, ['package.xml']),
+        ('share/' + package_name + '/launch', ['launch/my_launch.py']),
+        ('share/' + package_name + '/config', ['config/params.yaml']),
+    ],
+    install_requires=['setuptools'],
+    zip_safe=True,
+    maintainer='Your Name',
+    maintainer_email='you@example.com',
+    description='My robot package',
+    license='Apache License 2.0',
+    tests_require=['pytest'],
+    entry_points={
+        'console_scripts': [
+            'my_node = my_robot_pkg.my_node:main',
+            'controller = my_robot_pkg.controller:main',
+        ],
+    },
+)
+```
+
+**entry_points**: Executables for `ros2 run`
+- Format: `'name = package.module:function'`
+
+## Create a Node
+
+**my_robot_pkg/my_robot_pkg/my_node.py**:
+
+```python
+#!/usr/bin/env python3
+
+import rclpy
+from rclpy.node import Node
+from std_msgs.msg import String
+
+class MyNode(Node):
+    def __init__(self):
+        super().__init__('my_node')
+
+        self.publisher = self.create_publisher(String, 'output', 10)
+        self.timer = self.create_timer(1.0, self.timer_callback)
+        self.count = 0
+
+    def timer_callback(self):
+        msg = String()
+        msg.data = f'Hello {self.count}'
+        self.publisher.publish(msg)
+        self.get_logger().info(f'Publishing: "{msg.data}"')
+        self.count += 1
+
+def main(args=None):
+    rclpy.init(args=args)
+    node = MyNode()
+    rclpy.spin(node)
+    node.destroy_node()
+    rclpy.shutdown()
+
+if __name__ == '__main__':
+    main()
+```
+
+## Build Package
+
+```bash
+cd ~/ros2_ws
+
+# Build all
+colcon build
+
+# Build specific package
+colcon build --packages-select my_robot_pkg
+
+# Symlink install (faster iteration)
+colcon build --symlink-install
+```
+
+**Symlink benefits**: Python changes don't need rebuild
+
+## Source Workspace
+
+```bash
+source ~/ros2_ws/install/setup.bash
+
+# Or add to ~/.bashrc
+echo "source ~/ros2_ws/install/setup.bash" >> ~/.bashrc
+```
+
+:::warning Order Matters
+
+Always source ROS 2 first, then workspace:
+```bash
+source /opt/ros/humble/setup.bash
+source ~/ros2_ws/install/setup.bash
+```
+
+:::
+
+## Run Node
+
+```bash
+ros2 run my_robot_pkg my_node
+```
+
+## Adding Dependencies
+
+### Method 1: package.xml
+
+```xml
+<exec_depend>sensor_msgs</exec_depend>
+```
+
+Then rebuild:
+```bash
+colcon build --packages-select my_robot_pkg
+```
+
+### Method 2: rosdep
+
+```bash
+cd ~/ros2_ws
+rosdep install --from-paths src --ignore-src -y
+```
+
+## Multiple Nodes
+
+```
+my_robot_pkg/
+├── my_robot_pkg/
+│   ├── talker.py
+│   ├── listener.py
+│   └── controller.py
+```
+
+**setup.py**:
+```python
+entry_points={
+    'console_scripts': [
+        'talker = my_robot_pkg.talker:main',
+        'listener = my_robot_pkg.listener:main',
+        'controller = my_robot_pkg.controller:main',
+    ],
+},
+```
+
+## Development Workflow
+
+1. **Initial build with symlinks**:
+```bash
+colcon build --symlink-install
+```
+
+2. **Edit Python files** - Changes take effect immediately
+
+3. **Restart node** to see changes
+
+4. **Rebuild only when**:
+   - Changed `setup.py` or `package.xml`
+   - Added new files
+
+## Common Issues
+
+**"Package not found"**: Source workspace
+```bash
+source ~/ros2_ws/install/setup.bash
+```
+
+**"No executable found"**: Check `setup.py` entry_points
+
+**"Module not found"**: Ensure `__init__.py` exists
+```bash
+touch my_robot_pkg/my_robot_pkg/__init__.py
+```
+
+**Changes not reflected**: Use `--symlink-install`
+
+## Key Takeaways
+
+:::note Summary
+
+- **package.xml**: Metadata and dependencies
+- **setup.py**: Python config and executables
+- **entry_points**: Register executables
+- **colcon build**: Build packages
+- **--symlink-install**: Fast Python iteration
+- **Source workspace** after building
+- **rosdep**: Install dependencies
+
+:::
+
+---
+
+**Next**: [Publishers and Subscribers →](./publishers-subscribers)
+
+**Previous**: [← rclpy Overview](./rclpy-overview)

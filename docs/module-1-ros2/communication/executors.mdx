@@ -1,0 +1,690 @@
+---
+sidebar_position: 6
+title: Executors and Callback Groups
+description: Understanding callback execution models in ROS 2
+keywords: [ros2, executors, callbacks, multithreading, concurrency]
+---
+
+# Executors and Callback Groups
+
+Executors control how and when callbacks are executed in your ROS 2 nodes.
+
+## What is an Executor?
+
+:::tip Definition
+
+An **executor** is responsible for executing callbacks (subscription callbacks, timer callbacks, service callbacks, etc.) in your ROS 2 nodes. Executors determine the threading model: single-threaded or multi-threaded.
+
+:::
+
+When you call `rclpy.spin(node)`, you're using an executor under the hood.
+
+## Why Executors Matter
+
+Different applications have different concurrency needs:
+
+**Simple robot controller**
+- One callback at a time is fine
+- Use **SingleThreadedExecutor**
+- Simpler, no race conditions
+
+**Complex robot system**
+- Multiple sensors, control loops, planning
+- Need parallel execution
+- Use **MultiThreadedExecutor**
+- Higher throughput, but need synchronization
+
+## Executor Types
+
+### 1. SingleThreadedExecutor (Default)
+
+Executes all callbacks **sequentially** on one thread.
+
+```python
+import rclpy
+from rclpy.executors import SingleThreadedExecutor
+
+rclpy.init()
+node = MyNode()
+
+executor = SingleThreadedExecutor()
+executor.add_node(node)
+
+executor.spin()  # Runs on current thread
+```
+
+**Characteristics**:
+- ✅ Simple, predictable
+- ✅ No race conditions
+- ✅ No need for locks
+- ❌ Callbacks block each other
+- ❌ Slow callback = system slows down
+
+**When to use**:
+- Simple applications
+- No long-running callbacks
+- Don't need parallelism
+
+### 2. MultiThreadedExecutor
+
+Executes callbacks **in parallel** on multiple threads.
+
+```python
+from rclpy.executors import MultiThreadedExecutor
+
+rclpy.init()
+node = MyNode()
+
+# Use 4 threads
+executor = MultiThreadedExecutor(num_threads=4)
+executor.add_node(node)
+
+executor.spin()
+```
+
+**Characteristics**:
+- ✅ Callbacks run in parallel
+- ✅ Better throughput
+- ✅ Slow callback doesn't block others
+- ❌ Need synchronization (locks)
+- ❌ Race conditions possible
+- ❌ More complex debugging
+
+**When to use**:
+- Multiple independent callbacks
+- Long-running or blocking callbacks
+- Need high throughput
+
+## The Default: rclpy.spin()
+
+When you use `rclpy.spin(node)`, you're using a **SingleThreadedExecutor**:
+
+```python
+import rclpy
+
+rclpy.init()
+node = MyNode()
+
+# This is equivalent to:
+# executor = SingleThreadedExecutor()
+# executor.add_node(node)
+# executor.spin()
+
+rclpy.spin(node)  # Uses SingleThreadedExecutor by default
+```
+
+## Callback Groups
+
+Callback groups control which callbacks can run in parallel.
+
+:::tip Definition
+
+A **callback group** determines whether callbacks can execute simultaneously. By default, all callbacks in a node are in one **MutuallyExclusive** group.
+
+:::
+
+### Types of Callback Groups
+
+**1. MutuallyExclusive (Default)**
+- Callbacks in this group **never** run in parallel
+- One at a time, even with MultiThreadedExecutor
+
+```python
+from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
+
+# This is the default for all callbacks
+callback_group = MutuallyExclusiveCallbackGroup()
+```
+
+**2. Reentrant**
+- Callbacks in this group **can** run in parallel
+- Only works with MultiThreadedExecutor
+
+```python
+from rclpy.callback_groups import ReentrantCallbackGroup
+
+# Allows parallel execution
+callback_group = ReentrantCallbackGroup()
+```
+
+## How Executors and Callback Groups Interact
+
+| Executor | Callback Group | Result |
+|----------|----------------|--------|
+| SingleThreaded | MutuallyExclusive | Sequential ✓ |
+| SingleThreaded | Reentrant | Sequential (no threads) |
+| MultiThreaded | MutuallyExclusive | Sequential ✓ |
+| MultiThreaded | Reentrant | **Parallel** ✓ |
+
+To get **true parallelism**, you need:
+1. **MultiThreadedExecutor**, AND
+2. **ReentrantCallbackGroup**
+
+## Python Examples
+
+### Example 1: Default Behavior (Sequential)
+
+```python
+import rclpy
+from rclpy.node import Node
+from std_msgs.msg import String
+import time
+
+class SequentialNode(Node):
+    def __init__(self):
+        super().__init__('sequential_node')
+
+        # Both use default MutuallyExclusive group
+        self.sub1 = self.create_subscription(
+            String,
+            '/topic1',
+            self.callback1,
+            10
+        )
+
+        self.sub2 = self.create_subscription(
+            String,
+            '/topic2',
+            self.callback2,
+            10
+        )
+
+    def callback1(self, msg):
+        self.get_logger().info('Callback 1 START')
+        time.sleep(2)  # Simulate work
+        self.get_logger().info('Callback 1 END')
+
+    def callback2(self, msg):
+        self.get_logger().info('Callback 2 START')
+        time.sleep(2)
+        self.get_logger().info('Callback 2 END')
+
+def main():
+    rclpy.init()
+    node = SequentialNode()
+
+    # Uses SingleThreadedExecutor by default
+    rclpy.spin(node)
+
+    node.destroy_node()
+    rclpy.shutdown()
+```
+
+**Output** (if both topics publish simultaneously):
+```
+Callback 1 START
+Callback 1 END       # callback2 waits for callback1
+Callback 2 START
+Callback 2 END
+```
+
+### Example 2: Parallel Execution
+
+```python
+import rclpy
+from rclpy.node import Node
+from rclpy.executors import MultiThreadedExecutor
+from rclpy.callback_groups import ReentrantCallbackGroup
+from std_msgs.msg import String
+import time
+
+class ParallelNode(Node):
+    def __init__(self):
+        super().__init__('parallel_node')
+
+        # Create reentrant callback group
+        self.callback_group = ReentrantCallbackGroup()
+
+        # Both callbacks can run in parallel
+        self.sub1 = self.create_subscription(
+            String,
+            '/topic1',
+            self.callback1,
+            10,
+            callback_group=self.callback_group
+        )
+
+        self.sub2 = self.create_subscription(
+            String,
+            '/topic2',
+            self.callback2,
+            10,
+            callback_group=self.callback_group
+        )
+
+    def callback1(self, msg):
+        self.get_logger().info('Callback 1 START')
+        time.sleep(2)
+        self.get_logger().info('Callback 1 END')
+
+    def callback2(self, msg):
+        self.get_logger().info('Callback 2 START')
+        time.sleep(2)
+        self.get_logger().info('Callback 2 END')
+
+def main():
+    rclpy.init()
+    node = ParallelNode()
+
+    # Use MultiThreadedExecutor with 4 threads
+    executor = MultiThreadedExecutor(num_threads=4)
+    executor.add_node(node)
+
+    executor.spin()
+
+    node.destroy_node()
+    rclpy.shutdown()
+```
+
+**Output** (if both topics publish simultaneously):
+```
+Callback 1 START
+Callback 2 START     # Both run in parallel!
+Callback 1 END
+Callback 2 END
+```
+
+### Example 3: Mixed Callback Groups
+
+```python
+from rclpy.callback_groups import MutuallyExclusiveCallbackGroup, ReentrantCallbackGroup
+
+class MixedNode(Node):
+    def __init__(self):
+        super().__init__('mixed_node')
+
+        # Group 1: Mutually exclusive (sensors)
+        sensor_group = MutuallyExclusiveCallbackGroup()
+
+        self.sub_camera = self.create_subscription(
+            Image,
+            '/camera',
+            self.camera_callback,
+            10,
+            callback_group=sensor_group
+        )
+
+        self.sub_lidar = self.create_subscription(
+            LaserScan,
+            '/scan',
+            self.lidar_callback,
+            10,
+            callback_group=sensor_group
+        )
+
+        # Group 2: Reentrant (independent processing)
+        processing_group = ReentrantCallbackGroup()
+
+        self.timer1 = self.create_timer(
+            1.0,
+            self.process1,
+            callback_group=processing_group
+        )
+
+        self.timer2 = self.create_timer(
+            1.0,
+            self.process2,
+            callback_group=processing_group
+        )
+
+    # Sensor callbacks run one at a time
+    def camera_callback(self, msg):
+        pass
+
+    def lidar_callback(self, msg):
+        pass
+
+    # Processing can run in parallel
+    def process1(self):
+        pass
+
+    def process2(self):
+        pass
+```
+
+### Example 4: Service with Callback Group
+
+```python
+class ServiceNode(Node):
+    def __init__(self):
+        super().__init__('service_node')
+
+        # Allow multiple service calls in parallel
+        service_group = ReentrantCallbackGroup()
+
+        self.srv = self.create_service(
+            AddTwoInts,
+            'add_two_ints',
+            self.add_callback,
+            callback_group=service_group
+        )
+
+    def add_callback(self, request, response):
+        # Long computation
+        time.sleep(5)
+        response.sum = request.a + request.b
+        return response
+
+def main():
+    rclpy.init()
+    node = ServiceNode()
+
+    # Multiple clients can be served simultaneously
+    executor = MultiThreadedExecutor(num_threads=8)
+    executor.add_node(node)
+
+    executor.spin()
+```
+
+### Example 5: Timer with Callback Group
+
+```python
+class TimerNode(Node):
+    def __init__(self):
+        super().__init__('timer_node')
+
+        # Create reentrant group for timers
+        timer_group = ReentrantCallbackGroup()
+
+        # Fast timer (every 0.1s)
+        self.timer_fast = self.create_timer(
+            0.1,
+            self.fast_callback,
+            callback_group=timer_group
+        )
+
+        # Slow timer (every 1s, takes 2s to execute)
+        self.timer_slow = self.create_timer(
+            1.0,
+            self.slow_callback,
+            callback_group=timer_group
+        )
+
+    def fast_callback(self):
+        self.get_logger().info('Fast callback')
+
+    def slow_callback(self):
+        self.get_logger().info('Slow callback START')
+        time.sleep(2)  # Long computation
+        self.get_logger().info('Slow callback END')
+```
+
+## Thread Safety
+
+When using MultiThreadedExecutor with ReentrantCallbackGroup, you need to protect shared data.
+
+### Problem: Race Condition
+
+```python
+class UnsafeNode(Node):
+    def __init__(self):
+        super().__init__('unsafe_node')
+
+        self.counter = 0  # Shared state
+
+        group = ReentrantCallbackGroup()
+
+        self.timer1 = self.create_timer(
+            0.1,
+            self.increment,
+            callback_group=group
+        )
+
+        self.timer2 = self.create_timer(
+            0.1,
+            self.increment,
+            callback_group=group
+        )
+
+    def increment(self):
+        # RACE CONDITION! Both timers modify counter
+        temp = self.counter
+        time.sleep(0.001)  # Simulate work
+        self.counter = temp + 1
+        self.get_logger().info(f'Counter: {self.counter}')
+```
+
+**Problem**: Lost updates due to race condition.
+
+### Solution: Use Locks
+
+```python
+import threading
+
+class SafeNode(Node):
+    def __init__(self):
+        super().__init__('safe_node')
+
+        self.counter = 0
+        self.lock = threading.Lock()  # Protect shared state
+
+        group = ReentrantCallbackGroup()
+
+        self.timer1 = self.create_timer(
+            0.1,
+            self.increment,
+            callback_group=group
+        )
+
+        self.timer2 = self.create_timer(
+            0.1,
+            self.increment,
+            callback_group=group
+        )
+
+    def increment(self):
+        with self.lock:  # Acquire lock
+            temp = self.counter
+            time.sleep(0.001)
+            self.counter = temp + 1
+            self.get_logger().info(f'Counter: {self.counter}')
+        # Lock automatically released
+```
+
+## Best Practices
+
+:::tip Executor Best Practices
+
+1. **Start simple** - Use default SingleThreadedExecutor unless you need parallelism
+2. **Keep callbacks fast** - Long callbacks block others in MutuallyExclusive groups
+3. **Use Reentrant carefully** - Only for independent callbacks
+4. **Protect shared state** - Use locks with ReentrantCallbackGroup
+5. **Don't over-thread** - More threads ≠ faster (context switching overhead)
+6. **One executor per process** - Multiple executors rarely needed
+7. **Group related callbacks** - Use separate callback groups for independent work
+
+:::
+
+:::warning Common Pitfalls
+
+1. **Forgetting locks** - Race conditions with Reentrant groups
+2. **Too many threads** - Overhead from context switching
+3. **Blocking callbacks** - Slows entire system with MutuallyExclusive
+4. **Deadlocks** - Callbacks waiting for each other with locks
+5. **Assuming parallelism** - Reentrant alone doesn't give parallelism (need MultiThreaded)
+
+:::
+
+## Multiple Nodes in One Executor
+
+You can add multiple nodes to one executor:
+
+```python
+def main():
+    rclpy.init()
+
+    node1 = SensorNode()
+    node2 = ControlNode()
+    node3 = PlannerNode()
+
+    executor = MultiThreadedExecutor(num_threads=8)
+
+    executor.add_node(node1)
+    executor.add_node(node2)
+    executor.add_node(node3)
+
+    executor.spin()
+
+    # Cleanup
+    node1.destroy_node()
+    node2.destroy_node()
+    node3.destroy_node()
+    rclpy.shutdown()
+```
+
+## Executor Spin Variants
+
+### spin() - Block Forever
+
+```python
+executor.spin()  # Runs until Ctrl+C
+```
+
+### spin_once() - Execute One Callback
+
+```python
+# Execute one callback and return
+executor.spin_once(timeout_sec=1.0)
+```
+
+Useful for manual control loops:
+
+```python
+while rclpy.ok():
+    # Do custom work
+    perform_custom_task()
+
+    # Process one callback
+    executor.spin_once(timeout_sec=0.1)
+```
+
+### spin_until_future_complete() - Wait for Future
+
+```python
+future = client.call_async(request)
+
+# Spin until future completes
+executor.spin_until_future_complete(future, timeout_sec=5.0)
+
+if future.result() is not None:
+    response = future.result()
+```
+
+## Real-World Example: Robot Control System
+
+```python
+from rclpy.executors import MultiThreadedExecutor
+from rclpy.callback_groups import MutuallyExclusiveCallbackGroup, ReentrantCallbackGroup
+
+class RobotController(Node):
+    def __init__(self):
+        super().__init__('robot_controller')
+
+        # Group 1: Sensor processing (sequential, order matters)
+        sensor_group = MutuallyExclusiveCallbackGroup()
+
+        self.sub_camera = self.create_subscription(
+            Image,
+            '/camera',
+            self.process_camera,
+            10,
+            callback_group=sensor_group
+        )
+
+        self.sub_lidar = self.create_subscription(
+            LaserScan,
+            '/scan',
+            self.process_lidar,
+            10,
+            callback_group=sensor_group
+        )
+
+        # Group 2: Control loops (can run in parallel)
+        control_group = ReentrantCallbackGroup()
+
+        self.timer_motion = self.create_timer(
+            0.01,  # 100 Hz
+            self.motion_control,
+            callback_group=control_group
+        )
+
+        self.timer_safety = self.create_timer(
+            0.1,  # 10 Hz
+            self.safety_check,
+            callback_group=control_group
+        )
+
+        # Group 3: Services (parallel requests)
+        service_group = ReentrantCallbackGroup()
+
+        self.srv_plan = self.create_service(
+            GetPlan,
+            'plan_path',
+            self.plan_callback,
+            callback_group=service_group
+        )
+
+        # Shared state with lock
+        self.state_lock = threading.Lock()
+        self.robot_state = {}
+
+    def process_camera(self, msg):
+        # Process camera data
+        pass
+
+    def process_lidar(self, msg):
+        # Process lidar data
+        pass
+
+    def motion_control(self):
+        # Fast control loop
+        with self.state_lock:
+            # Read/write robot state safely
+            pass
+
+    def safety_check(self):
+        # Safety monitoring
+        with self.state_lock:
+            # Check robot state
+            pass
+
+    def plan_callback(self, request, response):
+        # Long-running path planning
+        # Can handle multiple requests in parallel
+        return response
+
+def main():
+    rclpy.init()
+    node = RobotController()
+
+    # Use 8 threads for parallel execution
+    executor = MultiThreadedExecutor(num_threads=8)
+    executor.add_node(node)
+
+    executor.spin()
+
+    node.destroy_node()
+    rclpy.shutdown()
+```
+
+## Key Takeaways
+
+:::note Summary
+
+- **Executors** control how callbacks are executed
+- **SingleThreadedExecutor**: Sequential, simple, default
+- **MultiThreadedExecutor**: Parallel, complex, higher throughput
+- **MutuallyExclusiveCallbackGroup**: Callbacks never run in parallel (default)
+- **ReentrantCallbackGroup**: Callbacks can run in parallel
+- **True parallelism** needs MultiThreadedExecutor + ReentrantCallbackGroup
+- **Thread safety**: Use locks to protect shared state
+- **Best practice**: Start simple, add parallelism only when needed
+- **Common use**: Reentrant for independent work, MutuallyExclusive for sequential processing
+
+:::
+
+---
+
+**Next**: [Computation Graph Design →](./graph-design)
+
+**Previous**: [← Quality of Service (QoS)](./qos-profiles)

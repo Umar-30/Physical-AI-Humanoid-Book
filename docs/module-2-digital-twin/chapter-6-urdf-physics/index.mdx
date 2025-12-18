@@ -1,0 +1,269 @@
+---
+id: chapter-6-overview
+title: "Chapter 6: Configuring URDF for Realistic Physics"
+sidebar_label: "Chapter 6 Overview"
+sidebar_position: 1
+description: Configure URDFs with sensors, collision geometries, inertia, and joint properties for realistic humanoid robot simulation
+keywords: [urdf, physics, sensors, collision, inertia, gazebo, humanoid, imu, camera, force-torque]
+---
+
+# Chapter 6: Configuring URDF for Realistic Physics
+
+## Chapter Overview
+
+Welcome to Chapter 6! Now that you can spawn robots in Gazebo (Chapter 5), it's time to make them **physically realistic**. This chapter teaches you to configure URDFs with proper sensors, collision shapes, mass properties, and joint dynamics.
+
+:::tip Priority 2 - Enhancement
+This chapter is marked **P2 (Priority 2)** because it builds directly on Chapter 5. You'll transform basic URDF models into production-ready digital twins.
+:::
+
+## What You'll Learn
+
+By completing this chapter, you will be able to:
+
+1. ✅ **Integrate sensors** - Add IMU, cameras, lidar, and force-torque sensors to URDF
+2. ✅ **Optimize collision geometry** - Create efficient collision shapes for humanoid robots
+3. ✅ **Calculate inertia** - Compute accurate mass and inertia tensors for all links
+4. ✅ **Configure joints** - Set limits, friction, damping, and effort constraints
+5. ✅ **Validate physics** - Test and verify realistic simulation behavior
+
+## Prerequisites
+
+Before starting this chapter, ensure you have:
+
+- ✅ **Chapter 5 Complete**: Can spawn robots in Gazebo successfully
+- ✅ **Module 1 Complete**: Understanding of URDF structure (links, joints, transforms)
+- ✅ **Working Gazebo**: Harmonic installation verified and functional
+- ✅ **Basic Python**: For inertia calculation scripts (optional but recommended)
+
+## Chapter Structure
+
+### 📚 Sections
+
+1. **[Sensor Integration](./sensor-integration)** (45 min)
+   - Add IMU, cameras, lidar, force-torque sensors to URDF
+   - Configure sensor properties and publication rates
+   - Test sensor data in Gazebo
+
+2. **[Collision Geometry](./collision-geometry)** (30 min)
+   - Understand collision vs visual meshes
+   - Optimize collision shapes for performance
+   - Configure surface properties (friction, restitution)
+
+3. **[Inertia Calculation](./inertia-calculation)** (40 min)
+   - Calculate mass properties from CAD or geometry
+   - Configure inertia tensors correctly
+   - Use Python scripts for automation
+
+4. **[Joint Configuration](./joint-configuration)** (35 min)
+   - Set position, velocity, and effort limits
+   - Configure friction and damping coefficients
+   - Tune joint dynamics for stability
+
+5. **[Validation](./validation)** (30 min)
+   - Test physics behavior systematically
+   - Verify sensor data accuracy
+   - Debug common physics issues
+
+6. **[Exercises](./exercises)** (40 min)
+   - Hands-on practice with complete humanoid URDF
+   - Sensor integration challenges
+   - Physics tuning exercises
+
+**Total Estimated Time**: 3-4 hours
+
+## Learning Path
+
+```mermaid
+graph LR
+    A[Chapter 5: Gazebo] --> B[Sensor Integration]
+    B --> C[Collision Geometry]
+    C --> D[Inertia Calculation]
+    D --> E[Joint Configuration]
+    E --> F[Validation]
+    F --> G[Exercises]
+    G --> H[Chapter 7: Unity]
+```
+
+## Success Criteria
+
+You'll know you've mastered this chapter when you can:
+
+- ✅ Add 3+ sensor types to a humanoid URDF
+- ✅ Optimize collision geometry for 50%+ performance improvement
+- ✅ Calculate inertia tensors manually or with scripts
+- ✅ Configure joint dynamics for stable walking simulation
+- ✅ Validate physics behavior against real-world expectations
+- ✅ Complete all exercises within 40 minutes
+
+## Key Concepts Preview
+
+:::info Why Physics Configuration Matters
+**Realistic physics** is essential for:
+- **Sensor Simulation**: IMU data depends on correct inertia
+- **Control Development**: Controller tuning requires accurate dynamics
+- **Collision Detection**: Proper collision shapes prevent tunneling and instability
+- **Performance**: Optimized physics runs faster and more reliably
+:::
+
+### URDF Physics Elements
+
+This chapter focuses on these URDF tags:
+
+| Element | Purpose | Chapter Section |
+|---------|---------|----------------|
+| `<sensor>` | Add sensors (IMU, camera, lidar) | 6.1 Sensor Integration |
+| `<collision>` | Define collision geometry | 6.2 Collision Geometry |
+| `<inertial>` | Set mass and inertia | 6.3 Inertia Calculation |
+| `<limit>` | Joint position/velocity/effort limits | 6.4 Joint Configuration |
+| `<dynamics>` | Friction and damping | 6.4 Joint Configuration |
+| `<surface>` | Contact properties | 6.2 Collision Geometry |
+
+## What You'll Build
+
+By the end of this chapter, you'll have created:
+
+1. **Sensor-Equipped URDF**:
+   - IMU in torso (100 Hz)
+   - Stereo cameras in head (30 Hz)
+   - Force-torque sensors in feet (1000 Hz)
+   - Optional: Lidar for navigation
+
+2. **Optimized Collision Geometry**:
+   - Simplified collision meshes (10-20% of visual mesh complexity)
+   - Proper friction coefficients for feet, hands
+   - Self-collision filtering for adjacent links
+
+3. **Accurate Mass Properties**:
+   - Per-link mass values from CAD or estimation
+   - Inertia tensors calculated with Python script
+   - Center of mass positions validated
+
+4. **Tuned Joint Dynamics**:
+   - Position limits matching real hardware
+   - Friction/damping for realistic motion
+   - Effort limits for motor constraints
+
+## Humanoid Robot Focus
+
+This chapter uses a **simplified humanoid robot** as the example:
+
+**Link Structure**:
+- Torso (with IMU)
+- Head (with cameras)
+- 2x Arms (shoulder, elbow, wrist)
+- 2x Legs (hip, knee, ankle)
+- 2x Feet (with force-torque sensors)
+
+**Total**: 15 links, 14 joints
+
+:::tip Apply to Your Robot
+While we use a humanoid example, these techniques apply to any robot type:
+- Quadrupeds: Focus on leg collision optimization
+- Manipulators: Emphasize joint dynamics and payload inertia
+- Mobile robots: Prioritize lidar/camera sensors
+:::
+
+## Common Questions
+
+<details>
+<summary><strong>Q: Do I need to calculate inertia manually?</strong></summary>
+
+**Not necessarily**. Three approaches:
+
+1. **CAD Export**: Most CAD tools (SolidWorks, Fusion 360) export URDF with inertia
+2. **Python Scripts**: Use provided scripts to calculate from mesh geometry
+3. **Manual Calculation**: For simple shapes (boxes, cylinders, spheres)
+
+We'll cover all three methods in Section 6.3.
+
+</details>
+
+<details>
+<summary><strong>Q: How accurate does physics need to be?</strong></summary>
+
+**It depends on your use case**:
+
+- **Control Development**: High accuracy (±5%) critical for controller tuning
+- **Visualization**: Low accuracy (±20%) acceptable if simulation runs fast
+- **Reinforcement Learning**: Medium accuracy (±10%) sufficient
+
+Start with "good enough" and iterate based on validation results.
+
+</details>
+
+<details>
+<summary><strong>Q: Can I reuse collision meshes from other robots?</strong></summary>
+
+**Yes, but be careful**:
+
+- ✅ Generic shapes (boxes, cylinders) are highly reusable
+- ✅ Similar robot morphologies can share collision templates
+- ⚠️ Always adjust mass/inertia for your robot's dimensions
+- ❌ Don't reuse without scaling - incorrect mass causes instability
+
+</details>
+
+<details>
+<summary><strong>Q: Which sensors should I add first?</strong></summary>
+
+**Priority order for humanoid robots**:
+
+1. **IMU** (essential): Orientation, angular velocity - critical for balance
+2. **Force-torque sensors** (feet): Contact detection and force control
+3. **Cameras** (head): Vision-based navigation and manipulation
+4. **Lidar** (optional): Long-range obstacle detection
+
+Start with IMU, then add others as needed.
+
+</details>
+
+<details>
+<summary><strong>Q: How do I know if my collision geometry is too complex?</strong></summary>
+
+**Performance indicators**:
+
+- ✅ Good: Simulation runs at real-time factor >0.9 (90% of real-time)
+- ⚠️ Moderate: Real-time factor 0.5-0.9 (consider optimization)
+- ❌ Poor: Real-time factor &lt;0.5 (definitely simplify)
+
+**Rule of thumb**: Collision meshes should have 10-20% the triangles of visual meshes.
+
+</details>
+
+## Tools You'll Use
+
+Throughout this chapter, you'll work with:
+
+**Command-Line Tools**:
+- `gz sim` - Gazebo simulator
+- `gz topic` - Monitor sensor data
+- `check_urdf` - Validate URDF syntax
+- `urdf_to_graphviz` - Visualize robot structure
+
+**Python Libraries**:
+- `trimesh` - Mesh processing and inertia calculation
+- `numpy` - Numerical computations
+- `pybullet` - Alternative physics validation
+
+**Optional**:
+- MeshLab - Manual mesh simplification
+- Blender - Collision mesh creation
+
+## Getting Started
+
+Ready to transform your URDF into a physically realistic digital twin? Let's start with sensor integration!
+
+👉 **[Start with Sensor Integration →](./sensor-integration)**
+
+---
+
+## Quick Links
+
+- 📖 [URDF Sensor Plugin Docs](https://classic.gazebosim.org/tutorials?tut=ros_gzplugins)
+- 📖 [Gazebo Physics Parameters](https://gazebosim.org/api/sim/8/physics.html)
+- ⬅️ [Back to Chapter 5: Gazebo Basics](/docs/module-2-digital-twin/chapter-5-gazebo-basics/chapter-5-overview)
+
+---
+
+**Estimated Completion**: 3-4 hours | **Difficulty**: Intermediate | **Priority**: P2 (Recommended)

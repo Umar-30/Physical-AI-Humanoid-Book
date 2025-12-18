@@ -1,0 +1,62 @@
+<svg width="800" height="500" xmlns="http://www.w3.org/2000/svg">
+  <!-- Title -->
+  <text x="400" y="30" font-size="20" font-weight="bold" text-anchor="middle" fill="#333">Topic Publish/Subscribe Pattern</text>
+
+  <!-- Publisher 1 -->
+  <ellipse cx="150" cy="150" rx="100" ry="60" fill="#e3f2fd" stroke="#1976d2" stroke-width="2"/>
+  <text x="150" y="145" font-size="14" font-weight="bold" text-anchor="middle" fill="#1565c0">Publisher 1</text>
+  <text x="150" y="165" font-size="11" text-anchor="middle" fill="#555">/camera_node</text>
+
+  <!-- Publisher 2 -->
+  <ellipse cx="150" cy="350" rx="100" ry="60" fill="#e3f2fd" stroke="#1976d2" stroke-width="2"/>
+  <text x="150" y="345" font-size="14" font-weight="bold" text-anchor="middle" fill="#1565c0">Publisher 2</text>
+  <text x="150" y="365" font-size="11" text-anchor="middle" fill="#555">/lidar_node</text>
+
+  <!-- Topic (center) -->
+  <rect x="325" y="220" width="150" height="60" fill="#fff3e0" stroke="#f57c00" stroke-width="3" rx="8"/>
+  <text x="400" y="245" font-size="16" font-weight="bold" text-anchor="middle" fill="#e65100">Topic</text>
+  <text x="400" y="265" font-size="13" text-anchor="middle" fill="#666">/sensor_data</text>
+
+  <!-- Subscriber 1 -->
+  <ellipse cx="650" cy="150" rx="100" ry="60" fill="#f3e5f5" stroke="#7b1fa2" stroke-width="2"/>
+  <text x="650" y="145" font-size="14" font-weight="bold" text-anchor="middle" fill="#6a1b9a">Subscriber 1</text>
+  <text x="650" y="165" font-size="11" text-anchor="middle" fill="#555">/planner_node</text>
+
+  <!-- Subscriber 2 -->
+  <ellipse cx="650" cy="250" rx="100" ry="60" fill="#f3e5f5" stroke="#7b1fa2" stroke-width="2"/>
+  <text x="650" y="245" font-size="14" font-weight="bold" text-anchor="middle" fill="#6a1b9a">Subscriber 2</text>
+  <text x="650" y="265" font-size="11" text-anchor="middle" fill="#555">/logger_node</text>
+
+  <!-- Subscriber 3 -->
+  <ellipse cx="650" cy="350" rx="100" ry="60" fill="#f3e5f5" stroke="#7b1fa2" stroke-width="2"/>
+  <text x="650" y="345" font-size="14" font-weight="bold" text-anchor="middle" fill="#6a1b9a">Subscriber 3</text>
+  <text x="650" y="365" font-size="11" text-anchor="middle" fill="#555">/display_node</text>
+
+  <!-- Arrows -->
+  <defs>
+    <marker id="arrowPubSub" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#666" />
+    </marker>
+  </defs>
+
+  <!-- Publishers to Topic -->
+  <path d="M 250 150 L 325 235" stroke="#1976d2" stroke-width="2" fill="none" marker-end="url(#arrowPubSub)"/>
+  <path d="M 250 350 L 325 265" stroke="#1976d2" stroke-width="2" fill="none" marker-end="url(#arrowPubSub)"/>
+
+  <!-- Topic to Subscribers -->
+  <path d="M 475 235 L 550 150" stroke="#7b1fa2" stroke-width="2" fill="none" marker-end="url(#arrowPubSub)"/>
+  <path d="M 475 250 L 550 250" stroke="#7b1fa2" stroke-width="2" fill="none" marker-end="url(#arrowPubSub)"/>
+  <path d="M 475 265 L 550 350" stroke="#7b1fa2" stroke-width="2" fill="none" marker-end="url(#arrowPubSub)"/>
+
+  <!-- Labels -->
+  <text x="280" y="180" font-size="11" fill="#1976d2">publish()</text>
+  <text x="280" y="320" font-size="11" fill="#1976d2">publish()</text>
+  <text x="510" y="180" font-size="11" fill="#7b1fa2">callback()</text>
+  <text x="510" y="245" font-size="11" fill="#7b1fa2">callback()</text>
+  <text x="510" y="320" font-size="11" fill="#7b1fa2">callback()</text>
+
+  <!-- Key Features -->
+  <text x="400" y="430" font-size="14" font-weight="bold" text-anchor="middle" fill="#333">Key Features:</text>
+  <text x="400" y="455" font-size="12" text-anchor="middle" fill="#555">✓ Many-to-Many | ✓ Asynchronous | ✓ Fire-and-Forget | ✓ High-Frequency Data</text>
+  <text x="400" y="480" font-size="12" text-anchor="middle" fill="#555">Use for: Sensor streams, continuous data flow, broadcasting</text>
+</svg>

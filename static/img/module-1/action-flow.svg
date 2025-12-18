@@ -1,0 +1,61 @@
+<svg width="750" height="550" xmlns="http://www.w3.org/2000/svg">
+  <!-- Title -->
+  <text x="375" y="30" font-size="20" font-weight="bold" text-anchor="middle" fill="#333">Action Goal/Feedback/Result Pattern</text>
+
+  <!-- Action Client -->
+  <rect x="50" y="80" width="150" height="400" fill="#e3f2fd" stroke="#1976d2" stroke-width="2" rx="5"/>
+  <text x="125" y="110" font-size="14" font-weight="bold" text-anchor="middle" fill="#1565c0">Action Client</text>
+  <text x="125" y="130" font-size="11" text-anchor="middle" fill="#555">/robot_controller</text>
+
+  <!-- Action Server -->
+  <rect x="550" y="80" width="150" height="400" fill="#f3e5f5" stroke="#7b1fa2" stroke-width="2" rx="5"/>
+  <text x="625" y="110" font-size="14" font-weight="bold" text-anchor="middle" fill="#6a1b9a">Action Server</text>
+  <text x="625" y="130" font-size="11" text-anchor="middle" fill="#555">/navigation_server</text>
+
+  <!-- Arrows and Flow -->
+  <defs>
+    <marker id="arrowAction" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#1976d2" />
+    </marker>
+    <marker id="arrowFeedback" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#ff9800" />
+    </marker>
+    <marker id="arrowResult" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#4caf50" />
+    </marker>
+  </defs>
+
+  <!-- 1. Send Goal -->
+  <line x1="200" y1="170" x2="550" y2="170" stroke="#1976d2" stroke-width="3" marker-end="url(#arrowAction)"/>
+  <text x="375" y="160" font-size="12" font-weight="bold" text-anchor="middle" fill="#1565c0">1. Send Goal</text>
+  <text x="375" y="185" font-size="10" text-anchor="middle" fill="#555">{target: [x, y, z]}</text>
+
+  <!-- 2. Accept Goal -->
+  <line x1="550" y1="210" x2="200" y2="210" stroke="#4caf50" stroke-width="2" marker-end="url(#arrowResult)"/>
+  <text x="375" y="225" font-size="11" text-anchor="middle" fill="#4caf50">2. Goal Accepted ✓</text>
+
+  <!-- 3. Feedback (multiple) -->
+  <line x1="550" y1="260" x2="200" y2="260" stroke="#ff9800" stroke-width="2" stroke-dasharray="5,5" marker-end="url(#arrowFeedback)"/>
+  <text x="375" y="250" font-size="11" font-weight="bold" text-anchor="middle" fill="#ff9800">3. Feedback (periodic)</text>
+  <text x="375" y="275" font-size="9" text-anchor="middle" fill="#666">{progress: 25%, distance_remaining: 7.5m}</text>
+
+  <line x1="550" y1="300" x2="200" y2="300" stroke="#ff9800" stroke-width="2" stroke-dasharray="5,5" marker-end="url(#arrowFeedback)"/>
+  <text x="375" y="315" font-size="9" text-anchor="middle" fill="#666">{progress: 50%, distance_remaining: 5.0m}</text>
+
+  <line x1="550" y1="340" x2="200" y2="340" stroke="#ff9800" stroke-width="2" stroke-dasharray="5,5" marker-end="url(#arrowFeedback)"/>
+  <text x="375" y="355" font-size="9" text-anchor="middle" fill="#666">{progress: 75%, distance_remaining: 2.5m}</text>
+
+  <!-- 4. Final Result -->
+  <line x1="550" y1="390" x2="200" y2="390" stroke="#4caf50" stroke-width="3" marker-end="url(#arrowResult)"/>
+  <text x="375" y="405" font-size="12" font-weight="bold" text-anchor="middle" fill="#4caf50">4. Result</text>
+  <text x="375" y="420" font-size="10" text-anchor="middle" fill="#555">{success: true, final_position: [x, y, z]}</text>
+
+  <!-- Optional: Cancel -->
+  <line x1="200" y1="450" x2="300" y2="450" stroke="#f44336" stroke-width="2" stroke-dasharray="3,3"/>
+  <text x="250" y="465" font-size="10" text-anchor="middle" fill="#f44336">Optional: Cancel Request</text>
+
+  <!-- Key Features -->
+  <text x="375" y="505" font-size="14" font-weight="bold" text-anchor="middle" fill="#333">Key Features:</text>
+  <text x="375" y="525" font-size="12" text-anchor="middle" fill="#555">✓ Long-Running Tasks | ✓ Progress Feedback | ✓ Cancellable | ✓ Goal/Feedback/Result</text>
+  <text x="375" y="545" font-size="12" text-anchor="middle" fill="#555">Use for: Navigation, grasping, manipulation, time-consuming operations</text>
+</svg>

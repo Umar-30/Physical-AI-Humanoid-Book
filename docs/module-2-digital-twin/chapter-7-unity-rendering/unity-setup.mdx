@@ -1,0 +1,544 @@
+---
+id: unity-setup
+title: "7.1: Unity 2022 LTS Installation and Setup"
+sidebar_label: "7.1 Unity Setup"
+sidebar_position: 2
+description: Step-by-step guide to installing Unity 2022 LTS, Unity Hub, and ROS-TCP-Connector package
+keywords: [unity, installation, unity-hub, ros-tcp-connector, setup, gpu]
+---
+
+# 7.1: Unity 2022 LTS Installation and Setup
+
+## Overview
+
+Install Unity 2022 LTS (Long Term Support) and the ROS-TCP-Connector package to enable ROS 2 integration.
+
+**Time Required**: 30-40 minutes
+**Difficulty**: Beginner
+**Disk Space**: ~20GB
+
+## Why Unity 2022 LTS?
+
+**LTS (Long Term Support)** versions receive:
+- 2 years of bug fixes and patches
+- Stable API (no breaking changes)
+- Better package compatibility
+- Recommended for robotics projects
+
+:::tip Version Compatibility
+This chapter uses **Unity 2022.3 LTS**. Other versions (2021 LTS, 2023 LTS) work but may have different UI layouts. Avoid non-LTS versions for production.
+:::
+
+## Prerequisites Checklist
+
+Before installing, verify you have:
+
+- [ ] **Operating System**:
+  - Windows 10/11 (64-bit) OR
+  - Ubuntu 22.04 LTS OR
+  - macOS 12+ (Intel or Apple Silicon)
+- [ ] **GPU**: DirectX 11/12 (Windows) or OpenGL 4.5+ (Linux/Mac)
+- [ ] **RAM**: 8GB minimum, 16GB recommended
+- [ ] **Disk Space**: 20GB free
+- [ ] **Internet**: Active connection for downloads
+
+### GPU Verification
+
+**Windows**:
+```powershell
+dxdiag
+# Check "Display" tab → Feature Levels should show 11_0 or higher
+```
+
+**Linux**:
+```bash
+glxinfo | grep "OpenGL version"
+# Should show: OpenGL version string: 4.5 or higher
+```
+
+**macOS**:
+```bash
+system_profiler SPDisplaysDataType
+# Check Metal support (should be "Supported")
+```
+
+## Installation Steps
+
+### Step 1: Create Unity Account (Free)
+
+1. Visit [Unity ID Sign Up](https://id.unity.com/account/new)
+2. Create free account (no credit card required)
+3. Verify email address
+4. Accept Unity Personal license terms
+
+**Unity Personal License**:
+- ✅ Free forever
+- ✅ No revenue limits for educational/research use
+- ✅ Full feature set (minus team collaboration)
+- ✅ Includes ROS-TCP-Connector support
+
+### Step 2: Download Unity Hub
+
+Unity Hub is the centralized manager for Unity versions and projects.
+
+**Download Links**:
+- [Windows Download](https://public-cdn.cloud.unity3d.com/hub/prod/UnityHubSetup.exe)
+- [Linux Download](https://public-cdn.cloud.unity3d.com/hub/prod/UnityHub.AppImage)
+- [macOS Download](https://public-cdn.cloud.unity3d.com/hub/prod/UnityHubSetup.dmg)
+
+**Installation**:
+
+**Windows**:
+```powershell
+# Run installer
+.\UnityHubSetup.exe
+# Follow wizard, default settings OK
+```
+
+**Linux**:
+```bash
+# Make AppImage executable
+chmod +x UnityHub.AppImage
+
+# Run Unity Hub
+./UnityHub.AppImage
+
+# Optional: Move to /opt for system-wide access
+sudo mv UnityHub.AppImage /opt/unity-hub
+sudo ln -s /opt/unity-hub/UnityHub.AppImage /usr/local/bin/unity-hub
+```
+
+**macOS**:
+```bash
+# Open DMG and drag to Applications
+open UnityHubSetup.dmg
+# Then launch from Applications folder
+```
+
+{/* TODO: screenshot of Unity Hub welcome screen */}
+
+### Step 3: Sign In to Unity Hub
+
+1. Launch Unity Hub
+2. Click "Sign in" (top-right)
+3. Enter Unity ID credentials
+4. Activate Personal license:
+   - Click Settings (gear icon)
+   - Go to "License Management"
+   - Click "Activate New License"
+   - Select "Unity Personal"
+   - Choose "I don't use Unity in a professional capacity"
+
+{/* TODO: screenshot of license activation */}
+
+:::success License Activated
+Green checkmark should appear next to "Unity Personal" license.
+:::
+
+### Step 4: Install Unity Editor 2022.3 LTS
+
+1. In Unity Hub, click **"Installs"** tab (left sidebar)
+2. Click **"Install Editor"** button
+3. Select **"2022.3.X LTS"** (latest patch version, e.g., 2022.3.15f1)
+4. Click **"Install"**
+
+**Module Selection** (Important!):
+
+Check these modules:
+- ✅ **Microsoft Visual Studio Community** (Windows only, for C# editing)
+- ✅ **Linux Build Support (IL2CPP)** (if on Windows, optional)
+- ✅ **WebGL Build Support** (for web dashboards)
+- ⬜ Android Build Support (skip unless building mobile apps)
+- ⬜ iOS Build Support (skip unless building iOS apps)
+
+**Time**: 15-25 minutes depending on internet speed
+**Download Size**: ~3-5GB
+
+{/* TODO: screenshot of module selection */}
+
+:::warning Disk Space
+Unity Editor requires ~7GB, additional build support modules add 1-3GB each.
+:::
+
+### Step 5: Verify Installation
+
+After installation completes:
+
+1. In Unity Hub, "Installs" tab should show:
+   ```
+   Unity 2022.3.X LTS
+   ✓ Installed
+   ```
+2. Click **"Projects"** tab
+3. Click **"New Project"**
+4. Verify templates load (3D, 3D URP, etc.)
+5. Cancel (don't create project yet)
+
+:::success Unity Editor Installed
+Ready to install ROS packages!
+:::
+
+## ROS-TCP-Connector Installation
+
+### What is ROS-TCP-Connector?
+
+The **Unity Robotics ROS-TCP-Connector** package enables:
+- Bidirectional ROS 2 topic communication
+- Service and action support
+- Message serialization/deserialization
+- Cross-platform networking (Windows ↔ Linux)
+
+### Step 6: Create Test Project
+
+1. In Unity Hub, click **"New Project"**
+2. Select **"3D (URP)"** template
+   - URP = Universal Render Pipeline (better graphics)
+3. Project Settings:
+   - **Name**: `HumanoidVisualization`
+   - **Location**: Choose accessible folder (e.g., `~/unity_projects/`)
+4. Click **"Create Project"**
+
+**First Launch**: Takes 2-5 minutes to import assets and compile shaders
+
+{/* TODO: screenshot of project creation dialog */}
+
+### Step 7: Install ROS-TCP-Connector Package
+
+Unity will now be open. Follow these steps:
+
+1. Go to **Window → Package Manager**
+2. Click **"+"** (top-left) → **"Add package from git URL..."**
+3. Enter:
+   ```
+   https://github.com/Unity-Technologies/ROS-TCP-Connector.git?path=/com.unity.robotics.ros-tcp-connector
+   ```
+4. Click **"Add"**
+
+**Installation Progress**: Watch bottom-right status bar (30-60 seconds)
+
+{/* TODO: screenshot of Package Manager with git URL dialog */}
+
+:::info Alternative Installation Method
+If git URL fails (firewall/proxy):
+1. Download [ZIP from GitHub](https://github.com/Unity-Technologies/ROS-TCP-Connector/archive/refs/heads/main.zip)
+2. Extract `com.unity.robotics.ros-tcp-connector` folder
+3. In Unity: **Window → Package Manager → + → Add package from disk**
+4. Select `package.json` inside extracted folder
+:::
+
+### Step 8: Install URDF Importer Package
+
+For importing robot models:
+
+1. In Package Manager, click **"+"** → **"Add package from git URL..."**
+2. Enter:
+   ```
+   https://github.com/Unity-Technologies/URDF-Importer.git?path=/com.unity.robotics.urdf-importer
+   ```
+3. Click **"Add"**
+
+**What this does**: Enables direct URDF file import into Unity
+
+### Step 9: Verify Package Installation
+
+Check that packages installed correctly:
+
+1. **Window → Package Manager**
+2. Filter: **"In Project"** (top-left dropdown)
+3. Verify you see:
+   - ✅ **ROS-TCP-Connector** (version 0.7.0+)
+   - ✅ **URDF Importer** (version 0.5.2+)
+
+{/* TODO: screenshot of Package Manager showing installed packages */}
+
+4. Check for new menu items:
+   - **Robotics** menu (top menu bar)
+   - **Robotics → ROS Settings** submenu
+
+:::success Packages Installed
+Unity is now ROS-ready!
+:::
+
+## Unity Editor Overview
+
+### Interface Layout
+
+Understanding Unity's interface:
+
+```
+┌─────────────────────────────────────────────────────┐
+│  Menu Bar (File, Edit, Assets, GameObject, ...)    │
+├─────────┬───────────────────────────┬───────────────┤
+│ Hierar- │  Scene View (3D editor)   │   Inspector   │
+│  chy    │                           │  (Properties) │
+│ (Tree)  │                           │               │
+│         ├───────────────────────────┤               │
+│         │  Game View (Play mode)    │               │
+├─────────┴───────────────────────────┴───────────────┤
+│  Project (Assets folder)  │  Console (Logs/Errors)  │
+└───────────────────────────┴─────────────────────────┘
+```
+
+**Key Panels**:
+- **Hierarchy**: Scene object tree
+- **Scene**: 3D editor view (use mouse to navigate)
+- **Inspector**: Selected object properties
+- **Project**: Asset library
+- **Console**: Debug output and errors
+
+### Navigation Controls
+
+**Scene View**:
+- **Right Mouse + WASD**: Fly camera (FPS-style)
+- **Middle Mouse Drag**: Pan view
+- **Scroll Wheel**: Zoom in/out
+- **Alt + Left Mouse Drag**: Orbit around selection
+- **F Key**: Frame selected object
+
+**Practice**: Click Main Camera in Hierarchy, press F to frame it
+
+## ROS Settings Configuration
+
+### Step 10: Configure ROS-TCP-Connector
+
+1. Go to **Robotics → ROS Settings**
+2. In Inspector, configure:
+
+```
+ROS Settings
+├─ Protocol: ROS 2
+├─ ROS IP Address: 192.168.1.100  ← Change to ROS PC IP
+├─ ROS Port: 10000
+├─ Serializer: MessagePack V2 (recommended)
+├─ Connect on Startup: ✓ (checked)
+└─ Show HUD: ✓ (helpful for debugging)
+```
+
+**Finding ROS IP Address**:
+
+On your ROS 2 machine:
+```bash
+hostname -I
+# Example output: 192.168.1.100
+```
+
+Use this IP in Unity's "ROS IP Address" field.
+
+:::tip Same Machine Setup
+If running Unity and ROS 2 on same computer, use `127.0.0.1` (localhost).
+:::
+
+{/* TODO: screenshot of ROS Settings inspector */}
+
+### Step 11: Test Connection (Preparation)
+
+We'll test the connection in Section 7.2, but you can verify settings now:
+
+1. In Unity, click **Play** button (top-center)
+2. Check Console (bottom) for:
+   ```
+   [ROS-TCP-Connector] Attempting to connect to 192.168.1.100:10000...
+   [ROS-TCP-Connector] Connection failed (expected - ROS endpoint not running yet)
+   ```
+3. Click **Play** again to stop
+
+**No errors = Settings correct**. Connection will succeed after installing ROS-TCP-Endpoint (next section).
+
+## Build Settings Configuration
+
+### Step 12: Set Platform (Optional)
+
+Configure target platform:
+
+1. Go to **File → Build Settings**
+2. Select platform:
+   - **PC, Mac & Linux Standalone** (default)
+   - **WebGL** (for browser dashboards)
+   - **Android** (for mobile/tablets)
+
+For now, keep default **PC, Mac & Linux Standalone**.
+
+3. Click **"Switch Platform"** if needed (takes 5-10 min for first switch)
+4. Close Build Settings window
+
+## Project Structure Setup
+
+### Step 13: Create Folder Organization
+
+Organize project assets:
+
+1. In **Project** panel, right-click **Assets** folder
+2. Create folders:
+   - **Assets/Scripts** (C# code)
+   - **Assets/Scenes** (Unity scene files)
+   - **Assets/Models** (URDF/meshes)
+   - **Assets/Materials** (textures/shaders)
+   - **Assets/Prefabs** (reusable objects)
+   - **Assets/UI** (interface elements)
+
+{/* TODO: screenshot of organized project structure */}
+
+### Step 14: Save Initial Scene
+
+1. Go to **File → Save As...**
+2. Save to: **Assets/Scenes/HumanoidVisualization.unity**
+3. Scene name appears in Hierarchy at top
+
+:::success Project Setup Complete
+Unity project is configured and ready for ROS integration!
+:::
+
+## Troubleshooting
+
+### Unity Hub Won't Install Editor
+
+**Problem**: Installation fails or hangs
+
+**Solutions**:
+1. Check internet connection
+2. Free up disk space (need 10GB+ free)
+3. Disable antivirus temporarily
+4. Download offline installer:
+   - Visit [Unity Download Archive](https://unity.com/releases/editor/archive)
+   - Download Unity 2022.3 LTS "Unity Editor" installer
+   - Run manually
+
+### Package Manager "Git URL" Fails
+
+**Problem**: Error adding ROS-TCP-Connector from git URL
+
+**Solutions**:
+1. Install Git if missing:
+   ```bash
+   # Windows: Download from git-scm.com
+   # Linux: sudo apt install git
+   # macOS: xcode-select --install
+   ```
+2. Use HTTPS instead of SSH URL (already shown above)
+3. Use alternative installation (see Step 7 note)
+
+### ROS Settings Menu Missing
+
+**Problem**: "Robotics" menu doesn't appear
+
+**Solutions**:
+1. Verify package installed:
+   - **Window → Package Manager**
+   - Search "ROS-TCP-Connector"
+   - Should show "Up to date"
+2. Restart Unity Editor
+3. Reimport package:
+   - Right-click package in Package Manager
+   - **"Reimport"**
+
+### GPU Not Detected (Linux)
+
+**Problem**: Unity runs slowly or shows "OpenGL not supported"
+
+**Solutions**:
+1. Install proprietary GPU drivers:
+   ```bash
+   # NVIDIA
+   sudo ubuntu-drivers autoinstall
+   sudo reboot
+
+   # AMD
+   sudo apt install mesa-vulkan-drivers mesa-utils
+   ```
+2. Verify GPU:
+   ```bash
+   glxinfo | grep "OpenGL renderer"
+   # Should NOT show "llvmpipe"
+   ```
+
+### License Activation Fails
+
+**Problem**: Can't activate Unity Personal license
+
+**Solutions**:
+1. Check internet connection
+2. Sign out and sign back in:
+   - Unity Hub → Sign Out
+   - Sign In again
+3. Clear Unity Hub cache:
+   ```bash
+   # Windows: Delete C:\Users\USERNAME\AppData\Roaming\UnityHub
+   # Linux: rm -rf ~/.config/UnityHub
+   # macOS: rm -rf ~/Library/Application\ Support/UnityHub
+   ```
+   Then restart Unity Hub
+
+## Post-Installation Checklist
+
+Verify everything is ready:
+
+- [ ] Unity Hub installed and signed in
+- [ ] Unity 2022.3 LTS editor installed
+- [ ] ROS-TCP-Connector package installed (version 0.7.0+)
+- [ ] URDF Importer package installed (version 0.5.2+)
+- [ ] ROS Settings configured with correct IP
+- [ ] Project folder structure created
+- [ ] Initial scene saved
+- [ ] No console errors on Play mode
+
+:::success Installation Complete!
+You've successfully set up Unity for ROS 2 robotics development!
+:::
+
+## What You've Accomplished
+
+In this section, you:
+- ✅ Installed Unity Hub and Unity 2022.3 LTS
+- ✅ Activated Unity Personal license (free)
+- ✅ Installed ROS-TCP-Connector and URDF Importer packages
+- ✅ Configured ROS connection settings
+- ✅ Created organized project structure
+- ✅ Verified GPU and build settings
+
+**Time Invested**: ~30 minutes
+**Disk Space Used**: ~20GB
+
+## What's Next?
+
+Now that Unity is set up, connect it to ROS 2!
+
+👉 **[Next: ROS Integration →](./ros-integration)**
+
+---
+
+## Additional Resources
+
+- 📖 [Unity Manual 2022.3 LTS](https://docs.unity3d.com/2022.3/Documentation/Manual/)
+- 📖 [ROS-TCP-Connector GitHub](https://github.com/Unity-Technologies/ROS-TCP-Connector)
+- 📖 [Unity Robotics Hub Tutorials](https://github.com/Unity-Technologies/Unity-Robotics-Hub)
+- 💬 [Unity Robotics Forum](https://forum.unity.com/forums/robotics.623/)
+
+## Quick Reference
+
+### Unity Editor Shortcuts
+
+| Action | Windows/Linux | macOS |
+|--------|--------------|-------|
+| Save Scene | Ctrl+S | Cmd+S |
+| Play/Stop | Ctrl+P | Cmd+P |
+| Frame Selection | F | F |
+| Duplicate | Ctrl+D | Cmd+D |
+| Console | Ctrl+Shift+C | Cmd+Shift+C |
+
+### Command-Line Unity Hub
+
+Launch Unity Hub from terminal:
+```bash
+# Windows
+start unityhub://
+
+# Linux
+unity-hub
+
+# macOS
+open -a "Unity Hub"
+```
+
+---
+
+**Summary**: Unity 2022 LTS and ROS packages are installed and configured. Ready for ROS integration! ✓

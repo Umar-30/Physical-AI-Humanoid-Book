@@ -1,0 +1,572 @@
+---
+id: troubleshooting
+title: "8.5: Troubleshooting"
+sidebar_label: "8.5 Troubleshooting"
+sidebar_position: 6
+description: Common issues and solutions for Gazebo-Unity multi-simulator setup
+keywords: [troubleshooting, debugging, issues, fixes, solutions]
+---
+
+# 8.5: Troubleshooting
+
+## Overview
+
+Quick reference for diagnosing and fixing common multi-simulator issues.
+
+**Time Required**: 30 minutes (reference material)
+**Difficulty**: All levels
+
+## Quick Diagnostic Checklist
+
+Start here when something isn't working:
+
+```bash
+# 1. Check if Gazebo is running
+gz topic -l
+
+# 2. Check if ROS bridge is working
+ros2 topic list | grep joint_states
+
+# 3. Check message flow
+ros2 topic hz /joint_states
+
+# 4. Check for errors
+ros2 topic echo /rosout
+```
+
+## Common Issues
+
+### Issue 1: Unity Can't Connect to ROS
+
+**Symptoms**:
+- Unity console: "Failed to connect to ROS TCP Endpoint"
+- No topics visible in Unity
+
+**Diagnosis**:
+```bash
+# Check if ROS TCP endpoint is running
+ros2 node list | grep tcp
+```
+
+**Solutions**:
+
+**A. Start ROS TCP Endpoint**:
+```bash
+ros2 run ros_tcp_endpoint default_server_endpoint --ros-args -p ROS_IP:=0.0.0.0
+```
+
+**B. Check Unity settings**:
+```csharp
+// In Unity: Robotics → ROS Settings
+// ROS IP Address: 127.0.0.1 (localhost)
+// ROS Port: 10000
+```
+
+**C. Firewall issue**:
+```bash
+# Linux: Allow port 10000
+sudo ufw allow 10000/tcp
+
+# Windows: Add firewall rule for port 10000
+```
+
+### Issue 2: No Joint States Topic
+
+**Symptoms**:
+- `ros2 topic list` doesn't show `/joint_states`
+- Robot doesn't move in Unity
+
+**Diagnosis**:
+```bash
+# Check Gazebo topics
+gz topic -l | grep joint
+
+# Check if bridge is running
+ros2 node list | grep bridge
+```
+
+**Solutions**:
+
+**A. Bridge not configured**:
+```bash
+# Start ros_gz_bridge manually
+ros2 run ros_gz_bridge parameter_bridge /joint_states@sensor_msgs/msg/JointState[gz.msgs.Model
+```
+
+**B. Wrong bridge syntax**:
+```python
+# Correct format in launch file
+'/joint_states@sensor_msgs/msg/JointState[gz.msgs.Model'
+#            ^ROS type              ^Gazebo type
+#                                   ^ [ not @ for Gazebo→ROS
+```
+
+**C. Check URDF has joints**:
+```bash
+check_urdf my_robot.urdf | grep joint
+```
+
+### Issue 3: High Latency (&gt;200ms)
+
+**Symptoms**:
+- Unity lags behind Gazebo
+- Choppy robot movement
+
+**Diagnosis**:
+```bash
+# Check message rate
+ros2 topic hz /joint_states
+# Should be >30 Hz
+
+# Check network latency
+ping localhost  # Should be <1ms
+```
+
+**Solutions**:
+
+**A. Increase publish rate**:
+```xml
+<!-- In Gazebo SDF -->
+<plugin name="joint_state_publisher">
+  <update_rate>100</update_rate>  <!-- Increase from 30 -->
+</plugin>
+```
+
+**B. Use BEST_EFFORT QoS**:
+```python
+qos = QoSProfile(
+    reliability=ReliabilityPolicy.BEST_EFFORT,
+    depth=1
+)
+```
+
+**C. Reduce Unity processing**:
+```csharp
+// Batch updates instead of per-message
+void LateUpdate()
+{
+    if (newDataAvailable)
+        UpdateRobotPose(latestState);
+}
+```
+
+### Issue 4: Gazebo Runs Slow (RTF &lt; 0.5)
+
+**Symptoms**:
+- Simulation slower than real-time
+- `gz stats` shows low RTF
+
+**Diagnosis**:
+```bash
+# Check RTF
+gz topic -e -t /stats | grep real_time_factor
+```
+
+**Solutions**:
+
+**A. Run headless**:
+```bash
+gz sim -s world.sdf  # Server only, no GUI
+```
+
+**B. Simplify physics**:
+```xml
+<physics>
+  <max_step_size>0.002</max_step_size>  <!-- Increase from 0.001 -->
+  <bullet>
+    <solver>
+      <iters>20</iters>  <!-- Decrease from 50 -->
+    </solver>
+  </bullet>
+</physics>
+```
+
+**C. Reduce collision complexity**:
+```xml
+<!-- Use boxes instead of meshes for collision -->
+<collision>
+  <geometry>
+    <box size="0.1 0.1 0.1"/>
+  </geometry>
+</collision>
+```
+
+### Issue 5: Unity FPS &lt; 20
+
+**Symptoms**:
+- Unity runs slow
+- FPS counter shows &lt;20
+
+**Solutions**:
+
+**A. Reduce quality**:
+```csharp
+void Start()
+{
+    QualitySettings.SetQualityLevel(0);  // Fastest
+    QualitySettings.shadows = ShadowQuality.Disable;
+    QualitySettings.vSyncCount = 0;
+}
+```
+
+**B. Disable unnecessary rendering**:
+```csharp
+// Disable cameras not in use
+GetComponent<Camera>().enabled = false;
+
+// Reduce rendering distance
+Camera.main.farClipPlane = 50f;  // Instead of 1000
+```
+
+**C. Use LODs**:
+```csharp
+// Add LOD component to robot
+gameObject.AddComponent<LODGroup>();
+```
+
+### Issue 6: Robot Jumps/Jitters
+
+**Symptoms**:
+- Robot position jumps erratically
+- Unstable visualization
+
+**Diagnosis**:
+```bash
+# Check for duplicate publishers
+ros2 topic info /joint_states
+
+# Check message timestamps
+ros2 topic echo /joint_states --field header.stamp
+```
+
+**Solutions**:
+
+**A. Only one publisher**:
+```bash
+# Kill duplicate publishers
+ros2 node list  # Find duplicates
+ros2 lifecycle set /duplicate_node shutdown
+```
+
+**B. Enable interpolation**:
+```csharp
+// Smooth transitions
+Vector3 smoothPosition = Vector3.Lerp(
+    currentPosition,
+    targetPosition,
+    Time.deltaTime * smoothSpeed
+);
+```
+
+**C. Validate timestamps**:
+```csharp
+void OnJointState(JointState msg)
+{
+    double age = Time.time - GetMessageTime(msg);
+    if (age > 1.0)
+    {
+        Debug.LogWarning("Stale message, ignoring");
+        return;
+    }
+}
+```
+
+### Issue 7: Coordinate Mismatch
+
+**Symptoms**:
+- Robot appears upside down
+- Joints rotating wrong direction
+- Robot offset from origin
+
+**Solutions**:
+
+**A. Convert coordinate frames**:
+```csharp
+// ROS (right-handed, Z-up) → Unity (left-handed, Y-up)
+Vector3 ROSToUnity(Vector3 ros)
+{
+    return new Vector3(ros.x, ros.z, ros.y);
+}
+
+Quaternion ROSToUnity(Quaternion ros)
+{
+    return new Quaternion(-ros.x, -ros.z, -ros.y, ros.w);
+}
+```
+
+**B. Check URDF orientation**:
+```xml
+<!-- Ensure base_link has correct orientation -->
+<link name="base_link">
+  <origin xyz="0 0 0" rpy="0 0 0"/>
+</link>
+```
+
+### Issue 8: Topics Not Bridged
+
+**Symptoms**:
+- Gazebo topics exist but not in ROS 2
+- `ros2 topic list` missing expected topics
+
+**Diagnosis**:
+```bash
+# Gazebo topics
+gz topic -l
+
+# ROS 2 topics
+ros2 topic list
+
+# Check bridge status
+ros2 node info /ros_gz_bridge
+```
+
+**Solutions**:
+
+**A. Verify bridge configuration**:
+```bash
+# Manual bridge test
+ros2 run ros_gz_bridge parameter_bridge /test@std_msgs/msg/String@gz.msgs.StringMsg
+```
+
+**B. Check message types match**:
+```bash
+# Gazebo message type
+gz topic -i -t /joint_states
+
+# ROS 2 message type
+ros2 topic info /joint_states
+```
+
+**C. Restart bridge**:
+```bash
+# Kill and restart
+ros2 lifecycle set /ros_gz_bridge shutdown
+ros2 launch multi_sim.launch.py
+```
+
+### Issue 9: Clock Not Synchronized
+
+**Symptoms**:
+- Time mismatch between simulators
+- Desynced recordings
+
+**Solutions**:
+
+**A. Enable use_sim_time**:
+```python
+# In all nodes
+Node(
+    package='...',
+    executable='...',
+    parameters=[{'use_sim_time': True}]
+)
+```
+
+**B. Bridge /clock topic**:
+```python
+'/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock'
+```
+
+**C. Verify in Unity**:
+```csharp
+void OnClockReceived(Clock msg)
+{
+    simulationTime = msg.clock.sec + msg.clock.nanosec * 1e-9;
+    Debug.Log($"Sim time: {simulationTime}");
+}
+```
+
+### Issue 10: Launch File Fails
+
+**Symptoms**:
+- `ros2 launch` errors
+- Nodes don't start
+
+**Diagnosis**:
+```bash
+# Test launch with verbose output
+ros2 launch --debug multi_sim.launch.py
+
+# Check Python syntax
+python3 multi_sim.launch.py
+```
+
+**Solutions**:
+
+**A. Fix import errors**:
+```python
+from launch import LaunchDescription
+from launch.actions import ExecuteProcess, TimerAction  # Add missing
+from launch_ros.actions import Node
+```
+
+**B. Check file paths**:
+```python
+import os
+from ament_index_python.packages import get_package_share_directory
+
+# Use absolute paths
+pkg_dir = get_package_share_directory('my_package')
+urdf_path = os.path.join(pkg_dir, 'urdf', 'robot.urdf')
+
+if not os.path.exists(urdf_path):
+    raise FileNotFoundError(f"URDF not found: {urdf_path}")
+```
+
+**C. Test components individually**:
+```bash
+# Test Gazebo alone
+gz sim world.sdf
+
+# Test bridge alone
+ros2 run ros_gz_bridge parameter_bridge --help
+```
+
+## Debugging Workflow
+
+### Step 1: Isolate the Problem
+
+```bash
+# Test each component separately
+# 1. Gazebo only
+gz sim world.sdf
+
+# 2. ROS bridge only
+ros2 run ros_gz_bridge parameter_bridge /joint_states@...
+
+# 3. Unity only (with fake data)
+ros2 topic pub /joint_states sensor_msgs/msg/JointState "..."
+```
+
+### Step 2: Check Logs
+
+```bash
+# ROS 2 logs
+ros2 topic echo /rosout
+
+# Gazebo logs
+gz log
+
+# Unity logs (Console window)
+# Or: ~/.config/unity3d/YourCompany/YourProject/Player.log
+```
+
+### Step 3: Monitor System
+
+```python
+# Create diagnostic node
+class DiagnosticNode(Node):
+    def __init__(self):
+        super().__init__('diagnostics')
+        self.create_subscription(JointState, '/joint_states', self.check, 10)
+
+    def check(self, msg):
+        age = self.get_clock().now().nanoseconds - msg.header.stamp.nanosec
+        self.get_logger().info(f'Message age: {age/1e6:.1f} ms')
+```
+
+### Step 4: Verify Configuration
+
+```bash
+# Check ROS 2 environment
+env | grep ROS
+
+# Check network
+ros2 doctor --report
+
+# Check DDS communication
+ros2 daemon stop
+ros2 daemon start
+```
+
+## Emergency Fixes
+
+### "Nothing works!"
+
+```bash
+# Nuclear option: Reset everything
+pkill -9 gz
+pkill -9 ros
+ros2 daemon stop
+ros2 daemon start
+
+# Restart from scratch
+ros2 launch multi_sim.launch.py
+```
+
+### "Performance is terrible"
+
+```bash
+# Quick performance boost
+gz sim -s world.sdf  # Headless
+
+# In Unity: Edit → Project Settings → Quality
+# Set to "Very Low"
+```
+
+### "Topics are flooding"
+
+```bash
+# Throttle topics temporarily
+ros2 topic pub --rate 10 /joint_states_throttled ...
+
+# Or use topic_tools
+ros2 run topic_tools throttle messages /joint_states 30
+```
+
+## Prevention Best Practices
+
+1. **Test incrementally** - Add one feature at a time
+2. **Use version control** - Git commit working states
+3. **Document changes** - Note what configurations work
+4. **Monitor continuously** - Use diagnostic nodes
+5. **Keep logs** - Enable ROS 2 logging
+
+## Getting Help
+
+If stuck, gather this info:
+
+```bash
+# System info
+ros2 doctor
+gz --version
+
+# Current state
+ros2 node list
+ros2 topic list
+gz topic -l
+
+# Logs
+journalctl -xe  # Linux system logs
+```
+
+Then ask on:
+- ROS Answers: https://answers.ros.org
+- Gazebo Community: https://community.gazebosim.org
+- Unity Robotics: https://github.com/Unity-Technologies/Unity-Robotics-Hub/discussions
+
+## Summary
+
+- ✅ Diagnosed common multi-simulator issues
+- ✅ Fixed connectivity, latency, and performance problems
+- ✅ Learned systematic debugging workflow
+- ✅ Prevented future issues with best practices
+
+**Time Invested**: ~30 minutes | **Status**: Troubleshooting Guide Complete ✓
+
+---
+
+## Quick Reference
+
+| Symptom | First Check | Quick Fix |
+|---------|------------|-----------|
+| Unity can't connect | ROS TCP endpoint running? | `ros2 run ros_tcp_endpoint default_server_endpoint` |
+| No joint states | Bridge configured? | Check launch file bridge args |
+| High latency | Message rate? | `ros2 topic hz /joint_states` |
+| Slow Gazebo | RTF &lt; 1.0? | Run headless `-s` |
+| Low Unity FPS | Quality settings? | Reduce to "Very Low" |
+| Robot jitters | Duplicate publishers? | `ros2 node list` |
+| Wrong orientation | Coordinate conversion? | Use ROS→Unity conversion |
+| Topics not bridged | Bridge syntax? | Check `@` vs `[` |
+| Time desync | use_sim_time? | Set `True` in all nodes |
+| Launch fails | File paths? | Use `ament_index_python` |

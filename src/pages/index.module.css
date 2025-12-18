@@ -1,0 +1,587 @@
+/* ============================================
+   PANAVERSITY-STYLE LANDING PAGE
+   Physical AI & Humanoid Robotics
+   ============================================ */
+
+/* ============================================
+   HERO SECTION - SPLIT LAYOUT
+   ============================================ */
+
+.heroSection {
+  position: relative;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 50%, #16213e 100%);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  padding: 2rem;
+}
+
+/* Background Elements */
+.backgroundGradient {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(
+    circle at 30% 50%,
+    rgba(0, 240, 255, 0.1) 0%,
+    transparent 50%
+  ),
+  radial-gradient(
+    circle at 70% 50%,
+    rgba(255, 0, 255, 0.08) 0%,
+    transparent 50%
+  );
+  z-index: 0;
+}
+
+.gridPattern {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image:
+    linear-gradient(rgba(0, 240, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 240, 255, 0.05) 1px, transparent 1px);
+  background-size: 50px 50px;
+  opacity: 0.3;
+  animation: gridFloat 20s linear infinite;
+  z-index: 0;
+}
+
+@keyframes gridFloat {
+  0% {
+    transform: translateY(0) translateX(0);
+  }
+  100% {
+    transform: translateY(-50px) translateX(-50px);
+  }
+}
+
+/* Hero Container */
+.heroContainer {
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+}
+
+/* ============================================
+   BOOK COVER SECTION (LEFT SIDE)
+   ============================================ */
+
+.bookCoverSection {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+.bookCoverWrapper {
+  position: relative;
+  max-width: 450px;
+  width: 100%;
+  animation: floatBook 6s ease-in-out infinite;
+}
+
+@keyframes floatBook {
+  0%, 100% {
+    transform: translateY(0) rotateY(0deg);
+  }
+  50% {
+    transform: translateY(-20px) rotateY(5deg);
+  }
+}
+
+.bookCover {
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.5),
+    0 0 80px rgba(0, 240, 255, 0.3);
+  transition: all 0.4s ease;
+  position: relative;
+  z-index: 2;
+}
+
+.bookCover:hover {
+  transform: scale(1.05) rotateY(10deg);
+  box-shadow:
+    0 25px 80px rgba(0, 0, 0, 0.6),
+    0 0 100px rgba(0, 240, 255, 0.5);
+}
+
+.bookGlow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 120%;
+  height: 120%;
+  background: radial-gradient(
+    circle,
+    rgba(0, 240, 255, 0.2) 0%,
+    transparent 70%
+  );
+  filter: blur(40px);
+  z-index: 1;
+  animation: pulseGlow 3s ease-in-out infinite;
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    opacity: 0.5;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: translate(-50%, -50%) scale(1.1);
+  }
+}
+
+/* ============================================
+   CONTENT SECTION (RIGHT SIDE)
+   ============================================ */
+
+.contentSection {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Main Title */
+.mainTitle {
+  font-size: 3.5rem;
+  font-weight: 900;
+  line-height: 1.1;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.titleLine1 {
+  color: #fff;
+  text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+}
+
+.titleLine2 {
+  background: linear-gradient(135deg, #00f0ff 0%, #ff00ff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 0 40px rgba(0, 240, 255, 0.5);
+  animation: neonFlicker 3s ease-in-out infinite;
+}
+
+@keyframes neonFlicker {
+  0%, 100% {
+    opacity: 1;
+    filter: brightness(1);
+  }
+  50% {
+    opacity: 0.95;
+    filter: brightness(1.1);
+  }
+}
+
+/* Welcome Quote */
+.welcomeQuote {
+  font-size: 1.3rem;
+  font-style: italic;
+  color: #00f0ff;
+  margin: 0;
+  padding-left: 1rem;
+  border-left: 3px solid #00f0ff;
+  line-height: 1.6;
+  text-shadow: 0 0 10px rgba(0, 240, 255, 0.3);
+}
+
+/* Subtitle */
+.subtitle {
+  font-size: 1.1rem;
+  color: #ccc;
+  line-height: 1.7;
+  margin: 0;
+}
+
+/* ============================================
+   FEATURE BADGES
+   ============================================ */
+
+.featureBadges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.badge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.2rem;
+  background: rgba(0, 240, 255, 0.1);
+  border: 1px solid rgba(0, 240, 255, 0.3);
+  border-radius: 50px;
+  font-size: 0.95rem;
+  color: #fff;
+  transition: all 0.3s ease;
+}
+
+.badge:hover {
+  background: rgba(0, 240, 255, 0.2);
+  border-color: #00f0ff;
+  box-shadow: 0 0 20px rgba(0, 240, 255, 0.4);
+  transform: translateY(-2px);
+}
+
+.badgeIcon {
+  font-size: 1.2rem;
+}
+
+.badgeText {
+  font-weight: 600;
+}
+
+/* ============================================
+   CTA BUTTONS
+   ============================================ */
+
+.ctaButtons {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.ctaButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem 2rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.ctaButton::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.5s, height 0.5s;
+}
+
+.ctaButton:hover::before {
+  width: 300px;
+  height: 300px;
+}
+
+.primaryButton {
+  background: #00f0ff;
+  color: #000;
+  box-shadow:
+    0 4px 20px rgba(0, 240, 255, 0.4),
+    0 0 40px rgba(0, 240, 255, 0.2);
+}
+
+.primaryButton:hover {
+  background: #00d4e6;
+  transform: translateY(-3px);
+  box-shadow:
+    0 8px 30px rgba(0, 240, 255, 0.6),
+    0 0 60px rgba(0, 240, 255, 0.4);
+  color: #000;
+}
+
+.secondaryButton {
+  background: transparent;
+  color: #fff;
+  border: 2px solid #00f0ff;
+}
+
+.secondaryButton:hover {
+  background: rgba(0, 240, 255, 0.1);
+  border-color: #00f0ff;
+  transform: translateY(-3px);
+  box-shadow: 0 0 30px rgba(0, 240, 255, 0.3);
+  color: #fff;
+}
+
+.buttonIcon {
+  font-size: 1.3rem;
+  position: relative;
+  z-index: 1;
+}
+
+.ctaButton span {
+  position: relative;
+  z-index: 1;
+}
+
+/* ============================================
+   TECH STACK INDICATOR
+   ============================================ */
+
+.techStack {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.techStackLabel {
+  font-size: 0.85rem;
+  color: #999;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 0.75rem;
+}
+
+.techStackItems {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.techItem {
+  font-size: 0.9rem;
+  color: #00f0ff;
+  font-weight: 600;
+}
+
+.techDivider {
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 0.8rem;
+}
+
+/* ============================================
+   SCROLL INDICATOR
+   ============================================ */
+
+.scrollIndicator {
+  position: absolute;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  z-index: 2;
+  animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateX(-50%) translateY(0);
+  }
+  50% {
+    transform: translateX(-50%) translateY(-10px);
+  }
+}
+
+.scrollMouse {
+  width: 30px;
+  height: 50px;
+  border: 2px solid rgba(0, 240, 255, 0.5);
+  border-radius: 15px;
+  position: relative;
+}
+
+.scrollWheel {
+  width: 4px;
+  height: 10px;
+  background: #00f0ff;
+  border-radius: 2px;
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  animation: scrollWheel 2s infinite;
+}
+
+@keyframes scrollWheel {
+  0% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(20px);
+  }
+}
+
+.scrollText {
+  font-size: 0.8rem;
+  color: rgba(0, 240, 255, 0.6);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin: 0;
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+
+/* Tablet */
+@media screen and (max-width: 996px) {
+  .heroContainer {
+    grid-template-columns: 1fr;
+    gap: 3rem;
+    padding-top: 2rem;
+  }
+
+  .bookCoverSection {
+    order: 1;
+  }
+
+  .contentSection {
+    order: 2;
+    text-align: center;
+    align-items: center;
+  }
+
+  .bookCoverWrapper {
+    max-width: 350px;
+  }
+
+  .mainTitle {
+    font-size: 2.5rem;
+  }
+
+  .welcomeQuote {
+    font-size: 1.1rem;
+    padding-left: 0;
+    border-left: none;
+    text-align: center;
+  }
+
+  .subtitle {
+    font-size: 1rem;
+  }
+
+  .featureBadges {
+    justify-content: center;
+  }
+
+  .ctaButtons {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .techStack {
+    text-align: center;
+  }
+
+  .techStackItems {
+    justify-content: center;
+  }
+
+  .scrollIndicator {
+    display: none;
+  }
+}
+
+/* Mobile */
+@media screen and (max-width: 600px) {
+  .heroSection {
+    padding: 1.5rem 1rem;
+    min-height: auto;
+  }
+
+  .heroContainer {
+    gap: 2rem;
+  }
+
+  .bookCoverWrapper {
+    max-width: 280px;
+  }
+
+  .mainTitle {
+    font-size: 2rem;
+  }
+
+  .titleLine1,
+  .titleLine2 {
+    font-size: 2rem;
+  }
+
+  .welcomeQuote {
+    font-size: 1rem;
+  }
+
+  .subtitle {
+    font-size: 0.95rem;
+  }
+
+  .featureBadges {
+    gap: 0.75rem;
+  }
+
+  .badge {
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+  }
+
+  .ctaButtons {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .ctaButton {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .techStackItems {
+    font-size: 0.85rem;
+  }
+}
+
+/* ============================================
+   ACCESSIBILITY
+   ============================================ */
+
+.ctaButton:focus {
+  outline: 3px solid #00f0ff;
+  outline-offset: 3px;
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  .gridPattern,
+  .bookCoverWrapper,
+  .bookGlow,
+  .titleLine2,
+  .scrollIndicator,
+  .scrollWheel,
+  .badge,
+  .ctaButton {
+    animation: none;
+    transition: none;
+  }
+
+  .ctaButton:hover,
+  .badge:hover {
+    transform: none;
+  }
+}

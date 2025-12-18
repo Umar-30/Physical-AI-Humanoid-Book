@@ -1,0 +1,110 @@
+---
+id: human-avatars
+title: 7.4 Human Avatars for HRI
+---
+
+# Human Avatars for HRI
+
+Add human characters for Human-Robot Interaction testing.
+
+## Free Avatar Assets
+
+Download from Unity Asset Store:
+
+1. **Simple Humans - Cartoon Assets** (free)
+2. **UMA 2 - Unity Multipurpose Avatar** (free)
+
+Or use built-in: **Starter Assets - Third Person Character Controller**
+
+## Import Avatar
+
+1. **Window → Asset Store**
+2. Search "Simple Human"
+3. Download and Import
+4. Drag prefab to scene
+
+## Animate Avatar
+
+Use Unity's Animator:
+
+```csharp
+using UnityEngine;
+
+public class HumanController : MonoBehaviour
+{
+    Animator animator;
+
+    void Start()
+    {
+        animator = GetComponent<Animator>();
+    }
+
+    void Update()
+    {
+        // Walk towards robot
+        if (Vector3.Distance(transform.position, robotPosition) > 2f)
+        {
+            animator.SetBool("IsWalking", true);
+            transform.position = Vector3.MoveTowards(transform.position, robotPosition, 1f * Time.deltaTime);
+        }
+        else
+        {
+            animator.SetBool("IsWalking", false);
+        }
+    }
+}
+```
+
+## Robot Head Tracking
+
+Make robot look at human:
+
+```csharp
+using UnityEngine;
+
+public class HeadTracker : MonoBehaviour
+{
+    public Transform humanTarget;
+    public float trackingSpeed = 2f;
+
+    void Update()
+    {
+        if (humanTarget != null)
+        {
+            Vector3 direction = humanTarget.position - transform.position;
+            Quaternion targetRotation = Quaternion.LookRotation(direction);
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, trackingSpeed * Time.deltaTime);
+        }
+    }
+}
+```
+
+Attach to robot's head link.
+
+## Safety Zone Visualization
+
+Show safe distance around robot:
+
+```csharp
+void OnDrawGizmos()
+{
+    Gizmos.color = Color.yellow;
+    Gizmos.DrawWireSphere(robotPosition, 1.5f); // 1.5m safety zone
+}
+```
+
+## HRI Scenarios
+
+**Approach Test**:
+- Human walks towards robot
+- Robot tracks human with head
+- Warning if distance < 1m
+
+**Handover Test**:
+- Human extends hand
+- Robot reaches towards hand
+- Simulate object handover
+
+---
+
+👉 **[Next: UI Overlays →](./ui-overlays)**

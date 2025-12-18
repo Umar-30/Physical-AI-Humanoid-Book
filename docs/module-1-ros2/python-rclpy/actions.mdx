@@ -1,0 +1,350 @@
+---
+sidebar_position: 6
+title: Actions (Long-Running Goals)
+description: Implement preemptable, feedback-enabled goals with ROS 2 actions
+keywords: [ros2, python, actions, goals, feedback, preemptable]
+---
+
+# Actions (Long-Running Goals)
+
+Master ROS 2 actions for long-running, preemptable tasks with continuous feedback.
+
+## What are Actions?
+
+:::tip Pattern Overview
+
+**Actions** enable goal-oriented communication with feedback and cancellation for long-running tasks.
+
+- **Asynchronous**: Client doesn't block
+- **Feedback**: Progress updates during execution
+- **Cancellable**: Can stop mid-execution
+- **Result**: Final outcome when complete
+
+:::
+
+**Use cases**: Navigation, manipulation, multi-step tasks
+
+## Actions vs Services vs Topics
+
+| Feature | Topics | Services | Actions |
+|---------|--------|----------|---------|
+| **Duration** | Continuous | Short | Long-running |
+| **Feedback** | No | No | Yes ✅ |
+| **Cancellable** | No | No | Yes ✅ |
+| **Blocking** | No | Yes | No |
+| **Example** | Sensors | "Get position" | "Navigate to goal" |
+
+## Action Definitions
+
+Actions use `.action` files with three parts:
+
+**Example**: `Fibonacci.action`
+```
+# Goal
+int32 order
+---
+# Result
+int32[] sequence
+---
+# Feedback
+int32[] partial_sequence
+```
+
+## Creating an Action Server
+
+```python
+#!/usr/bin/env python3
+
+import rclpy
+from rclpy.node import Node
+from rclpy.action import ActionServer
+from example_interfaces.action import Fibonacci
+
+class FibonacciActionServer(Node):
+    def __init__(self):
+        super().__init__('fibonacci_action_server')
+
+        self._action_server = ActionServer(
+            self,
+            Fibonacci,
+            'fibonacci',
+            self.execute_callback
+        )
+
+    def execute_callback(self, goal_handle):
+        self.get_logger().info('Executing goal...')
+
+        # Initialize feedback
+        feedback_msg = Fibonacci.Feedback()
+        feedback_msg.partial_sequence = [0, 1]
+
+        # Compute sequence
+        for i in range(1, goal_handle.request.order):
+            # Check cancellation
+            if goal_handle.is_cancel_requested:
+                goal_handle.canceled()
+                return Fibonacci.Result()
+
+            # Compute next number
+            feedback_msg.partial_sequence.append(
+                feedback_msg.partial_sequence[i] +
+                feedback_msg.partial_sequence[i-1]
+            )
+
+            # Publish feedback
+            goal_handle.publish_feedback(feedback_msg)
+
+            time.sleep(1)  # Simulate work
+
+        # Succeed
+        goal_handle.succeed()
+
+        # Return result
+        result = Fibonacci.Result()
+        result.sequence = feedback_msg.partial_sequence
+        return result
+
+
+def main(args=None):
+    rclpy.init(args=args)
+    node = FibonacciActionServer()
+    rclpy.spin(node)
+    node.destroy_node()
+    rclpy.shutdown()
+```
+
+## Creating an Action Client
+
+```python
+#!/usr/bin/env python3
+
+import rclpy
+from rclpy.node import Node
+from rclpy.action import ActionClient
+from example_interfaces.action import Fibonacci
+
+class FibonacciActionClient(Node):
+    def __init__(self):
+        super().__init__('fibonacci_action_client')
+
+        self._action_client = ActionClient(
+            self, Fibonacci, 'fibonacci'
+        )
+
+    def send_goal(self, order):
+        self._action_client.wait_for_server()
+
+        goal_msg = Fibonacci.Goal()
+        goal_msg.order = order
+
+        # Send goal
+        self._send_goal_future = self._action_client.send_goal_async(
+            goal_msg,
+            feedback_callback=self.feedback_callback
+        )
+
+        self._send_goal_future.add_done_callback(
+            self.goal_response_callback
+        )
+
+    def goal_response_callback(self, future):
+        goal_handle = future.result()
+
+        if not goal_handle.accepted:
+            self.get_logger().info('Goal rejected')
+            return
+
+        self.get_logger().info('Goal accepted')
+
+        # Get result
+        self._get_result_future = goal_handle.get_result_async()
+        self._get_result_future.add_done_callback(
+            self.get_result_callback
+        )
+
+    def feedback_callback(self, feedback_msg):
+        feedback = feedback_msg.feedback
+        self.get_logger().info(f'Feedback: {feedback.partial_sequence}')
+
+    def get_result_callback(self, future):
+        result = future.result().result
+        status = future.result().status
+
+        if status == 4:  # SUCCEEDED
+            self.get_logger().info(f'Result: {result.sequence}')
+```
+
+## Real-World Example: Robot Navigation
+
+### Navigation Action Definition
+
+**action/NavigateToPosition.action**:
+```
+# Goal
+geometry_msgs/Point target_position
+float32 max_speed
+---
+# Result
+bool success
+string message
+geometry_msgs/Point final_position
+---
+# Feedback
+geometry_msgs/Point current_position
+float32 distance_remaining
+```
+
+### Navigation Server (Simplified)
+
+```python
+class NavigationServer(Node):
+    def __init__(self):
+        super().__init__('navigation_server')
+
+        self._action_server = ActionServer(
+            self,
+            NavigateToPosition,
+            'navigate',
+            self.navigate_callback
+        )
+
+    def navigate_callback(self, goal_handle):
+        target = goal_handle.request.target_position
+
+        feedback = NavigateToPosition.Feedback()
+
+        while distance_to_goal > tolerance:
+            # Check cancellation
+            if goal_handle.is_cancel_requested:
+                goal_handle.canceled()
+                self.stop_robot()
+                return NavigateToPosition.Result(
+                    success=False,
+                    message='Canceled'
+                )
+
+            # Move toward goal
+            self.move_toward(target)
+
+            # Publish feedback
+            feedback.current_position = self.get_position()
+            feedback.distance_remaining = self.calc_distance(target)
+            goal_handle.publish_feedback(feedback)
+
+            time.sleep(0.1)
+
+        # Success
+        goal_handle.succeed()
+        return NavigateToPosition.Result(
+            success=True,
+            message='Reached target',
+            final_position=self.get_position()
+        )
+```
+
+## Goal Lifecycle States
+
+```
+PENDING → ACTIVE → SUCCEEDED
+                 ↘ ABORTED
+                 ↘ CANCELED
+```
+
+**In server**:
+```python
+goal_handle.succeed()    # Completed successfully
+goal_handle.abort()      # Failed
+goal_handle.canceled()   # Canceled by client
+```
+
+**In client**:
+```python
+if status == 4:      # SUCCEEDED
+elif status == 5:    # CANCELED
+elif status == 6:    # ABORTED
+```
+
+## Canceling Goals
+
+### Server: Accept Cancellation
+
+```python
+from rclpy.action import CancelResponse
+
+def cancel_callback(self, goal_handle):
+    self.get_logger().info('Cancel requested')
+    return CancelResponse.ACCEPT
+```
+
+### Client: Cancel Goal
+
+```python
+def cancel_goal(self):
+    if self._goal_handle:
+        cancel_future = self._goal_handle.cancel_goal_async()
+        cancel_future.add_done_callback(self.cancel_done)
+
+def cancel_done(self, future):
+    if len(future.result().goals_canceling) > 0:
+        self.get_logger().info('Goal canceled')
+```
+
+## Testing Actions
+
+```bash
+# List actions
+ros2 action list
+
+# Send goal from CLI
+ros2 action send_goal /fibonacci example_interfaces/action/Fibonacci "{order: 5}"
+
+# With feedback
+ros2 action send_goal /fibonacci example_interfaces/action/Fibonacci "{order: 10}" --feedback
+```
+
+## Best Practices
+
+:::tip Action Best Practices
+
+1. **Use for long tasks** - Tasks &gt; 1 second
+2. **Provide feedback** - Keep client informed
+3. **Support cancellation** - Always check `is_cancel_requested`
+4. **Clean up on cancel** - Stop motors, release resources
+5. **Set timeouts** - Don't wait forever
+6. **Meaningful feedback** - Progress percentage, status
+
+:::
+
+## When to Use Actions
+
+**✅ Use actions for:**
+- Navigation to waypoint
+- Pick and place objects
+- Multi-step sequences
+- Any long task that might need cancellation
+
+**❌ Don't use actions for:**
+- Continuous data (use topics)
+- Quick queries (use services)
+- Real-time control (use topics)
+
+## Key Takeaways
+
+:::note Summary
+
+- **Actions** = Goals + Feedback + Cancellation
+- **Three parts**: Goal, Result, Feedback
+- **Asynchronous**: Non-blocking for client
+- **Preemptable**: Can cancel anytime
+- **Server**: `ActionServer` with `execute_callback`
+- **Client**: `ActionClient` with callbacks
+- **States**: PENDING → ACTIVE → SUCCEEDED/ABORTED/CANCELED
+- **Use for**: Long-running, cancellable tasks
+
+:::
+
+---
+
+**Next**: [Custom Messages →](./custom-messages)
+
+**Previous**: [← Services](./services)

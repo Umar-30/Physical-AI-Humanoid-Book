@@ -1,0 +1,58 @@
+<svg width="700" height="400" xmlns="http://www.w3.org/2000/svg">
+  <!-- Title -->
+  <text x="350" y="30" font-size="20" font-weight="bold" text-anchor="middle" fill="#333">ROS 2 Computation Graph Example</text>
+
+  <!-- Camera Node -->
+  <ellipse cx="150" cy="100" rx="80" ry="50" fill="#e3f2fd" stroke="#1976d2" stroke-width="2"/>
+  <text x="150" y="95" font-size="14" font-weight="bold" text-anchor="middle" fill="#1565c0">/camera_node</text>
+  <text x="150" y="110" font-size="11" text-anchor="middle" fill="#555">(Publisher)</text>
+
+  <!-- Planner Node -->
+  <ellipse cx="350" cy="200" rx="80" ry="50" fill="#f3e5f5" stroke="#7b1fa2" stroke-width="2"/>
+  <text x="350" y="195" font-size="14" font-weight="bold" text-anchor="middle" fill="#6a1b9a">/planner_node</text>
+  <text x="350" y="210" font-size="11" text-anchor="middle" fill="#555">(Subscriber + Publisher)</text>
+
+  <!-- Controller Node -->
+  <ellipse cx="550" cy="300" rx="80" ry="50" fill="#e8f5e9" stroke="#388e3c" stroke-width="2"/>
+  <text x="550" y="295" font-size="14" font-weight="bold" text-anchor="middle" fill="#2e7d32">/controller_node</text>
+  <text x="550" y="310" font-size="11" text-anchor="middle" fill="#555">(Subscriber)</text>
+
+  <!-- Topics (shown as rectangles) -->
+  <rect x="230" y="80" width="120" height="40" fill="#fff3e0" stroke="#f57c00" stroke-width="2" rx="5"/>
+  <text x="290" y="95" font-size="12" font-weight="bold" text-anchor="middle" fill="#e65100">/camera/image</text>
+  <text x="290" y="110" font-size="10" text-anchor="middle" fill="#666">(Topic)</text>
+
+  <rect x="420" y="180" width="120" height="40" fill="#fff3e0" stroke="#f57c00" stroke-width="2" rx="5"/>
+  <text x="480" y="195" font-size="12" font-weight="bold" text-anchor="middle" fill="#e65100">/cmd_vel</text>
+  <text x="480" y="210" font-size="10" text-anchor="middle" fill="#666">(Topic)</text>
+
+  <!-- Arrows -->
+  <defs>
+    <marker id="arrow4" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#666" />
+    </marker>
+  </defs>
+
+  <!-- Camera to /camera/image -->
+  <path d="M 215 110 Q 220 100 230 100" stroke="#666" stroke-width="2" fill="none" marker-end="url(#arrow4)"/>
+
+  <!-- /camera/image to Planner -->
+  <path d="M 310 120 Q 330 160 330 180" stroke="#666" stroke-width="2" fill="none" marker-end="url(#arrow4)"/>
+
+  <!-- Planner to /cmd_vel -->
+  <path d="M 410 210 Q 415 200 420 200" stroke="#666" stroke-width="2" fill="none" marker-end="url(#arrow4)"/>
+
+  <!-- /cmd_vel to Controller -->
+  <path d="M 520 220 Q 540 260 540 280" stroke="#666" stroke-width="2" fill="none" marker-end="url(#arrow4)"/>
+
+  <!-- Legend -->
+  <text x="50" y="370" font-size="13" font-weight="bold" fill="#333">Legend:</text>
+  <ellipse cx="120" cy="365" rx="30" ry="20" fill="#e3f2fd" stroke="#1976d2" stroke-width="1"/>
+  <text x="160" y="370" font-size="11" fill="#555">= Node (process)</text>
+
+  <rect x="260" y="350" width="40" height="25" fill="#fff3e0" stroke="#f57c00" stroke-width="1" rx="3"/>
+  <text x="310" y="366" font-size="11" fill="#555">= Topic (communication channel)</text>
+
+  <line x1="440" y1="365" x2="480" y2="365" stroke="#666" stroke-width="2" marker-end="url(#arrow4)"/>
+  <text x="490" y="370" font-size="11" fill="#555">= Data flow</text>
+</svg>

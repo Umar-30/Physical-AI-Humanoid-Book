@@ -1,0 +1,95 @@
+---
+sidebar_position: 1
+title: Module 1 - The Robotic Nervous System (ROS 2)
+description: Learn the foundational middleware layer for humanoid robotics using ROS 2
+keywords: [ros2, robotics, middleware, humanoid, rclpy, urdf]
+---
+
+# Module 1: The Robotic Nervous System (ROS 2)
+
+Welcome to Module 1! This module introduces you to **ROS 2** (Robot Operating System 2), the middleware layer that serves as the nervous system of modern robots.
+
+## 🎯 Learning Outcomes
+
+By the end of this module, you will be able to:
+
+1. **Explain** ROS 2 architecture and the role of middleware in robotics systems
+2. **Design** robot communication patterns using topics, services, and actions
+3. **Implement** Python robot agents with rclpy (ROS 2 Python client library)
+4. **Define** humanoid robot structures using URDF (Unified Robot Description Format)
+
+## 📚 Module Structure
+
+This module consists of 4 comprehensive chapters:
+
+### Chapter 1: ROS 2 Architecture & Philosophy
+Learn what ROS 2 is, why it exists, and how it solves the complexity of robot communication.
+
+- The role of middleware in robotics
+- ROS 2 layered architecture
+- ROS 1 vs ROS 2 comparison
+- DDS middleware layer
+- Getting started with ROS 2
+
+### Chapter 2: Communication Primitives
+Master the three primary communication patterns in ROS 2 and learn how to design effective robot systems.
+
+- Topics (publish/subscribe pattern)
+- Services (request/response pattern)
+- Actions (goal-oriented pattern)
+- Quality of Service (QoS) configuration
+- Computation graph design
+
+### Chapter 3: Python Implementation with rclpy
+Build actual robot agents using Python and the rclpy client library.
+
+- Creating ROS 2 Python packages
+- Implementing publishers and subscribers
+- Creating services and service clients
+- Implementing actions
+- Custom message types
+- Multi-node systems
+
+### Chapter 4: URDF for Humanoid Robots
+Define the physical structure of a humanoid robot using URDF.
+
+- URDF syntax and structure
+- Coordinate frames and transforms
+- Links and joints
+- Visualizing robots in RViz
+- Sensor integration
+
+## ⏱️ Time Commitment
+
+**Estimated completion time**: 8-12 hours
+
+This includes reading, understanding concepts, and running all code examples.
+
+## 📋 Prerequisites
+
+Before starting this module, you should have:
+
+- **Python 3 basics**: Variables, functions, classes, imports
+- **Linux command line**: Basic terminal navigation, running commands
+- **Ubuntu 22.04** with **ROS 2 Humble** installed ([installation guide](https://docs.ros.org/en/humble/Installation.html))
+
+:::tip Quick Setup Check
+
+Verify your ROS 2 installation:
+
+```bash
+source /opt/ros/humble/setup.bash
+ros2 --version
+```
+
+Expected output: `ros2 run humble`
+
+:::
+
+## 🚀 Ready to Begin?
+
+Start with [Chapter 1: ROS 2 Architecture & Philosophy](./architecture/) to understand the foundational concepts!
+
+---
+
+**Next**: [Chapter 1: ROS 2 Architecture & Philosophy →](./architecture/)

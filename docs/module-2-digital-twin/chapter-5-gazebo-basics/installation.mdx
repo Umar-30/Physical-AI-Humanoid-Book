@@ -1,0 +1,275 @@
+---
+id: gazebo-installation
+title: "5.1: Gazebo Harmonic Installation"
+sidebar_label: "5.1 Installation"
+sidebar_position: 2
+description: Step-by-step guide to installing Gazebo Harmonic on Ubuntu 22.04 for humanoid robot simulation
+keywords: [gazebo, harmonic, installation, ubuntu, setup, verification]
+---
+
+# 5.1: Gazebo Harmonic Installation
+
+## Overview
+
+In this section, you'll install **Gazebo Harmonic** - the modern robotics simulator that will serve as the physics engine for your digital twin pipeline.
+
+**Time Required**: 15-20 minutes
+**Difficulty**: Beginner
+
+## Prerequisites Checklist
+
+Before installing, verify you have:
+
+- [ ] Ubuntu 22.04 (Jammy) or Ubuntu 24.04 (Noble)
+- [ ] Active internet connection
+- [ ] At least 4GB free disk space
+- [ ] sudo/administrator privileges
+- [ ] ROS 2 Humble installed and sourced
+
+:::warning Platform Support
+This guide focuses on **Ubuntu 22.04**. Windows and macOS users should use WSL2 or Docker. Native Windows/macOS support for Gazebo is limited.
+:::
+
+## Installation Steps
+
+### Step 1: Update System Packages
+
+First, ensure your system is up to date:
+
+```bash
+sudo apt update && sudo apt upgrade -y
+```
+
+**Expected output**: Package lists update, any pending upgrades install
+
+**Time**: 2-5 minutes depending on system state
+
+### Step 2: Install Gazebo Harmonic
+
+Install Gazebo Harmonic using the official APT repository:
+
+```bash
+sudo apt install gz-harmonic -y
+```
+
+**What this installs**:
+- `gz-sim`: Main simulation engine
+- `gz-physics`: Physics engine abstraction
+- `gz-sensors`: Sensor simulation libraries
+- `gz-rendering`: Rendering engine
+- `gz-transport`: Inter-process communication
+- `gz-gui`: Graphical user interface components
+
+**Time**: 5-10 minutes (downloads ~1.5GB)
+
+:::tip Alternative: Full Desktop Install
+For additional tools and examples:
+```bash
+sudo apt install gz-harmonic-desktop -y
+```
+This includes extra utilities but requires more disk space (~2.5GB).
+:::
+
+### Step 3: Verify Installation
+
+Check that Gazebo installed correctly:
+
+```bash
+gz sim --version
+```
+
+**Expected output**:
+```
+Gazebo Sim, version 8.6.0
+Copyright (C) 2018 Open Robotics
+```
+
+Version number may differ slightly (8.x.x is Harmonic).
+
+:::success Installation Successful!
+If you see version information, Gazebo is installed correctly!
+:::
+
+### Step 4: Test First Launch
+
+Launch Gazebo with an empty world:
+
+```bash
+gz sim
+```
+
+**What should happen**:
+1. Gazebo GUI window opens
+2. Empty 3D world with grid visible
+3. No error messages in terminal
+4. Camera controls respond to mouse (drag to rotate, scroll to zoom)
+
+**First launch may take 30-60 seconds** as shaders compile.
+
+{/* TODO: Add screenshot of Gazebo empty world */}
+
+:::tip Headless Mode
+If you don't have a display or GPU:
+```bash
+gz sim -s
+```
+The `-s` flag runs server-only mode (no GUI).
+:::
+
+### Step 5: GPU Driver Verification
+
+Verify your GPU is being used:
+
+```bash
+glxinfo | grep "OpenGL renderer"
+```
+
+**Expected output** (example):
+```
+OpenGL renderer string: NVIDIA GeForce RTX 3060/PCIe/SSE2
+```
+
+or for Intel integrated graphics:
+```
+OpenGL renderer string: Mesa Intel(R) UHD Graphics 620 (KBL GT2)
+```
+
+:::warning Software Rendering Detected
+If you see "llvmpipe" or "software rasterizer", your GPU drivers aren't working correctly. See [Troubleshooting](#troubleshooting-gpu-issues) below.
+:::
+
+## Environment Setup
+
+### Add to .bashrc (Recommended)
+
+For permanent Gazebo setup, add to your `~/.bashrc`:
+
+```bash
+echo "source /usr/share/gz/gz-harmonic-setup.sh" >> ~/.bashrc
+source ~/.bashrc
+```
+
+**What this does**: Automatically sets up Gazebo environment variables on terminal launch.
+
+### Verify Environment Variables
+
+Check that Gazebo paths are set:
+
+```bash
+echo $GZ_SIM_RESOURCE_PATH
+```
+
+**Expected output** (example):
+```
+/usr/share/gz/gz-sim8/models:/usr/share/gz/gz-sim8/worlds
+```
+
+## Post-Installation Checks
+
+Run through this verification checklist:
+
+### Checklist
+
+- [ ] `gz sim --version` shows version 8.x.x (Harmonic)
+- [ ] `gz sim` launches GUI without errors
+- [ ] Can rotate camera with mouse drag
+- [ ] GPU driver detected (not software rendering)
+- [ ] Environment variables set (`$GZ_SIM_RESOURCE_PATH` exists)
+
+If all checks pass, you're ready to move on!
+
+## Troubleshooting
+
+### GPU Issues
+
+**Problem**: Gazebo crashes on launch or uses software rendering
+
+**Solutions**:
+
+1. **NVIDIA GPU**: Install proprietary drivers
+   ```bash
+   sudo ubuntu-drivers autoinstall
+   sudo reboot
+   ```
+
+2. **Intel/AMD GPU**: Update Mesa drivers
+   ```bash
+   sudo apt install mesa-utils libgl1-mesa-glx libgl1-mesa-dri
+   ```
+
+3. **Run in headless mode** (no GPU required):
+   ```bash
+   gz sim -s  # Server-only, no GUI
+   ```
+
+### Permission Errors
+
+**Problem**: "Permission denied" when running `gz sim`
+
+**Solution**: Add user to video group
+```bash
+sudo usermod -aG video $USER
+newgrp video
+```
+
+### Package Dependency Conflicts
+
+**Problem**: "Unmet dependencies" during installation
+
+**Solution**: Fix broken packages
+```bash
+sudo apt --fix-broken install
+sudo apt install -f
+sudo apt install gz-harmonic
+```
+
+### Gazebo Won't Launch
+
+**Problem**: `gz sim` command not found
+
+**Solution**: Source the setup file
+```bash
+source /usr/share/gz/gz-harmonic-setup.sh
+gz sim --version  # Test
+```
+
+If that works, add to `.bashrc` (see [Environment Setup](#environment-setup)).
+
+### Slow Performance
+
+**Problem**: Gazebo runs at `<30 FPS`
+
+**Possible causes**:
+- Software rendering (no GPU acceleration)
+- Insufficient RAM (`<8GB`)
+- Running in virtual machine without GPU passthrough
+
+**Solutions**:
+- Enable GPU passthrough in VM settings
+- Close other resource-intensive applications
+- Use headless mode + Unity for visualization (Chapter 7)
+
+## What's Next?
+
+Now that Gazebo is installed and working, you're ready to create your first simulation world!
+
+👉 **[Next: SDF World Files →](./sdf-world-files)**
+
+---
+
+## Additional Resources
+
+- 📖 [Gazebo Harmonic Installation Docs](https://gazebosim.org/docs/harmonic/install)
+- 🐛 [Report Installation Issues](https://github.com/gazebosim/gz-sim/issues)
+- 💬 [Gazebo Community Forum](https://gazebosim.org/docs/all/forum)
+
+## Summary
+
+In this section, you:
+- ✅ Installed Gazebo Harmonic on Ubuntu
+- ✅ Verified installation with version check
+- ✅ Launched Gazebo GUI successfully
+- ✅ Checked GPU driver functionality
+- ✅ Set up environment variables
+
+**Time Invested**: ~15 minutes | **Status**: Foundation Complete ✓

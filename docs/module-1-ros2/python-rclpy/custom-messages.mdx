@@ -1,0 +1,337 @@
+---
+sidebar_position: 7
+title: Custom Message Types
+description: Create custom messages, services, and actions for your robot
+keywords: [ros2, python, custom messages, interfaces, msg, srv, action]
+---
+
+# Custom Message Types
+
+Define custom messages, services, and actions tailored to your robot's needs.
+
+## Why Custom Interfaces?
+
+:::tip Best Practice
+
+Create a separate **interface package** for custom messages so they can be shared across multiple packages.
+
+:::
+
+**Benefits**:
+- Model domain-specific data (humanoid joint states, robot status)
+- Group related data in one message
+- Type safety and self-documentation
+
+## Quick Setup
+
+### 1. Create Interface Package
+
+```bash
+cd ~/ros2_ws/src
+ros2 pkg create my_robot_interfaces \
+  --build-type ament_cmake \
+  --dependencies rosidl_default_generators
+
+cd my_robot_interfaces
+mkdir msg srv action
+```
+
+### 2. Configure package.xml
+
+```xml
+<build_depend>rosidl_default_generators</build_depend>
+<exec_depend>rosidl_default_runtime</exec_depend>
+<member_of_group>rosidl_interface_packages</member_of_group>
+
+<depend>std_msgs</depend>
+<depend>geometry_msgs</depend>
+```
+
+### 3. Configure CMakeLists.txt
+
+```cmake
+find_package(rosidl_default_generators REQUIRED)
+find_package(std_msgs REQUIRED)
+find_package(geometry_msgs REQUIRED)
+
+rosidl_generate_interfaces(${PROJECT_NAME}
+  "msg/RobotStatus.msg"
+  "srv/GetRobotMode.srv"
+  "action/NavigateToPosition.action"
+  DEPENDENCIES std_msgs geometry_msgs
+)
+```
+
+### 4. Build
+
+```bash
+cd ~/ros2_ws
+colcon build --packages-select my_robot_interfaces
+source install/setup.bash
+```
+
+## Message Definitions
+
+### Message Syntax
+
+```
+# Comments
+type field_name
+
+# Primitives: bool, int8/16/32/64, uint8/16/32/64, float32/64, string
+# Arrays: type[] (dynamic) or type[N] (fixed size)
+# Constants: type NAME=value
+```
+
+### Example: Robot Status
+
+**msg/RobotStatus.msg**:
+```
+std_msgs/Header header
+
+string robot_id
+int8 mode
+int8 MODE_IDLE=0
+int8 MODE_AUTONOMOUS=1
+int8 MODE_EMERGENCY=2
+
+float32 battery_percentage
+geometry_msgs/Pose pose
+bool emergency_stop_active
+string[] error_messages
+```
+
+### Example: Humanoid Joint State
+
+**msg/HumanoidJointState.msg**:
+```
+std_msgs/Header header
+
+string[] joint_names
+float64[] positions      # radians
+float64[] velocities     # rad/s
+float64[] efforts        # Nm
+float32[] temperatures   # Celsius
+bool[] has_error
+```
+
+## Service Definitions
+
+Format: Request above `---`, Response below
+
+### Example: Get Robot Mode
+
+**srv/GetRobotMode.srv**:
+```
+# Request (empty - just query)
+---
+# Response
+int8 mode
+string mode_name
+bool success
+string message
+```
+
+### Example: Set Joint Positions
+
+**srv/SetJointPositions.srv**:
+```
+# Request
+string[] joint_names
+float64[] positions
+float64 max_velocity
+---
+# Response
+bool success
+string message
+float64 estimated_duration
+```
+
+## Action Definitions
+
+Format: Goal, Result (after `---`), Feedback (after second `---`)
+
+### Example: Navigate to Position
+
+**action/NavigateToPosition.action**:
+```
+# Goal
+geometry_msgs/Point target_position
+float32 max_speed
+---
+# Result
+bool success
+string message
+geometry_msgs/Point final_position
+float64 total_time
+---
+# Feedback
+geometry_msgs/Point current_position
+float32 distance_remaining
+float32 current_speed
+```
+
+## Using Custom Interfaces
+
+### Add Dependency
+
+**package.xml**:
+```xml
+<exec_depend>my_robot_interfaces</exec_depend>
+```
+
+### Python Usage
+
+```python
+from my_robot_interfaces.msg import RobotStatus, HumanoidJointState
+from my_robot_interfaces.srv import GetRobotMode
+from my_robot_interfaces.action import NavigateToPosition
+
+class RobotNode(Node):
+    def __init__(self):
+        super().__init__('robot_node')
+
+        # Publisher
+        self.status_pub = self.create_publisher(RobotStatus, 'status', 10)
+
+        # Service
+        self.srv = self.create_service(
+            GetRobotMode, 'get_mode', self.get_mode_callback
+        )
+
+        # Action
+        from rclpy.action import ActionServer
+        self.nav_action = ActionServer(
+            self, NavigateToPosition, 'navigate', self.nav_callback
+        )
+
+    def publish_status(self):
+        msg = RobotStatus()
+        msg.header.stamp = self.get_clock().now().to_msg()
+        msg.header.frame_id = 'base_link'
+        msg.robot_id = 'robot_001'
+        msg.mode = RobotStatus.MODE_AUTONOMOUS
+        msg.battery_percentage = 85.0
+        msg.emergency_stop_active = False
+        msg.error_messages = []
+
+        self.status_pub.publish(msg)
+
+    def get_mode_callback(self, request, response):
+        response.mode = RobotStatus.MODE_AUTONOMOUS
+        response.mode_name = 'AUTONOMOUS'
+        response.success = True
+        return response
+```
+
+### Accessing Constants
+
+```python
+if mode == RobotStatus.MODE_IDLE:
+    print('Robot is idle')
+elif mode == RobotStatus.MODE_AUTONOMOUS:
+    print('Autonomous mode')
+```
+
+## Testing
+
+### View Definitions
+
+```bash
+# List interfaces
+ros2 interface list | grep my_robot_interfaces
+
+# Show definition
+ros2 interface show my_robot_interfaces/msg/RobotStatus
+```
+
+### Publish/Call from CLI
+
+```bash
+# Publish message
+ros2 topic pub /status my_robot_interfaces/msg/RobotStatus \
+  "{robot_id: 'robot_001', mode: 1, battery_percentage: 80.0}"
+
+# Call service
+ros2 service call /get_mode my_robot_interfaces/srv/GetRobotMode
+```
+
+## Common Patterns
+
+### Status Message
+```
+std_msgs/Header header
+string id
+int8 mode
+float32 battery
+geometry_msgs/Pose pose
+bool[] flags
+string[] messages
+```
+
+### Command Message
+```
+int8 command_type
+float64[] parameters
+float64 timeout
+```
+
+### Service Response
+```
+bool success
+string message
+# ... actual data
+```
+
+## Troubleshooting
+
+**"Module not found"**:
+```bash
+colcon build --packages-select my_robot_interfaces
+source install/setup.bash
+```
+
+**Build errors**: Check CMakeLists.txt lists all .msg/.srv/.action files
+
+**Import errors**: Use correct import:
+```python
+# Correct
+from my_robot_interfaces.msg import RobotStatus
+
+# Wrong
+import my_robot_interfaces
+status = my_robot_interfaces.msg.RobotStatus()  # Won't work
+```
+
+## Best Practices
+
+:::tip Interface Best Practices
+
+1. **Separate package** - Dedicated interface package
+2. **Use headers** - Include std_msgs/Header for timestamps
+3. **Constants** - Define modes as constants, not magic numbers
+4. **Reuse** - Use geometry_msgs/Pose instead of custom x/y/z
+5. **Build order** - Build interface package first
+6. **Document** - Add comments explaining fields
+
+:::
+
+## Key Takeaways
+
+:::note Summary
+
+- **Separate package** - Create my_robot_interfaces with ament_cmake
+- **Three types**: Messages (.msg), Services (.srv), Actions (.action)
+- **Syntax**: Simple field definitions, constants, arrays
+- **Build**: CMakeLists.txt + package.xml configuration
+- **Import**: `from my_robot_interfaces.msg import MyMessage`
+- **Constants**: Access with `MyMessage.CONSTANT_NAME`
+- **Build first** - Interface package before dependent packages
+
+:::
+
+---
+
+**Next**: [Chapter 4: URDF →](../urdf/)
+
+**Previous**: [← Actions](./actions)

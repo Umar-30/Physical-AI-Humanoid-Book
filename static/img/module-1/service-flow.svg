@@ -1,0 +1,63 @@
+<svg width="700" height="450" xmlns="http://www.w3.org/2000/svg">
+  <!-- Title -->
+  <text x="350" y="30" font-size="20" font-weight="bold" text-anchor="middle" fill="#333">Service Request/Response Pattern</text>
+
+  <!-- Service Client -->
+  <ellipse cx="150" cy="150" rx="100" ry="60" fill="#e3f2fd" stroke="#1976d2" stroke-width="2"/>
+  <text x="150" y="145" font-size="14" font-weight="bold" text-anchor="middle" fill="#1565c0">Service Client</text>
+  <text x="150" y="165" font-size="11" text-anchor="middle" fill="#555">/navigation_node</text>
+
+  <!-- Service Server -->
+  <ellipse cx="550" cy="150" rx="100" ry="60" fill="#f3e5f5" stroke="#7b1fa2" stroke-width="2"/>
+  <text x="550" y="145" font-size="14" font-weight="bold" text-anchor="middle" fill="#6a1b9a">Service Server</text>
+  <text x="550" y="165" font-size="11" text-anchor="middle" fill="#555">/path_planner</text>
+
+  <!-- Service Name -->
+  <rect x="275" y="70" width="150" height="40" fill="#fff3e0" stroke="#f57c00" stroke-width="2" rx="5"/>
+  <text x="350" y="95" font-size="13" font-weight="bold" text-anchor="middle" fill="#e65100">/compute_path</text>
+
+  <!-- Request Arrow -->
+  <defs>
+    <marker id="arrowService" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#1976d2" />
+    </marker>
+    <marker id="arrowResponse" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#7b1fa2" />
+    </marker>
+  </defs>
+
+  <line x1="250" y1="130" x2="450" y2="130" stroke="#1976d2" stroke-width="3" marker-end="url(#arrowService)"/>
+  <text x="350" y="120" font-size="12" font-weight="bold" text-anchor="middle" fill="#1565c0">1. Request</text>
+  <text x="350" y="145" font-size="10" text-anchor="middle" fill="#555">{start: [0,0], goal: [10,10]}</text>
+
+  <!-- Response Arrow -->
+  <line x1="450" y1="170" x2="250" y2="170" stroke="#7b1fa2" stroke-width="3" marker-end="url(#arrowResponse)"/>
+  <text x="350" y="190" font-size="12" font-weight="bold" text-anchor="middle" fill="#6a1b9a">2. Response</text>
+  <text x="350" y="205" font-size="10" text-anchor="middle" fill="#555">{path: [...waypoints...], success: true}</text>
+
+  <!-- Sequence Diagram Section -->
+  <text x="350" y="250" font-size="16" font-weight="bold" text-anchor="middle" fill="#333">Execution Flow</text>
+
+  <rect x="75" y="270" width="120" height="30" fill="#e3f2fd" stroke="#1976d2" stroke-width="1"/>
+  <text x="135" y="290" font-size="11" text-anchor="middle" fill="#1565c0">Client calls service</text>
+
+  <text x="250" y="290" font-size="18" text-anchor="middle" fill="#666">→</text>
+
+  <rect x="290" y="270" width="120" height="30" fill="#fff3e0" stroke="#f57c00" stroke-width="1"/>
+  <text x="350" y="290" font-size="11" text-anchor="middle" fill="#e65100">⏱ Client WAITS</text>
+
+  <text x="465" y="290" font-size="18" text-anchor="middle" fill="#666">→</text>
+
+  <rect x="505" y="270" width="120" height="30" fill="#f3e5f5" stroke="#7b1fa2" stroke-width="1"/>
+  <text x="565" y="290" font-size="11" text-anchor="middle" fill="#6a1b9a">Server processes</text>
+
+  <text x="350" y="330" font-size="18" text-anchor="middle" fill="#7b1fa2">↓</text>
+
+  <rect x="290" y="340" width="120" height="30" fill="#e8f5e9" stroke="#388e3c" stroke-width="1"/>
+  <text x="350" y="360" font-size="11" text-anchor="middle" fill="#2e7d32">Client receives result</text>
+
+  <!-- Key Features -->
+  <text x="350" y="405" font-size="14" font-weight="bold" text-anchor="middle" fill="#333">Key Features:</text>
+  <text x="350" y="425" font-size="12" text-anchor="middle" fill="#555">✓ One-to-One | ✓ Synchronous | ✓ Request-Response | ✓ Client Waits</text>
+  <text x="350" y="445" font-size="12" text-anchor="middle" fill="#555">Use for: Queries, triggered actions, computations with return values</text>
+</svg>

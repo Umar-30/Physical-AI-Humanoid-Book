@@ -1,0 +1,98 @@
+---
+sidebar_position: 1
+title: Chapter 2 - Communication Primitives
+description: Master ROS 2 communication patterns and design robot systems
+keywords: [ros2, topics, services, actions, qos, communication]
+---
+
+# Chapter 2: Communication Primitives
+
+Learn how robots communicate using ROS 2's three primary communication patterns.
+
+## 🎯 Learning Objectives
+
+1. Understand publish/subscribe (topics)
+2. Understand request/response (services)
+3. Understand goal-oriented communication (actions)
+4. Configure Quality of Service (QoS)
+5. Design computation graphs
+
+## ⏱️ Estimated Time
+
+**2-3 hours**
+
+## 📚 Chapter Contents
+
+### 1. [Topics: Publish/Subscribe Pattern](./topics-pubsub)
+
+Learn the most common communication pattern in ROS 2. Topics enable asynchronous, many-to-many data streaming.
+
+**Topics covered**:
+- What are topics and when to use them
+- Publishing and subscribing in Python
+- CLI commands for debugging topics
+- Message types and naming conventions
+- Best practices for pub/sub communication
+
+### 2. [Services: Request/Response Pattern](./services-reqrep)
+
+Understand synchronous request/response communication for queries and triggered actions.
+
+**Topics covered**:
+- When to use services vs topics
+- Service types and structure
+- Creating service servers and clients in Python
+- Synchronous and asynchronous service calls
+- Error handling and timeouts
+
+### 3. [Actions: Goal-Oriented Tasks](./actions-goals)
+
+Master long-running, goal-oriented tasks with continuous feedback and cancellation support.
+
+**Topics covered**:
+- Actions vs topics vs services
+- Goal, Feedback, and Result message types
+- Creating action servers and clients
+- Handling goal cancellation
+- Use cases: navigation, manipulation, long computations
+
+### 4. [Quality of Service (QoS) Profiles](./qos-profiles)
+
+Fine-tune message delivery with QoS policies for reliability, durability, and performance.
+
+**Topics covered**:
+- QoS policies: Reliability, Durability, History, Deadline
+- Preset QoS profiles (sensor data, system default, parameters)
+- QoS compatibility rules
+- Configuring QoS in Python
+- Best practices for different use cases
+
+### 5. [Executors and Callback Groups](./executors)
+
+Control how callbacks execute: single-threaded, multi-threaded, and parallel execution.
+
+**Topics covered**:
+- SingleThreadedExecutor vs MultiThreadedExecutor
+- MutuallyExclusive vs Reentrant callback groups
+- Thread safety and locks
+- Performance considerations
+- Real-world concurrency patterns
+
+### 6. [Computation Graph Design](./graph-design)
+
+Learn best practices for designing modular, maintainable ROS 2 systems.
+
+**Topics covered**:
+- Design principles: separation of concerns, loose coupling
+- Choosing the right communication pattern
+- Common design patterns and anti-patterns
+- Example: delivery robot system architecture
+- Visualization and debugging tools
+
+## 🚀 What You'll Build
+
+By the end of this chapter, you'll understand how to design and implement robust communication patterns for robot systems. You'll be able to choose the right communication mechanism (topic, service, or action) for any scenario and configure QoS policies for optimal performance.
+
+---
+
+**Let's begin**: [Topics - Publish/Subscribe →](./topics-pubsub)

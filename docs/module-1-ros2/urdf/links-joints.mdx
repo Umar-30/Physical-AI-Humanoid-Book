@@ -1,0 +1,389 @@
+---
+sidebar_position: 3
+title: Links and Joints
+description: Defining robot parts and their connections
+keywords: [ros2, urdf, links, joints, kinematics, revolute, prismatic]
+---
+
+# Links and Joints
+
+Master the building blocks of robot description: links (rigid bodies) and joints (connections with motion).
+
+## Links: Rigid Bodies
+
+A **link** represents a rigid body in the robot.
+
+### Link Structure
+
+```xml
+<link name="link_name">
+  <visual>       <!-- How it looks -->
+  </visual>
+  <collision>    <!-- For collision detection -->
+  </collision>
+  <inertial>     <!-- Mass and inertia -->
+  </inertial>
+</link>
+```
+
+## Visual Element
+
+```xml
+<visual>
+  <origin xyz="0 0 0" rpy="0 0 0"/>
+  <geometry>
+    <box size="1 0.5 0.2"/>
+  </geometry>
+  <material name="blue">
+    <color rgba="0 0 1 1"/>
+  </material>
+</visual>
+```
+
+## Collision Element
+
+```xml
+<collision>
+  <origin xyz="0 0 0" rpy="0 0 0"/>
+  <geometry>
+    <box size="1 0.5 0.2"/>  <!-- Usually simpler than visual -->
+  </geometry>
+</collision>
+```
+
+:::tip Collision Optimization
+
+Use simplified geometry (boxes/cylinders) instead of complex meshes for faster physics simulation.
+
+:::
+
+## Inertial Element
+
+```xml
+<inertial>
+  <origin xyz="0 0 0" rpy="0 0 0"/>  <!-- Center of mass -->
+  <mass value="5.0"/>                 <!-- kg -->
+  <inertia ixx="0.1" ixy="0.0" ixz="0.0"
+           iyy="0.1" iyz="0.0"
+           izz="0.1"/>
+</inertial>
+```
+
+### Inertia Formulas
+
+**Box (dimensions: x, y, z; mass: m)**:
+```
+ixx = m*(y²+z²)/12
+iyy = m*(x²+z²)/12
+izz = m*(x²+y²)/12
+```
+
+**Cylinder (radius: r, length: l; mass: m)** along Z-axis:
+```
+ixx = iyy = m*(3r²+l²)/12
+izz = m*r²/2
+```
+
+**Sphere (radius: r; mass: m)**:
+```
+ixx = iyy = izz = 2mr²/5
+```
+
+## Complete Link Example
+
+```xml
+<link name="forearm">
+  <!-- Visual: detailed 3D model -->
+  <visual>
+    <origin xyz="0 0 0.25" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://my_robot/meshes/forearm.dae"/>
+    </geometry>
+    <material name="robot_gray">
+      <color rgba="0.7 0.7 0.7 1"/>
+    </material>
+  </visual>
+
+  <!-- Collision: simple cylinder -->
+  <collision>
+    <origin xyz="0 0 0.25" rpy="0 0 0"/>
+    <geometry>
+      <cylinder radius="0.04" length="0.5"/>
+    </geometry>
+  </collision>
+
+  <!-- Inertial -->
+  <inertial>
+    <origin xyz="0 0 0.25" rpy="0 0 0"/>
+    <mass value="2.5"/>
+    <inertia ixx="0.052" ixy="0.0" ixz="0.0"
+             iyy="0.052" iyz="0.0"
+             izz="0.004"/>
+  </inertial>
+</link>
+```
+
+## Joints: Connections
+
+A **joint** connects two links and defines how they move.
+
+### Joint Structure
+
+```xml
+<joint name="joint_name" type="joint_type">
+  <parent link="parent_link_name"/>
+  <child link="child_link_name"/>
+  <origin xyz="x y z" rpy="r p y"/>
+  <axis xyz="x y z"/>
+  <limit lower="min" upper="max" effort="max_force" velocity="max_vel"/>
+</joint>
+```
+
+## Joint Types
+
+### 1. Fixed Joint
+
+No motion - rigidly attached:
+
+```xml
+<joint name="camera_to_base" type="fixed">
+  <parent link="base_link"/>
+  <child link="camera_link"/>
+  <origin xyz="0.3 0 0.5" rpy="0 0 0"/>
+</joint>
+```
+
+### 2. Revolute Joint (Hinge)
+
+Rotation around an axis with limits:
+
+```xml
+<joint name="shoulder_pitch" type="revolute">
+  <parent link="torso"/>
+  <child link="upper_arm"/>
+  <origin xyz="0 0.3 0.5" rpy="0 0 0"/>
+  <axis xyz="0 1 0"/>  <!-- Rotate around Y-axis -->
+  <limit lower="-1.57" upper="1.57" effort="100" velocity="2.0"/>
+</joint>
+```
+
+**Parameters**:
+- `axis` - Rotation axis (x, y, or z)
+- `lower/upper` - Angle limits (radians)
+- `effort` - Max torque (Nm)
+- `velocity` - Max angular velocity (rad/s)
+
+### 3. Continuous Joint
+
+Rotation without limits (wheels):
+
+```xml
+<joint name="wheel_joint" type="continuous">
+  <parent link="base_link"/>
+  <child link="wheel"/>
+  <origin xyz="0 0 -0.3" rpy="-1.57 0 0"/>
+  <axis xyz="0 0 1"/>
+  <limit effort="10" velocity="5.0"/>
+</joint>
+```
+
+### 4. Prismatic Joint (Slider)
+
+Linear motion along an axis:
+
+```xml
+<joint name="gripper_slider" type="prismatic">
+  <parent link="gripper_base"/>
+  <child link="gripper_finger"/>
+  <origin xyz="0 0 0" rpy="0 0 0"/>
+  <axis xyz="1 0 0"/>  <!-- Slide along X-axis -->
+  <limit lower="0" upper="0.1" effort="50" velocity="0.5"/>
+</joint>
+```
+
+### 5. Planar Joint
+
+Motion in a plane (mobile robots):
+
+```xml
+<joint name="base_planar" type="planar">
+  <parent link="world"/>
+  <child link="mobile_base"/>
+</joint>
+```
+
+### 6. Floating Joint
+
+Unconstrained 6-DOF motion:
+
+```xml
+<joint name="floating_base" type="floating">
+  <parent link="world"/>
+  <child link="robot_base"/>
+</joint>
+```
+
+## Joint Type Summary
+
+| Type | DOF | Motion | Limits | Use Cases |
+|------|-----|--------|--------|-----------|
+| **Fixed** | 0 | None | N/A | Sensors |
+| **Revolute** | 1 | Rotation | Yes | Arms, legs |
+| **Continuous** | 1 | Rotation | No | Wheels |
+| **Prismatic** | 1 | Linear | Yes | Grippers |
+| **Planar** | 3 | 2D + rotation | No | Mobile bases |
+| **Floating** | 6 | Full 6-DOF | No | Flying robots |
+
+## Joint Axis
+
+The `<axis>` tag defines the direction of motion:
+
+```xml
+<axis xyz="1 0 0"/>  <!-- X-axis (forward) -->
+<axis xyz="0 1 0"/>  <!-- Y-axis (left) -->
+<axis xyz="0 0 1"/>  <!-- Z-axis (up) -->
+```
+
+**Right-hand coordinate system**:
+- X: Forward (red)
+- Y: Left (green)
+- Z: Up (blue)
+
+## Simple Robot Arm Example
+
+```xml
+<?xml version="1.0"?>
+<robot name="simple_arm">
+
+  <!-- Base -->
+  <link name="base_link">
+    <visual>
+      <geometry>
+        <cylinder radius="0.1" length="0.05"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1"/>
+      </material>
+    </visual>
+    <inertial>
+      <mass value="1.0"/>
+      <inertia ixx="0.001" ixy="0" ixz="0" iyy="0.001" iyz="0" izz="0.001"/>
+    </inertial>
+  </link>
+
+  <!-- First arm link -->
+  <link name="link1">
+    <visual>
+      <origin xyz="0 0 0.25" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.03" length="0.5"/>
+      </geometry>
+      <material name="blue">
+        <color rgba="0 0 1 1"/>
+      </material>
+    </visual>
+    <inertial>
+      <origin xyz="0 0 0.25" rpy="0 0 0"/>
+      <mass value="0.5"/>
+      <inertia ixx="0.01" ixy="0" ixz="0" iyy="0.01" iyz="0" izz="0.0001"/>
+    </inertial>
+  </link>
+
+  <!-- Joint 1 -->
+  <joint name="joint1" type="revolute">
+    <parent link="base_link"/>
+    <child link="link1"/>
+    <origin xyz="0 0 0.025" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-3.14" upper="3.14" effort="10" velocity="1.0"/>
+  </joint>
+
+  <!-- Second arm link -->
+  <link name="link2">
+    <visual>
+      <origin xyz="0 0 0.25" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.03" length="0.5"/>
+      </geometry>
+      <material name="red">
+        <color rgba="1 0 0 1"/>
+      </material>
+    </visual>
+    <inertial>
+      <origin xyz="0 0 0.25" rpy="0 0 0"/>
+      <mass value="0.5"/>
+      <inertia ixx="0.01" ixy="0" ixz="0" iyy="0.01" iyz="0" izz="0.0001"/>
+    </inertial>
+  </link>
+
+  <!-- Joint 2 -->
+  <joint name="joint2" type="revolute">
+    <parent link="link1"/>
+    <child link="link2"/>
+    <origin xyz="0 0 0.5" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-3.14" upper="3.14" effort="10" velocity="1.0"/>
+  </joint>
+
+</robot>
+```
+
+## Mimic Joints
+
+Make one joint copy another's motion (useful for grippers):
+
+```xml
+<!-- Master joint -->
+<joint name="left_finger" type="prismatic">
+  <parent link="gripper_base"/>
+  <child link="left_finger_link"/>
+  <axis xyz="0 1 0"/>
+  <limit lower="0" upper="0.05" effort="10" velocity="0.1"/>
+</joint>
+
+<!-- Slave joint (mimics master) -->
+<joint name="right_finger" type="prismatic">
+  <parent link="gripper_base"/>
+  <child link="right_finger_link"/>
+  <axis xyz="0 -1 0"/>
+  <limit lower="0" upper="0.05" effort="10" velocity="0.1"/>
+  <mimic joint="left_finger" multiplier="-1.0" offset="0"/>
+</joint>
+```
+
+Formula: `mimic_joint = multiplier * original_joint + offset`
+
+## Best Practices
+
+:::tip Link and Joint Best Practices
+
+1. **Naming**: Use descriptive names (`left_shoulder_pitch`, not `joint1`)
+2. **Collision**: Keep geometry simple (boxes, cylinders)
+3. **Inertia**: Use realistic masses for stable simulation
+4. **Joint limits**: Set realistic limits based on physical constraints
+5. **Coordinate frames**: Z-up for base_link
+6. **Organization**: Comment complex sections
+
+:::
+
+## Key Takeaways
+
+:::note Summary
+
+- **Links** are rigid bodies with visual, collision, and inertial properties
+- **Inertia** is critical for accurate simulation
+- **Joints** connect links and define motion
+- **Six joint types**: fixed, revolute, continuous, prismatic, planar, floating
+- **Revolute joints** have angle limits (arms/legs)
+- **Continuous joints** rotate indefinitely (wheels)
+- **Prismatic joints** slide linearly (grippers)
+- **Axis** defines direction of motion
+- **Mimic joints** create coupled motion
+
+:::
+
+---
+
+**Next**: [Coordinate Frames and TF →](./coordinate-frames)
+
+**Previous**: [← URDF Basics](./urdf-basics)
