@@ -24,7 +24,7 @@ const modules = [
       'High-fidelity rendering and human-robot interaction in Unity.',
       'Simulating sensors: LiDAR, Depth Cameras, and IMUs.',
     ],
-    link: '/docs/module-2-digital-twin/module-2-overview',
+    link: '/docs/module-2/',
   },
   {
     number: '03',
@@ -35,7 +35,7 @@ const modules = [
       'Isaac ROS: Hardware-accelerated VSLAM (Visual SLAM) and navigation.',
       'Nav2: Path planning for bipedal humanoid movement.',
     ],
-    link: '/docs/modules/module-3',
+    link: '#',
   },
   {
     number: '04',
@@ -46,7 +46,7 @@ const modules = [
       'Cognitive Planning: Using LLMs to translate natural language ("Clean the room") into a sequence of ROS 2 actions.',
       'Capstone Project: The Autonomous Humanoid — voice command → plan → navigate → identify → manipulate.',
     ],
-    link: '/docs/modules/module-4',
+    link: '#',
   },
 ];
 

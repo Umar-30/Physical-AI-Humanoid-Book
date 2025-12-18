@@ -21,6 +21,9 @@ const config = {
 
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
+  markdown: {
+    mermaid: true,
+  },
 
   // Internationalization
   i18n: {
@@ -60,11 +63,6 @@ const config = {
             to: '/modules',
             position: 'left',
             label: '📚 Modules',
-          },
-          {
-            to: '/learning',
-            position: 'left',
-            label: '🎓 Learning Portal',
           },
           {
             type: 'doc',

@@ -1633,8 +1633,8 @@ Key takeaways...
 
 ---
 
-**Next**: [Next Section →](./next-section)
-**Previous**: [← Previous Section](./previous-section)
+**Next**: [Next Section →](#)
+**Previous**: [← Previous Section](#)
 ```
 
 ---
