@@ -1,0 +1,55 @@
+---
+id: inertia-calculation
+title: Inertia Calculation
+---
+
+# Mass and Inertia Properties
+
+Accurate mass/inertia is critical for stable humanoid simulation.
+
+## Quick Reference
+
+| Link | Mass (kg) | Inertia Approximation |
+|------|-----------|----------------------|
+| Torso | 15-25 | Box: 0.3×0.2×0.4m |
+| Head | 4-6 | Sphere: r=0.1m |
+| Upper arm | 2-3 | Cylinder: r=0.04m, l=0.25m |
+| Forearm | 1-2 | Cylinder: r=0.03m, l=0.25m |
+| Thigh | 5-8 | Cylinder: r=0.06m, l=0.4m |
+| Shin | 3-5 | Cylinder: r=0.05m, l=0.35m |
+| Foot | 1-2 | Box: 0.2×0.1×0.05m |
+
+## Inertia Format
+
+```xml
+<inertial>
+  <mass value="5.0"/>
+  <inertia ixx="0.05" ixy="0" ixz="0"
+           iyy="0.05" iyz="0" izz="0.01"/>
+</inertial>
+```
+
+## Auto-Calculate Tool
+
+```bash
+# Install
+sudo apt install liburdfdom-tools
+
+# Check URDF inertia
+check_urdf your_robot.urdf
+```
+
+## Common Values
+
+**Cylinder** (radius r, length l, mass m):
+- ixx = iyy = m(3r² + l²)/12
+- izz = mr²/2
+
+**Box** (x,y,z dimensions, mass m):
+- ixx = m(y² + z²)/12
+- iyy = m(x² + z²)/12
+- izz = m(x² + y²)/12
+
+---
+
+**Tip**: Start with approximate values, tune if robot falls/tips unexpectedly.

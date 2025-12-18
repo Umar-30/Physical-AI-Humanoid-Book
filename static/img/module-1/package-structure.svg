@@ -1,0 +1,59 @@
+<svg width="700" height="600" xmlns="http://www.w3.org/2000/svg">
+  <!-- Title -->
+  <text x="350" y="30" font-size="20" font-weight="bold" text-anchor="middle" fill="#333">Python ROS 2 Package Structure</text>
+
+  <!-- Root Package Directory -->
+  <rect x="50" y="60" width="600" height="520" fill="#f5f5f5" stroke="#666" stroke-width="2" rx="5"/>
+  <text x="60" y="85" font-size="14" font-weight="bold" fill="#333">my_robot_package/</text>
+
+  <!-- Python Module Directory -->
+  <rect x="80" y="100" width="550" height="180" fill="#e3f2fd" stroke="#1976d2" stroke-width="2" rx="4"/>
+  <text x="90" y="125" font-size="13" font-weight="bold" fill="#1565c0">my_robot_package/</text>
+  <text x="110" y="150" font-size="11" fill="#555">__init__.py</text>
+  <text x="110" y="170" font-size="11" fill="#555">publisher_node.py</text>
+  <text x="110" y="190" font-size="11" fill="#555">subscriber_node.py</text>
+  <text x="110" y="210" font-size="11" fill="#555">service_node.py</text>
+  <text x="110" y="230" font-size="11" fill="#555">action_node.py</text>
+  <text x="110" y="250" font-size="11" fill="#555">utils.py</text>
+  <text x="450" y="150" font-size="10" fill="#666" font-style="italic">← Python modules</text>
+
+  <!-- Resource Directory -->
+  <rect x="80" y="295" width="250" height="60" fill="#fff3e0" stroke="#f57c00" stroke-width="1" rx="4"/>
+  <text x="90" y="320" font-size="13" font-weight="bold" fill="#e65100">resource/</text>
+  <text x="110" y="340" font-size="11" fill="#555">my_robot_package</text>
+  <text x="350" y="325" font-size="10" fill="#666" font-style="italic">← Empty marker file</text>
+
+  <!-- Test Directory -->
+  <rect x="80" y="365" width="250" height="80" fill="#e8f5e9" stroke="#388e3c" stroke-width="1" rx="4"/>
+  <text x="90" y="390" font-size="13" font-weight="bold" fill="#2e7d32">test/</text>
+  <text x="110" y="410" font-size="11" fill="#555">test_publisher.py</text>
+  <text x="110" y="430" font-size="11" fill="#555">test_subscriber.py</text>
+  <text x="350" y="400" font-size="10" fill="#666" font-style="italic">← Unit tests</text>
+
+  <!-- Config Files -->
+  <rect x="80" y="455" width="550" height="110" fill="#f3e5f5" stroke="#7b1fa2" stroke-width="2" rx="4"/>
+  <text x="90" y="480" font-size="13" font-weight="bold" fill="#6a1b9a">Configuration Files</text>
+
+  <rect x="100" y="490" width="240" height="60" fill="white" stroke="#999" stroke-width="1" rx="3"/>
+  <text x="110" y="510" font-size="11" font-weight="bold" fill="#333">package.xml</text>
+  <text x="110" y="528" font-size="9" fill="#666">• Package metadata</text>
+  <text x="110" y="542" font-size="9" fill="#666">• Dependencies</text>
+
+  <rect x="360" y="490" width="240" height="60" fill="white" stroke="#999" stroke-width="1" rx="3"/>
+  <text x="370" y="510" font-size="11" font-weight="bold" fill="#333">setup.py</text>
+  <text x="370" y="528" font-size="9" fill="#666">• Entry points</text>
+  <text x="370" y="542" font-size="9" fill="#666">• Install configuration</text>
+
+  <!-- Legend Box -->
+  <rect x="360" y="100" width="250" height="150" fill="white" stroke="#999" stroke-width="1" rx="4"/>
+  <text x="485" y="125" font-size="12" font-weight="bold" text-anchor="middle" fill="#333">Key Files</text>
+
+  <text x="370" y="150" font-size="10" font-weight="bold" fill="#333">__init__.py</text>
+  <text x="370" y="165" font-size="9" fill="#666">Makes directory a Python module</text>
+
+  <text x="370" y="185" font-size="10" font-weight="bold" fill="#333">*_node.py</text>
+  <text x="370" y="200" font-size="9" fill="#666">Node implementations</text>
+
+  <text x="370" y="220" font-size="10" font-weight="bold" fill="#333">package.xml</text>
+  <text x="370" y="235" font-size="9" fill="#666">ROS 2 package manifest</text>
+</svg>

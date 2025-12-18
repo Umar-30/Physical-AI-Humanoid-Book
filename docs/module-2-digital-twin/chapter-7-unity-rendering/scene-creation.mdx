@@ -1,0 +1,97 @@
+---
+id: scene-creation
+title: 7.3 Creating Unity Scenes
+---
+
+# Creating Unity Scenes
+
+Build 3D visualization scenes synchronized with Gazebo.
+
+## Import URDF Model
+
+1. **Assets → Import Robot from URDF**
+2. Select your `.urdf` file
+3. Import Settings:
+   - Axis Type: `Y Axis`
+   - Mesh Decomposer: `None` (visual only)
+4. Click **Import**
+
+Robot appears in Hierarchy with all links and joints.
+
+## Configure Articulation Body (Optional)
+
+If Unity physics needed:
+
+```csharp
+// Disable Unity physics, use Gazebo instead
+foreach (ArticulationBody body in GetComponentsInChildren<ArticulationBody>())
+{
+    body.immovable = true;
+}
+```
+
+## Visualize Joint States
+
+Create `Assets/Scripts/RobotVisualizer.cs`:
+
+```csharp
+using Unity.Robotics.ROSTCPConnector;
+using RosMessageTypes.Sensor;
+using UnityEngine;
+
+public class RobotVisualizer : MonoBehaviour
+{
+    public ArticulationBody[] joints;
+
+    void Start()
+    {
+        ROSConnection.GetOrCreateInstance().Subscribe<JointStateMsg>("/joint_states", UpdateJoints);
+    }
+
+    void UpdateJoints(JointStateMsg msg)
+    {
+        for (int i = 0; i < msg.name.Length && i < joints.Length; i++)
+        {
+            ArticulationBody joint = joints[i];
+            ArticulationDrive drive = joint.xDrive;
+            drive.target = (float)msg.position[i] * Mathf.Rad2Deg;
+            joint.xDrive = drive;
+        }
+    }
+}
+```
+
+Attach to root robot GameObject, assign joints array in Inspector.
+
+## Add Environment
+
+Create ground plane:
+
+1. **GameObject → 3D Object → Plane**
+2. Scale: `(10, 1, 10)`
+3. Material: Gray
+
+Add lighting:
+
+1. **GameObject → Light → Directional Light**
+2. Rotation: `(50, -30, 0)`
+
+## Camera Setup
+
+Position camera to view robot:
+
+```
+Position: (3, 2, -3)
+Rotation: (15, -45, 0)
+```
+
+## Quick Test
+
+1. Launch Gazebo with robot
+2. Launch ROS TCP Endpoint
+3. Press Play in Unity
+4. Move robot joints in Gazebo → See updates in Unity
+
+---
+
+👉 **[Next: Human Avatars →](./human-avatars)**

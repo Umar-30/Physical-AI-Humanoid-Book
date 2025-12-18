@@ -1,0 +1,545 @@
+---
+sidebar_position: 7
+title: Computation Graph Design
+description: Best practices for designing ROS 2 computation graphs
+keywords: [ros2, graph design, architecture, nodes, communication patterns]
+---
+
+# Computation Graph Design
+
+A well-designed computation graph is modular, maintainable, and efficient. This page covers best practices for designing your ROS 2 system architecture.
+
+## What is Computation Graph Design?
+
+:::tip Definition
+
+**Computation graph design** is the process of deciding:
+- What **nodes** to create
+- What **topics, services, and actions** connect them
+- How **data flows** through the system
+- How to **structure responsibilities**
+
+:::
+
+Good design makes your system:
+- ✅ Modular and reusable
+- ✅ Easy to test and debug
+- ✅ Scalable and maintainable
+- ✅ Robust to failures
+
+## Core Design Principles
+
+### 1. Separation of Concerns
+
+Each node should have **one clear responsibility**.
+
+**Good** (separated):
+```
+/camera_driver     → Publish raw images
+/object_detector   → Detect objects in images
+/tracker           → Track objects over time
+/decision_maker    → Decide actions based on tracked objects
+```
+
+**Bad** (monolithic):
+```
+/vision_system     → Does everything (camera + detection + tracking + decisions)
+```
+
+### 2. Loose Coupling
+
+Nodes should communicate through **well-defined interfaces** (topics, services, actions), not internal details.
+
+**Good**:
+- `/camera` publishes to `/image_raw` topic
+- Any node can subscribe to `/image_raw`
+- Camera can be replaced without changing subscribers
+
+**Bad**:
+- Nodes directly call each other's methods
+- Tight dependencies on implementation details
+
+### 3. Single Source of Truth
+
+Each piece of data should have **one authoritative source**.
+
+**Good**:
+- `/localization` node publishes `/odom` (position estimate)
+- All other nodes subscribe to `/odom`
+- Only `/localization` publishes position
+
+**Bad**:
+- Multiple nodes publish position estimates to different topics
+- Unclear which is correct
+
+### 4. Appropriate Granularity
+
+Balance between too many tiny nodes and too few giant nodes.
+
+**Too Fine-Grained** (overhead):
+```
+/read_camera
+/convert_image
+/resize_image
+/blur_image
+/detect_edges
+/find_contours
+```
+
+**Too Coarse-Grained** (monolithic):
+```
+/vision_system  → Everything
+```
+
+**Just Right** (balanced):
+```
+/camera          → Hardware interface
+/preprocessor    → Image preprocessing
+/detector        → Object detection
+/tracker         → Object tracking
+```
+
+## Communication Pattern Selection
+
+Choose the right communication mechanism for each interaction.
+
+### Topics: Continuous Data Streams
+
+Use for sensor data, state updates, continuous streams.
+
+```
+/camera/image_raw       (sensor_msgs/Image)
+/scan                   (sensor_msgs/LaserScan)
+/odom                   (nav_msgs/Odometry)
+/cmd_vel                (geometry_msgs/Twist)
+```
+
+### Services: Request/Response
+
+Use for queries, quick computations, configuration.
+
+```
+/get_battery_level      (my_interfaces/GetBattery)
+/enable_motors          (std_srvs/SetBool)
+/reset_localization     (std_srvs/Trigger)
+```
+
+### Actions: Long-Running Goals
+
+Use for navigation, manipulation, long tasks with feedback.
+
+```
+/navigate_to_goal       (nav2_msgs/NavigateToPose)
+/pick_object            (manipulation_msgs/PickObject)
+/follow_path            (nav2_msgs/FollowPath)
+```
+
+## Example: Delivery Robot System
+
+Let's design a complete delivery robot system.
+
+![Delivery Robot Graph](/img/module-1/computation-graph-example.svg)
+
+### System Requirements
+
+**Goal**: Robot delivers packages autonomously
+
+**Components needed**:
+1. Sensors (camera, lidar, GPS)
+2. Perception (detect obstacles, localize)
+3. Planning (compute paths)
+4. Control (execute motion)
+
+### Node Breakdown
+
+#### Sensor Layer
+
+**`/camera`**
+- **Responsibility**: Capture images from camera hardware
+- **Publishes**: `/camera/image_raw` (sensor_msgs/Image)
+- **QoS**: BEST_EFFORT (high-frequency sensor data)
+
+**`/lidar`**
+- **Responsibility**: Capture laser scans from lidar hardware
+- **Publishes**: `/scan` (sensor_msgs/LaserScan)
+- **QoS**: BEST_EFFORT (high-frequency sensor data)
+
+**`/gps`**
+- **Responsibility**: Read GPS position
+- **Publishes**: `/gps/fix` (sensor_msgs/NavSatFix)
+- **QoS**: BEST_EFFORT (periodic updates)
+
+#### Processing Layer
+
+**`/perception`**
+- **Responsibility**: Detect obstacles from sensor data
+- **Subscribes**: `/camera/image_raw`, `/scan`
+- **Publishes**: `/obstacles` (custom message with detected obstacles)
+- **QoS**: RELIABLE (important data)
+
+**`/localization`**
+- **Responsibility**: Estimate robot position
+- **Subscribes**: `/gps/fix`, `/scan`
+- **Publishes**: `/odom` (nav_msgs/Odometry)
+- **QoS**: RELIABLE (critical for navigation)
+
+#### Planning Layer
+
+**`/planner`**
+- **Responsibility**: Compute collision-free paths
+- **Subscribes**: `/obstacles`, `/odom`
+- **Service**: `/compute_path` (nav_msgs/GetPlan)
+- **Action Server**: `/navigate_to_goal` (nav2_msgs/NavigateToPose)
+
+**Why both service and action?**
+- **Service**: Quick path queries ("Can I reach this goal?")
+- **Action**: Long-running navigation with feedback
+
+#### Control Layer
+
+**`/controller`**
+- **Responsibility**: Execute planned paths, convert to motor commands
+- **Action Client**: `/navigate_to_goal`
+- **Subscribes**: `/odom` (for feedback control)
+- **Publishes**: `/cmd_vel` (geometry_msgs/Twist)
+- **QoS**: RELIABLE (commands must arrive)
+
+### Data Flow
+
+1. **Sensors → Processing**:
+   - Camera, lidar, GPS publish raw data
+   - Perception and localization subscribe and process
+
+2. **Processing → Planning**:
+   - Obstacles and position feed into planner
+   - Planner computes safe paths
+
+3. **Planning → Control**:
+   - Action goal triggers navigation
+   - Controller receives path and feedback
+   - Controller publishes velocity commands
+
+4. **Control → Motors**:
+   - `/cmd_vel` drives the robot
+
+### Why This Design Works
+
+✅ **Modular**: Each node has clear responsibility
+✅ **Reusable**: Can swap camera, lidar, GPS without changing other nodes
+✅ **Testable**: Can test each node independently
+✅ **Debuggable**: Can monitor topics to see data flow
+✅ **Scalable**: Can add more sensors or processing nodes easily
+
+## Design Patterns
+
+### Pattern 1: Sensor Aggregation
+
+Multiple sensors → Single processing node
+
+```
+/camera_front  ┐
+/camera_back   ├→ /object_detector → /detected_objects
+/camera_left   │
+/camera_right  ┘
+```
+
+### Pattern 2: Processing Pipeline
+
+Sequential processing stages
+
+```
+/camera → /preprocessor → /detector → /tracker → /classifier
+          /image_raw     /edges      /objects   /tracked   /classified
+```
+
+### Pattern 3: Sensor Fusion
+
+Multiple sensors → Fused estimate
+
+```
+/gps       ┐
+/imu       ├→ /sensor_fusion → /pose_estimate
+/wheel_odom┘
+```
+
+### Pattern 4: Hierarchical Control
+
+High-level planner → Mid-level controller → Low-level actuators
+
+```
+/mission_planner → /path_planner → /controller → /motor_driver
+  (goals)           (paths)         (velocities)   (PWM)
+```
+
+### Pattern 5: Monitoring and Safety
+
+Separate watchdog node monitors system
+
+```
+/controller   ┐
+/localization ├→ /safety_monitor → /emergency_stop
+/battery      │
+/sensors      ┘
+```
+
+## Anti-Patterns to Avoid
+
+### ❌ God Node
+
+One node does everything.
+
+**Problem**: Hard to test, debug, reuse, scale
+
+**Solution**: Break into focused nodes
+
+### ❌ Circular Dependencies
+
+Nodes depend on each other's output in a loop.
+
+```
+/node_a → /node_b → /node_c → /node_a  (circular!)
+```
+
+**Problem**: Initialization deadlock, unclear data flow
+
+**Solution**: Restructure to eliminate cycle or use explicit synchronization
+
+### ❌ Overuse of Services
+
+Using services for continuous data.
+
+```
+/camera publishes nothing
+Other nodes call /get_image service repeatedly  (bad!)
+```
+
+**Problem**: High overhead, polling waste
+
+**Solution**: Use topics for continuous streams
+
+### ❌ Topic Spaghetti
+
+Too many point-to-point topics.
+
+```
+/node_a_to_node_b
+/node_a_to_node_c
+/node_b_to_node_a
+/node_c_to_node_a
+...
+```
+
+**Problem**: Hard to understand, maintain
+
+**Solution**: Use well-named semantic topics
+
+### ❌ Hidden State
+
+Nodes maintain internal state without publishing it.
+
+**Problem**: Can't monitor, debug, or recover state
+
+**Solution**: Publish state to topics, use parameters
+
+### ❌ Ignoring QoS
+
+Using default QoS for everything.
+
+**Problem**: Sensor data is too reliable (slow), commands are unreliable (missed)
+
+**Solution**: Match QoS to use case
+
+## Design Checklist
+
+Before implementing, verify your design:
+
+### Node Responsibilities
+
+- [ ] Each node has one clear purpose
+- [ ] Node names are descriptive
+- [ ] Responsibilities don't overlap
+- [ ] No god nodes
+
+### Communication
+
+- [ ] Topics for continuous streams
+- [ ] Services for quick requests
+- [ ] Actions for long-running tasks
+- [ ] QoS matches use case
+- [ ] No circular dependencies
+
+### Data Flow
+
+- [ ] Clear data flow direction
+- [ ] Single source of truth for each data type
+- [ ] No redundant processing
+- [ ] Appropriate granularity
+
+### Testing and Debugging
+
+- [ ] Each node can be tested independently
+- [ ] Can replace nodes with mocks
+- [ ] Can monitor all critical data
+- [ ] State is observable
+
+### Scalability
+
+- [ ] Can add more sensors without major changes
+- [ ] Can swap implementations
+- [ ] Can run distributed across machines
+- [ ] Performance bottlenecks identified
+
+## Visualization Tools
+
+### rqt_graph
+
+Visualize your computation graph:
+
+```bash
+rqt_graph
+```
+
+Shows:
+- All nodes (ovals)
+- All topics (rectangles)
+- Connections (arrows)
+
+**Use for**: Understanding system structure, debugging connections
+
+### ros2 node info
+
+Inspect a specific node:
+
+```bash
+ros2 node info /camera
+```
+
+Shows:
+- Subscribers
+- Publishers
+- Services
+- Actions
+
+### ros2 topic list
+
+List all topics:
+
+```bash
+ros2 topic list
+```
+
+With types:
+
+```bash
+ros2 topic list -t
+```
+
+## Iterative Design Process
+
+1. **Start Simple**
+   - Build minimal working system
+   - Focus on core functionality
+   - Use placeholder nodes
+
+2. **Identify Bottlenecks**
+   - Measure performance
+   - Find slow nodes
+   - Check topic frequencies
+
+3. **Refine**
+   - Split complex nodes
+   - Optimize QoS settings
+   - Add parallel execution
+
+4. **Monitor**
+   - Use `rqt_graph` to visualize
+   - Check topic rates with `ros2 topic hz`
+   - Monitor CPU/memory usage
+
+5. **Repeat**
+   - Continuously improve
+   - Add features incrementally
+   - Maintain modularity
+
+## Real-World Example: Autonomous Car
+
+Let's design a simplified autonomous car system.
+
+### Requirements
+
+- Perceive environment (cameras, lidar, radar)
+- Localize on map
+- Plan collision-free path
+- Control steering, throttle, brake
+- Monitor safety
+
+### Node Design
+
+**Sensor Nodes**:
+- `/camera_front` → `/image_front`
+- `/camera_back` → `/image_back`
+- `/lidar` → `/scan`
+- `/radar` → `/radar_tracks`
+- `/gps` → `/gps_fix`
+- `/imu` → `/imu_data`
+
+**Perception Nodes**:
+- `/lane_detector` (subscribes: `/image_front`) → `/lane_markers`
+- `/object_detector` (subscribes: `/image_front`, `/scan`) → `/detected_objects`
+- `/tracker` (subscribes: `/detected_objects`) → `/tracked_objects`
+
+**Localization Node**:
+- `/localization` (subscribes: `/gps_fix`, `/imu_data`, `/scan`) → `/pose_estimate`
+
+**Planning Nodes**:
+- `/route_planner` (service: `/plan_route`) → Global route
+- `/path_planner` (subscribes: `/tracked_objects`, `/pose_estimate`) → `/planned_path`
+- `/behavior_planner` (subscribes: `/tracked_objects`, `/lane_markers`) → `/driving_behavior`
+
+**Control Node**:
+- `/controller` (subscribes: `/planned_path`, `/pose_estimate`) → `/vehicle_cmd`
+
+**Safety Node**:
+- `/safety_monitor` (subscribes: all critical topics) → `/emergency_stop`
+
+**Actuator Nodes**:
+- `/vehicle_interface` (subscribes: `/vehicle_cmd`, `/emergency_stop`) → Hardware
+
+### Communication Patterns
+
+**Topics** (continuous streams):
+- All sensor data
+- Detection/tracking results
+- Position estimates
+- Commands
+
+**Services** (occasional queries):
+- `/plan_route` - Plan route from A to B
+- `/get_traffic_info` - Query traffic data
+- `/set_mode` - Change driving mode
+
+**Actions** (long-running):
+- `/navigate_to_destination` - Drive to destination with progress
+- `/park_vehicle` - Execute parking maneuver
+
+## Key Takeaways
+
+:::note Summary
+
+- **Separation of concerns**: One node, one responsibility
+- **Loose coupling**: Communicate through standard interfaces
+- **Single source of truth**: One authoritative publisher per data type
+- **Right tool for the job**: Topics for streams, services for queries, actions for goals
+- **Match QoS to use case**: BEST_EFFORT for sensors, RELIABLE for commands
+- **Visualize**: Use `rqt_graph` to understand your system
+- **Iterate**: Start simple, measure, refine
+- **Avoid anti-patterns**: No god nodes, circular dependencies, or topic spaghetti
+- **Design for testing**: Each node should be independently testable
+
+:::
+
+---
+
+**Next**: [Chapter 3: Python Programming (rclpy) →](../python-rclpy/index)
+
+**Previous**: [← Executors and Callback Groups](./executors)

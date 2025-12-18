@@ -1,0 +1,449 @@
+---
+sidebar_position: 3
+title: Services - Request/Response Pattern
+description: Understanding ROS 2 services and synchronous request/response communication
+keywords: [ros2, services, request, response, synchronous, rpc]
+---
+
+# Services: Request/Response Pattern
+
+Services implement a **synchronous request/response** pattern - like function calls across a network.
+
+## What is a Service?
+
+:::tip Definition
+
+A **service** is a one-to-one communication mechanism where a client sends a request to a server and waits for a response. Services are synchronous: the client blocks until it receives the reply.
+
+:::
+
+Think of services like **phone calls**:
+- You dial a specific number (service name)
+- You ask a question (request)
+- You **wait** for the answer (blocking)
+- You receive a response
+- The call ends
+
+![Service Request/Response Flow](/img/module-1/service-flow.svg)
+
+## Services vs Topics
+
+| Aspect | Topics | Services |
+|--------|--------|----------|
+| **Pattern** | Publish/Subscribe | Request/Response |
+| **Direction** | One-way | Two-way |
+| **Timing** | Asynchronous | Synchronous |
+| **Blocking** | Non-blocking | Client blocks |
+| **Relationships** | Many-to-many | One-to-one |
+| **Use case** | Continuous streams | Occasional transactions |
+
+## When to Use Services
+
+Use services for:
+
+✅ **Queries** - "What is the battery level?"
+✅ **Computations** - "Calculate path from A to B"
+✅ **Triggered actions** - "Turn on the light"
+✅ **State requests** - "Get current configuration"
+✅ **Operations with return values** - Need confirmation or result
+
+Don't use services for:
+
+❌ **Continuous data** - Use topics instead
+❌ **Long-running tasks** - Use actions instead (services should complete quickly)
+❌ **Broadcasting** - Services are one-to-one
+❌ **High-frequency calls** - Too much overhead
+
+## Service Types
+
+Services have defined request and response structures.
+
+### Common Service Types
+
+| Service Type | Package | Use Case |
+|--------------|---------|----------|
+| `example_interfaces/srv/AddTwoInts` | example_interfaces | Add two integers |
+| `std_srvs/srv/SetBool` | std_srvs | Enable/disable something |
+| `std_srvs/srv/Trigger` | std_srvs | Trigger an action |
+| `nav_msgs/srv/GetMap` | nav_msgs | Request map data |
+
+### Service Structure
+
+Services have **Request** and **Response** fields:
+
+```bash
+ros2 interface show example_interfaces/srv/AddTwoInts
+```
+
+**Output**:
+```
+# Request
+int64 a
+int64 b
+---
+# Response
+int64 sum
+```
+
+The `---` separator divides request from response.
+
+Another example:
+
+```bash
+ros2 interface show std_srvs/srv/SetBool
+```
+
+**Output**:
+```
+# Request
+bool data  # true to enable, false to disable
+---
+# Response
+bool success   # indicate successful run of triggered service
+string message # informational, e.g. for error messages
+```
+
+## Service CLI Commands
+
+### List All Services
+
+```bash
+ros2 service list
+```
+
+**Example output**:
+```
+/add_two_ints
+/describe_parameters
+/get_parameter_types
+/get_parameters
+/list_parameters
+/set_parameters
+```
+
+### List Services with Types
+
+```bash
+ros2 service list -t
+```
+
+**Output**:
+```
+/add_two_ints [example_interfaces/srv/AddTwoInts]
+/trigger [std_srvs/srv/Trigger]
+```
+
+### Service Type
+
+Get the type of a specific service:
+
+```bash
+ros2 service type /add_two_ints
+```
+
+**Output**:
+```
+example_interfaces/srv/AddTwoInts
+```
+
+### Call a Service
+
+Call a service from command line:
+
+```bash
+ros2 service call /add_two_ints example_interfaces/srv/AddTwoInts "{a: 5, b: 3}"
+```
+
+**Output**:
+```
+waiting for service to become available...
+requester: making request: example_interfaces.srv.AddTwoInts_Request(a=5, b=3)
+
+response:
+example_interfaces.srv.AddTwoInts_Response(sum=8)
+```
+
+Another example:
+
+```bash
+ros2 service call /trigger std_srvs/srv/Trigger
+```
+
+**Output**:
+```
+response:
+std_srvs.srv.Trigger_Response(success=True, message='Triggered successfully')
+```
+
+## Python Service Server
+
+Create a service that adds two integers:
+
+```python
+from example_interfaces.srv import AddTwoInts
+import rclpy
+from rclpy.node import Node
+
+class AddTwoIntsServer(Node):
+    def __init__(self):
+        super().__init__('add_two_ints_server')
+
+        # Create service: (srv_type, service_name, callback)
+        self.srv = self.create_service(
+            AddTwoInts,
+            'add_two_ints',
+            self.add_two_ints_callback
+        )
+
+        self.get_logger().info('Service server ready')
+
+    def add_two_ints_callback(self, request, response):
+        # Process request
+        response.sum = request.a + request.b
+
+        self.get_logger().info(
+            f'Request: {request.a} + {request.b} = {response.sum}'
+        )
+
+        # Return response
+        return response
+
+def main(args=None):
+    rclpy.init(args=args)
+    node = AddTwoIntsServer()
+
+    try:
+        rclpy.spin(node)
+    except KeyboardInterrupt:
+        pass
+
+    node.destroy_node()
+    rclpy.shutdown()
+
+if __name__ == '__main__':
+    main()
+```
+
+**Key points**:
+- `create_service(srv_type, name, callback)` - Creates service server
+- Callback receives `request` and `response` objects
+- Callback must return the `response` object
+- Server runs continuously, handling requests as they arrive
+
+## Python Service Client (Synchronous)
+
+Call a service and wait for response:
+
+```python
+from example_interfaces.srv import AddTwoInts
+import rclpy
+from rclpy.node import Node
+
+class AddTwoIntsClient(Node):
+    def __init__(self):
+        super().__init__('add_two_ints_client')
+
+        # Create client: (srv_type, service_name)
+        self.client = self.create_client(AddTwoInts, 'add_two_ints')
+
+        # Wait for service to be available
+        while not self.client.wait_for_service(timeout_sec=1.0):
+            self.get_logger().info('Waiting for service...')
+
+    def send_request(self, a, b):
+        # Create request
+        request = AddTwoInts.Request()
+        request.a = a
+        request.b = b
+
+        # Call service (blocks until response)
+        future = self.client.call_async(request)
+        rclpy.spin_until_future_complete(self, future)
+
+        # Get response
+        if future.result() is not None:
+            response = future.result()
+            self.get_logger().info(f'Result: {a} + {b} = {response.sum}')
+            return response.sum
+        else:
+            self.get_logger().error('Service call failed')
+            return None
+
+def main(args=None):
+    rclpy.init(args=args)
+    node = AddTwoIntsClient()
+
+    # Make request
+    result = node.send_request(5, 3)
+    print(f'Result: {result}')
+
+    node.destroy_node()
+    rclpy.shutdown()
+
+if __name__ == '__main__':
+    main()
+```
+
+**Key points**:
+- `create_client(srv_type, name)` - Creates service client
+- `wait_for_service()` - Checks if server is available
+- `call_async()` - Sends request, returns a Future
+- `spin_until_future_complete()` - Waits for response
+- Client **blocks** while waiting for response
+
+## Async Service Client (Non-Blocking)
+
+For non-blocking calls, use async pattern:
+
+```python
+def __init__(self):
+    super().__init__('async_client')
+    self.client = self.create_client(AddTwoInts, 'add_two_ints')
+
+def send_request_async(self, a, b):
+    request = AddTwoInts.Request()
+    request.a = a
+    request.b = b
+
+    # Send request asynchronously
+    self.future = self.client.call_async(request)
+
+    # Register callback for when response arrives
+    self.future.add_done_callback(self.response_callback)
+
+def response_callback(self, future):
+    try:
+        response = future.result()
+        self.get_logger().info(f'Result: {response.sum}')
+    except Exception as e:
+        self.get_logger().error(f'Service call failed: {e}')
+```
+
+## Common Use Cases
+
+### 1. Configuration Service
+
+```python
+from std_srvs.srv import SetBool
+
+class RobotNode(Node):
+    def __init__(self):
+        super().__init__('robot_node')
+
+        # Service to enable/disable robot
+        self.enable_srv = self.create_service(
+            SetBool,
+            'enable_robot',
+            self.enable_callback
+        )
+
+        self.enabled = False
+
+    def enable_callback(self, request, response):
+        self.enabled = request.data
+
+        response.success = True
+        response.message = f'Robot {"enabled" if self.enabled else "disabled"}'
+
+        return response
+```
+
+### 2. Path Planning Service
+
+```python
+from nav_msgs.srv import GetPlan
+
+self.plan_service = self.create_service(
+    GetPlan,
+    'compute_path',
+    self.compute_path_callback
+)
+
+def compute_path_callback(self, request, response):
+    start = request.start
+    goal = request.goal
+
+    # Compute path (simplified)
+    path = self.path_planner.plan(start, goal)
+
+    response.plan.poses = path
+    return response
+```
+
+### 3. Data Query Service
+
+```python
+from my_interfaces.srv import GetBatteryLevel
+
+def get_battery_callback(self, request, response):
+    response.percentage = self.battery.get_level()
+    response.voltage = self.battery.get_voltage()
+    response.is_charging = self.battery.is_charging()
+
+    return response
+```
+
+## Best Practices
+
+:::tip Service Server Best Practices
+
+1. **Keep processing fast** - Services should complete quickly (< 1 second)
+2. **Return meaningful responses** - Include success/failure and messages
+3. **Handle errors gracefully** - Catch exceptions, return error responses
+4. **One server per service** - Don't create multiple servers for same service name
+5. **Document your services** - Clear request/response documentation
+
+:::
+
+:::tip Service Client Best Practices
+
+1. **Check service availability** - Use `wait_for_service()`
+2. **Handle timeouts** - Service might not respond
+3. **Use async calls when possible** - Avoid blocking your node
+4. **Retry on failure** - Network issues happen
+5. **Don't call services in tight loops** - Too much overhead
+
+:::
+
+## Error Handling
+
+Always handle service call failures:
+
+```python
+try:
+    future = self.client.call_async(request)
+    rclpy.spin_until_future_complete(self, future, timeout_sec=5.0)
+
+    if future.result() is not None:
+        response = future.result()
+        if response.success:
+            self.get_logger().info('Service succeeded')
+        else:
+            self.get_logger().warn(f'Service failed: {response.message}')
+    else:
+        self.get_logger().error('Service call timed out')
+
+except Exception as e:
+    self.get_logger().error(f'Exception: {e}')
+```
+
+## Key Takeaways
+
+:::note Summary
+
+- **Services** implement synchronous request/response pattern
+- **One-to-one**: One client calls one server
+- **Blocking**: Client waits for response
+- **Use for**: Queries, computations, triggered actions with return values
+- **Don't use for**: Continuous data (topics) or long tasks (actions)
+- **Service types** define request and response structures
+- **CLI**: `ros2 service list`, `call`, `type`
+- **Python**: `create_service()` for server, `create_client()` for client
+
+:::
+
+---
+
+**Next**: [Actions - Goal-Oriented Tasks →](./actions-goals) - Long-running operations with feedback
+
+**Previous**: [← Topics - Publish/Subscribe](./topics-pubsub)

@@ -1,0 +1,665 @@
+---
+sidebar_position: 5
+title: Quality of Service (QoS) Profiles
+description: Understanding ROS 2 QoS policies for reliable communication
+keywords: [ros2, qos, quality of service, reliability, durability, history]
+---
+
+# Quality of Service (QoS) Profiles
+
+QoS (Quality of Service) policies let you fine-tune how messages are delivered between publishers and subscribers.
+
+## What is QoS?
+
+:::tip Definition
+
+**Quality of Service (QoS)** is a set of policies that control message delivery behavior. QoS policies determine reliability, durability, history depth, deadlines, and more. They allow you to optimize communication for different use cases.
+
+:::
+
+ROS 2 uses **DDS (Data Distribution Service)** as its middleware, which provides rich QoS configuration options.
+
+## Why QoS Matters
+
+Different robot systems have different communication needs:
+
+**High-frequency sensors** (camera at 30 FPS)
+- Losing a few frames is acceptable
+- Low latency is critical
+- Use **BEST_EFFORT** reliability
+
+**Critical commands** (emergency stop)
+- Every message must arrive
+- Slight latency is acceptable
+- Use **RELIABLE** reliability
+
+**Configuration data** (robot parameters)
+- New nodes need last value
+- Must persist briefly
+- Use **TRANSIENT_LOCAL** durability
+
+![QoS Scenarios](/img/module-1/qos-scenarios.svg)
+
+## QoS Policies Overview
+
+### 1. Reliability
+
+Controls whether messages are guaranteed to arrive.
+
+| Policy | Description | Use Case |
+|--------|-------------|----------|
+| `BEST_EFFORT` | Send once, no acknowledgment | High-frequency sensors, lossy OK |
+| `RELIABLE` | Guaranteed delivery with retries | Commands, critical data |
+
+**BEST_EFFORT**:
+- Faster, lower latency
+- No acknowledgments or retries
+- May lose messages on congested networks
+- Good for sensor data streams
+
+**RELIABLE**:
+- Guaranteed delivery
+- Acknowledgments and retries
+- Higher latency and bandwidth
+- Good for commands and critical data
+
+### 2. Durability
+
+Controls whether late-joining subscribers receive past messages.
+
+| Policy | Description | Use Case |
+|--------|-------------|----------|
+| `VOLATILE` | No history kept, only new messages | Real-time streams |
+| `TRANSIENT_LOCAL` | Keep last messages for late joiners | Configuration, state |
+
+**VOLATILE**:
+- Subscribers only get messages published after they subscribe
+- No history stored
+- Good for continuous sensor streams
+
+**TRANSIENT_LOCAL**:
+- Last N messages are kept
+- Late joiners receive the stored messages
+- Good for configuration and state data
+
+### 3. History
+
+Controls how many messages to buffer.
+
+| Policy | Description | Parameters |
+|--------|-------------|------------|
+| `KEEP_LAST` | Keep only last N messages | `depth` (e.g., 10) |
+| `KEEP_ALL` | Keep all messages (unlimited buffer) | None |
+
+**KEEP_LAST**:
+```python
+qos_profile = QoSProfile(
+    history=HistoryPolicy.KEEP_LAST,
+    depth=10  # Keep last 10 messages
+)
+```
+
+**KEEP_ALL**:
+- Useful for critical messages that can't be dropped
+- Risk: unbounded memory growth if consumer is slow
+- Use with caution
+
+### 4. Deadline
+
+Ensures messages arrive within a time window.
+
+```python
+qos_profile = QoSProfile(
+    deadline=Duration(seconds=1)  # Expect message every 1 second
+)
+```
+
+- If no message received within deadline, triggers callback
+- Useful for detecting sensor failures
+- Both publisher and subscriber can set deadlines
+
+### 5. Liveliness
+
+Monitors if publishers are still alive.
+
+| Policy | Description |
+|--------|-------------|
+| `AUTOMATIC` | Middleware monitors automatically |
+| `MANUAL_BY_TOPIC` | Publisher must assert liveliness |
+
+```python
+qos_profile = QoSProfile(
+    liveliness=LivelinessPolicy.AUTOMATIC,
+    liveliness_lease_duration=Duration(seconds=5)
+)
+```
+
+### 6. Lifespan
+
+How long messages remain valid.
+
+```python
+qos_profile = QoSProfile(
+    lifespan=Duration(seconds=10)  # Messages expire after 10s
+)
+```
+
+- Messages older than lifespan are discarded
+- Useful for time-sensitive data
+
+## Preset QoS Profiles
+
+ROS 2 provides common preset profiles:
+
+### Sensor Data Profile
+
+```python
+from rclpy.qos import qos_profile_sensor_data
+
+# Equivalent to:
+QoSProfile(
+    reliability=ReliabilityPolicy.BEST_EFFORT,
+    durability=DurabilityPolicy.VOLATILE,
+    history=HistoryPolicy.KEEP_LAST,
+    depth=5
+)
+```
+
+**Use for**: Camera images, lidar scans, IMU data
+
+### System Default Profile
+
+```python
+from rclpy.qos import qos_profile_system_default
+
+# Equivalent to:
+QoSProfile(
+    reliability=ReliabilityPolicy.RELIABLE,
+    durability=DurabilityPolicy.VOLATILE,
+    history=HistoryPolicy.KEEP_LAST,
+    depth=10
+)
+```
+
+**Use for**: General topics, telemetry, state
+
+### Services Default Profile
+
+```python
+from rclpy.qos import qos_profile_services_default
+
+# Equivalent to:
+QoSProfile(
+    reliability=ReliabilityPolicy.RELIABLE,
+    durability=DurabilityPolicy.VOLATILE,
+    history=HistoryPolicy.KEEP_LAST,
+    depth=10
+)
+```
+
+**Use for**: Service request/response
+
+### Parameters Profile
+
+```python
+from rclpy.qos import qos_profile_parameters
+
+# Equivalent to:
+QoSProfile(
+    reliability=ReliabilityPolicy.RELIABLE,
+    durability=DurabilityPolicy.TRANSIENT_LOCAL,
+    history=HistoryPolicy.KEEP_LAST,
+    depth=1000
+)
+```
+
+**Use for**: Configuration parameters, persistent state
+
+## QoS Compatibility
+
+Publishers and subscribers must have **compatible QoS** to communicate.
+
+### Compatibility Rules
+
+**Reliability**:
+- RELIABLE publisher → RELIABLE subscriber ✅
+- RELIABLE publisher → BEST_EFFORT subscriber ✅
+- BEST_EFFORT publisher → RELIABLE subscriber ❌ (incompatible)
+- BEST_EFFORT publisher → BEST_EFFORT subscriber ✅
+
+**Durability**:
+- TRANSIENT_LOCAL publisher → TRANSIENT_LOCAL subscriber ✅
+- TRANSIENT_LOCAL publisher → VOLATILE subscriber ✅
+- VOLATILE publisher → TRANSIENT_LOCAL subscriber ❌ (incompatible)
+- VOLATILE publisher → VOLATILE subscriber ✅
+
+:::warning Incompatible QoS
+
+If publisher and subscriber have incompatible QoS, they **will not connect**, even if using the same topic name and message type.
+
+:::
+
+### Checking QoS Compatibility
+
+```bash
+# Show QoS of all publishers and subscribers
+ros2 topic info /scan --verbose
+```
+
+**Output**:
+```
+Type: sensor_msgs/msg/LaserScan
+
+Publisher count: 1
+
+Node name: /lidar_node
+Topic type: sensor_msgs/msg/LaserScan
+Endpoint type: PUBLISHER
+QoS profile:
+  Reliability: BEST_EFFORT
+  History (Depth): KEEP_LAST (5)
+  Durability: VOLATILE
+
+Subscription count: 1
+
+Node name: /obstacle_detector
+Topic type: sensor_msgs/msg/LaserScan
+Endpoint type: SUBSCRIPTION
+QoS profile:
+  Reliability: BEST_EFFORT  # Must be compatible
+  History (Depth): KEEP_LAST (10)
+  Durability: VOLATILE
+```
+
+## Python QoS Examples
+
+### Example 1: High-Frequency Sensor (Camera)
+
+```python
+from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy, DurabilityPolicy
+
+class CameraPublisher(Node):
+    def __init__(self):
+        super().__init__('camera_publisher')
+
+        # Use BEST_EFFORT for speed
+        qos_profile = QoSProfile(
+            reliability=ReliabilityPolicy.BEST_EFFORT,
+            durability=DurabilityPolicy.VOLATILE,
+            history=HistoryPolicy.KEEP_LAST,
+            depth=1  # Only keep latest frame
+        )
+
+        self.publisher = self.create_publisher(
+            Image,
+            '/camera/image_raw',
+            qos_profile
+        )
+
+        # Publish at 30 Hz
+        self.timer = self.create_timer(1.0 / 30.0, self.publish_frame)
+
+    def publish_frame(self):
+        msg = Image()
+        # Fill image data...
+        self.publisher.publish(msg)
+```
+
+### Example 2: Critical Commands (Emergency Stop)
+
+```python
+class EmergencyStopPublisher(Node):
+    def __init__(self):
+        super().__init__('emergency_stop')
+
+        # Use RELIABLE for guaranteed delivery
+        qos_profile = QoSProfile(
+            reliability=ReliabilityPolicy.RELIABLE,
+            durability=DurabilityPolicy.TRANSIENT_LOCAL,
+            history=HistoryPolicy.KEEP_ALL  # Don't drop any
+        )
+
+        self.publisher = self.create_publisher(
+            Bool,
+            '/emergency_stop',
+            qos_profile
+        )
+
+    def trigger_stop(self):
+        msg = Bool()
+        msg.data = True
+        self.publisher.publish(msg)
+        self.get_logger().warn('EMERGENCY STOP TRIGGERED')
+```
+
+### Example 3: Configuration Parameters
+
+```python
+class ConfigPublisher(Node):
+    def __init__(self):
+        super().__init__('config_publisher')
+
+        # Use TRANSIENT_LOCAL so late joiners get last value
+        qos_profile = QoSProfile(
+            reliability=ReliabilityPolicy.RELIABLE,
+            durability=DurabilityPolicy.TRANSIENT_LOCAL,
+            history=HistoryPolicy.KEEP_LAST,
+            depth=1  # Only need latest config
+        )
+
+        self.publisher = self.create_publisher(
+            String,
+            '/robot/config',
+            qos_profile
+        )
+
+        # Publish config once at startup
+        self.publish_config()
+
+    def publish_config(self):
+        msg = String()
+        msg.data = '{"speed": 1.0, "mode": "autonomous"}'
+        self.publisher.publish(msg)
+```
+
+### Example 4: Using Preset Profiles
+
+```python
+from rclpy.qos import qos_profile_sensor_data
+
+class LidarPublisher(Node):
+    def __init__(self):
+        super().__init__('lidar_publisher')
+
+        # Use preset sensor data profile
+        self.publisher = self.create_publisher(
+            LaserScan,
+            '/scan',
+            qos_profile_sensor_data
+        )
+```
+
+### Example 5: Custom Profile with Deadline
+
+```python
+from rclpy.qos import QoSProfile, Duration
+
+class HeartbeatSubscriber(Node):
+    def __init__(self):
+        super().__init__('heartbeat_subscriber')
+
+        qos_profile = QoSProfile(
+            reliability=ReliabilityPolicy.RELIABLE,
+            history=HistoryPolicy.KEEP_LAST,
+            depth=10,
+            deadline=Duration(seconds=1)  # Expect message every 1s
+        )
+
+        # Set deadline missed callback
+        self.subscription = self.create_subscription(
+            String,
+            '/heartbeat',
+            self.heartbeat_callback,
+            qos_profile
+        )
+
+        # Register event callback
+        self.subscription.set_on_new_message_callback(self.on_message_received)
+
+    def heartbeat_callback(self, msg):
+        self.get_logger().info(f'Heartbeat: {msg.data}')
+
+    def on_message_received(self, event):
+        if event.deadline_missed:
+            self.get_logger().error('HEARTBEAT DEADLINE MISSED!')
+```
+
+## Common Use Cases
+
+### Use Case 1: Sensor Data (Camera, Lidar, IMU)
+
+```python
+# Publisher and Subscriber both use sensor_data profile
+from rclpy.qos import qos_profile_sensor_data
+
+publisher = self.create_publisher(
+    LaserScan,
+    '/scan',
+    qos_profile_sensor_data  # BEST_EFFORT, VOLATILE, depth=5
+)
+```
+
+**Why**: Speed over reliability, losing occasional messages is acceptable.
+
+### Use Case 2: Robot Commands (cmd_vel)
+
+```python
+qos_profile = QoSProfile(
+    reliability=ReliabilityPolicy.RELIABLE,
+    history=HistoryPolicy.KEEP_LAST,
+    depth=10
+)
+
+publisher = self.create_publisher(
+    Twist,
+    '/cmd_vel',
+    qos_profile
+)
+```
+
+**Why**: Commands should arrive reliably, but only need recent history.
+
+### Use Case 3: Diagnostics/Logging
+
+```python
+qos_profile = QoSProfile(
+    reliability=ReliabilityPolicy.BEST_EFFORT,
+    history=HistoryPolicy.KEEP_LAST,
+    depth=100  # Buffer recent logs
+)
+
+publisher = self.create_publisher(
+    String,
+    '/diagnostics',
+    qos_profile
+)
+```
+
+**Why**: Okay to lose some logs, but want a decent buffer.
+
+### Use Case 4: Map Data (Large, Infrequent)
+
+```python
+qos_profile = QoSProfile(
+    reliability=ReliabilityPolicy.RELIABLE,
+    durability=DurabilityPolicy.TRANSIENT_LOCAL,
+    history=HistoryPolicy.KEEP_LAST,
+    depth=1
+)
+
+publisher = self.create_publisher(
+    OccupancyGrid,
+    '/map',
+    qos_profile
+)
+```
+
+**Why**: Map is large and infrequent. Late joiners need the last published map.
+
+## Best Practices
+
+:::tip QoS Best Practices
+
+1. **Start with presets** - Use `qos_profile_sensor_data`, `qos_profile_system_default`
+2. **Match your use case** - Sensor data vs commands vs configuration
+3. **Test compatibility** - Use `ros2 topic info --verbose` to check QoS
+4. **Don't over-buffer** - Large depth increases memory usage
+5. **RELIABLE for critical** - Commands, safety messages
+6. **BEST_EFFORT for high-freq** - Sensors, video streams
+7. **TRANSIENT_LOCAL for state** - Configuration, maps, static data
+8. **Monitor deadlines** - Use deadline callbacks to detect failures
+
+:::
+
+## QoS CLI Commands
+
+### Check QoS Settings
+
+```bash
+# Show QoS for all publishers/subscribers
+ros2 topic info /scan --verbose
+```
+
+### Publish with Custom QoS
+
+```bash
+# Publish with BEST_EFFORT
+ros2 topic pub --qos-reliability best_effort /test std_msgs/msg/String "{data: 'test'}"
+
+# Publish with RELIABLE
+ros2 topic pub --qos-reliability reliable /test std_msgs/msg/String "{data: 'test'}"
+
+# Publish with TRANSIENT_LOCAL durability
+ros2 topic pub --qos-durability transient_local /test std_msgs/msg/String "{data: 'test'}"
+```
+
+### Echo with Custom QoS
+
+```bash
+# Subscribe with BEST_EFFORT
+ros2 topic echo --qos-reliability best_effort /scan
+
+# Subscribe with RELIABLE
+ros2 topic echo --qos-reliability reliable /cmd_vel
+```
+
+## Debugging QoS Issues
+
+### Problem: Subscriber not receiving messages
+
+**Symptoms**:
+- Publisher shows "Publisher count: 1"
+- Subscriber shows "Subscription count: 1"
+- But no messages received
+
+**Cause**: Incompatible QoS
+
+**Solution**:
+```bash
+# Check QoS of both
+ros2 topic info /my_topic --verbose
+
+# Look for mismatches in Reliability or Durability
+```
+
+### Problem: High latency on sensor topics
+
+**Symptoms**:
+- Messages arrive with significant delay
+- System feels sluggish
+
+**Cause**: Using RELIABLE when BEST_EFFORT would suffice
+
+**Solution**:
+```python
+# Change from RELIABLE to BEST_EFFORT
+qos_profile = QoSProfile(
+    reliability=ReliabilityPolicy.BEST_EFFORT,  # Change here
+    history=HistoryPolicy.KEEP_LAST,
+    depth=1
+)
+```
+
+### Problem: Late-joining subscriber misses critical data
+
+**Symptoms**:
+- Node starts after publisher sends data
+- Subscriber never gets the message
+
+**Cause**: Using VOLATILE durability
+
+**Solution**:
+```python
+# Change to TRANSIENT_LOCAL
+qos_profile = QoSProfile(
+    reliability=ReliabilityPolicy.RELIABLE,
+    durability=DurabilityPolicy.TRANSIENT_LOCAL,  # Change here
+    history=HistoryPolicy.KEEP_LAST,
+    depth=1
+)
+```
+
+## Advanced: QoS Event Callbacks
+
+ROS 2 allows you to register callbacks for QoS events:
+
+```python
+from rclpy.qos import QoSProfile
+from rclpy.event_handler import PublisherEventCallbacks, SubscriptionEventCallbacks
+
+class QoSMonitorNode(Node):
+    def __init__(self):
+        super().__init__('qos_monitor')
+
+        qos_profile = QoSProfile(
+            reliability=ReliabilityPolicy.RELIABLE,
+            deadline=Duration(seconds=1)
+        )
+
+        # Publisher with event callbacks
+        event_callbacks = PublisherEventCallbacks(
+            deadline_callback=self.deadline_missed_pub
+        )
+
+        self.publisher = self.create_publisher(
+            String,
+            '/test',
+            qos_profile,
+            event_callbacks=event_callbacks
+        )
+
+        # Subscriber with event callbacks
+        sub_callbacks = SubscriptionEventCallbacks(
+            deadline_callback=self.deadline_missed_sub
+        )
+
+        self.subscription = self.create_subscription(
+            String,
+            '/test',
+            self.callback,
+            qos_profile,
+            event_callbacks=sub_callbacks
+        )
+
+    def deadline_missed_pub(self, event):
+        self.get_logger().warn('Publisher deadline missed')
+
+    def deadline_missed_sub(self, event):
+        self.get_logger().warn('Subscriber deadline missed')
+
+    def callback(self, msg):
+        self.get_logger().info(f'Received: {msg.data}')
+```
+
+## Key Takeaways
+
+:::note Summary
+
+- **QoS policies** control message delivery behavior
+- **Reliability**: BEST_EFFORT (fast) vs RELIABLE (guaranteed)
+- **Durability**: VOLATILE (no history) vs TRANSIENT_LOCAL (keep for late joiners)
+- **History**: KEEP_LAST(N) vs KEEP_ALL
+- **Presets**: `qos_profile_sensor_data`, `qos_profile_system_default`
+- **Compatibility**: Publisher and subscriber QoS must be compatible
+- **Use BEST_EFFORT** for high-frequency sensors
+- **Use RELIABLE** for commands and critical data
+- **Use TRANSIENT_LOCAL** for configuration and state
+- **CLI**: `ros2 topic info --verbose` to check QoS
+
+:::
+
+---
+
+**Next**: [Executors and Callback Groups →](./executors)
+
+**Previous**: [← Actions - Goal-Oriented Tasks](./actions-goals)

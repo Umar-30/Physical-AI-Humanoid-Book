@@ -1,0 +1,186 @@
+---
+id: chapter-5-overview
+title: "Chapter 5: Gazebo Physics, Worlds, and Robot Spawning"
+sidebar_label: "Chapter 5 Overview"
+sidebar_position: 1
+description: Learn to set up Gazebo Harmonic, create simulation worlds, and spawn humanoid robots with realistic physics
+keywords: [gazebo, harmonic, installation, sdf, world, robot-spawning, physics, simulation]
+---
+
+# Chapter 5: Gazebo Physics, Worlds, and Robot Spawning
+
+## Chapter Overview
+
+Welcome to Chapter 5! This is your **foundation chapter** for simulation-based robotics. By the end of this chapter, you'll be able to create realistic simulation environments and spawn humanoid robots in Gazebo Harmonic.
+
+:::tip Priority 1 - Foundation
+This chapter is marked **P1 (Priority 1)** because everything else in Module 2 builds on these skills. Master this chapter before moving forward!
+:::
+
+## What You'll Learn
+
+By completing this chapter, you will be able to:
+
+1. ✅ **Install** Gazebo Harmonic on Ubuntu 22.04 and verify installation
+2. ✅ **Create** SDF world files with ground planes, lighting, and physics configuration
+3. ✅ **Spawn** humanoid robot URDF models using both command-line and launch files
+4. ✅ **Configure** physics engine parameters (timestep, solvers, gravity)
+5. ✅ **Troubleshoot** common Gazebo installation and runtime issues
+
+## Prerequisites
+
+Before starting this chapter, ensure you have:
+
+- ✅ **Module 1 Completed**: Understanding of ROS 2 basics and URDF fundamentals
+- ✅ **Ubuntu 22.04**: Installed either natively or via WSL2 on Windows
+- ✅ **Hardware**: 16GB RAM, 4GB free disk space, GPU with OpenGL 3.3+
+- ✅ **ROS 2 Humble**: Installed and working (verify with `ros2 --version`)
+
+## Chapter Structure
+
+### 📚 Sections
+
+1. **[Installation](./gazebo-installation)** (15 min)
+   - Install Gazebo Harmonic and verify functionality
+
+2. **[SDF World Files](./sdf-world-files)** (30 min)
+   - Understand and create simulation world files
+
+3. **[Robot Spawning](./robot-spawning)** (30 min)
+   - Spawn robots using command-line and launch files
+
+4. **[Physics Configuration](./physics-configuration)** (30 min)
+   - Configure physics engines for stability and performance
+
+5. **[Troubleshooting](./troubleshooting)** (15 min)
+   - Solve common installation and runtime issues
+
+6. **[Exercises](./chapter-5-exercises)** (30 min)
+   - Hands-on practice with custom worlds and robot spawning
+
+**Total Estimated Time**: 2-3 hours
+
+## Learning Path
+
+```mermaid
+graph LR
+    A[Installation] --> B[World Files]
+    B --> C[Robot Spawning]
+    C --> D[Physics Config]
+    D --> E[Exercises]
+    E --> F[Chapter 6: URDF Physics]
+```
+
+## Success Criteria
+
+You'll know you've mastered this chapter when you can:
+
+- ✅ Launch Gazebo Harmonic without errors
+- ✅ Create a custom world file from scratch
+- ✅ Spawn a humanoid robot and observe realistic physics behavior
+- ✅ Adjust physics parameters and understand their effects
+- ✅ Complete all exercises within 30 minutes
+
+## Key Concepts Preview
+
+:::info What is Gazebo?
+**Gazebo** is an open-source robotics simulator that provides:
+- **Accurate Physics**: Realistic dynamics, collisions, and forces
+- **Sensor Simulation**: Cameras, lidar, IMU, force-torque sensors
+- **3D Visualization**: Real-time rendering of robots and environments
+- **ROS 2 Integration**: Native support for ROS 2 topics and services
+:::
+
+### Gazebo Harmonic vs Classic
+
+This chapter uses **Gazebo Harmonic** (the modern version), NOT Gazebo Classic:
+
+| Feature | Gazebo Classic | Gazebo Harmonic |
+|---------|---------------|-----------------|
+| Architecture | Monolithic | Component-based (ECS) |
+| ROS 2 Support | Via bridge | Native |
+| Performance | Good | Excellent |
+| Maintenance | Entering EOL | Active development |
+| Our Choice | ❌ | ✅ |
+
+## What You'll Build
+
+By the end of this chapter, you'll have created:
+
+1. **Three SDF World Files**:
+   - Minimal world (bare bones)
+   - Humanoid world (optimized for bipedal robots)
+   - Complex world (with obstacles)
+
+2. **Launch Files**:
+   - Command-line spawning scripts
+   - ROS 2 launch file for automated setup
+
+3. **Working Simulation**:
+   - Humanoid robot standing in Gazebo
+   - Physics running at 100+ Hz
+   - Ready for Chapter 6 enhancements
+
+## Common Questions
+
+<details>
+<summary><strong>Q: Can I use Gazebo Classic instead?</strong></summary>
+
+While possible, we **strongly recommend Gazebo Harmonic** because:
+- Better ROS 2 integration
+- Superior performance for humanoid robots
+- Active development and support
+- All examples in this book use Harmonic
+
+</details>
+
+<details>
+<summary><strong>Q: Will this work on Windows?</strong></summary>
+
+**Partial support**. Recommended approach:
+1. Install WSL2 (Windows Subsystem for Linux)
+2. Install Ubuntu 22.04 in WSL2
+3. Follow Linux instructions
+4. Use VcXsrv or X410 for GUI display
+
+Native Windows support for Gazebo is limited.
+
+</details>
+
+<details>
+<summary><strong>Q: My computer doesn't have a dedicated GPU. Will it work?</strong></summary>
+
+Yes, but with limitations:
+- Gazebo will run in **headless mode** (no GUI)
+- Physics simulation still works
+- Use Unity (Chapter 7) for visualization instead
+- Performance may be lower (50-100 Hz vs 100-500 Hz)
+
+</details>
+
+<details>
+<summary><strong>Q: How long does installation take?</strong></summary>
+
+Typical installation time:
+- Fast internet: 10-15 minutes
+- Slow internet: 30-45 minutes
+- Total package size: ~2GB
+
+</details>
+
+## Getting Started
+
+Ready to install Gazebo and create your first simulation? Let's begin!
+
+👉 **[Start with Installation →](./gazebo-installation)**
+
+---
+
+## Quick Links
+
+- 📖 [Gazebo Harmonic Official Docs](https://gazebosim.org/docs/harmonic)
+- ⬅️ [Back to Module 2 Overview](/docs/module-2-digital-twin/module-2-overview)
+
+---
+
+**Estimated Completion**: 2-3 hours | **Difficulty**: Beginner | **Priority**: P1 (Required)

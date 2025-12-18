@@ -1,0 +1,217 @@
+---
+sidebar_position: 4
+title: Actions - Goal-Oriented Tasks
+description: Understanding ROS 2 actions for long-running operations with feedback
+keywords: [ros2, actions, goals, feedback, result, long-running]
+---
+
+# Actions: Goal-Oriented Tasks
+
+Actions are designed for **long-running tasks** that provide continuous feedback and can be cancelled.
+
+## What is an Action?
+
+:::tip Definition
+
+An **action** is a communication pattern for goal-oriented tasks that take time to complete. Actions provide three message types: **Goal** (what to do), **Feedback** (progress updates), and **Result** (final outcome).
+
+:::
+
+![Action Flow](/img/module-1/action-flow.svg)
+
+## Actions vs Topics vs Services
+
+| Aspect | Topics | Services | Actions |
+|--------|--------|----------|---------|
+| **Duration** | Continuous | Quick | Long-running |
+| **Feedback** | No | No | Yes (periodic) |
+| **Cancellable** | No | No | Yes |
+| **Return value** | No | Yes | Yes (+ feedback) |
+| **Blocking** | No | Yes | No (async with feedback) |
+
+## When to Use Actions
+
+Use actions for:
+
+✅ **Navigation** - Move robot to goal (takes seconds/minutes)
+✅ **Manipulation** - Grasp object, move arm to position
+✅ **Long computations** - Path planning, map building
+✅ **Tasks with progress** - Need feedback during execution
+✅ **Cancellable operations** - User might want to abort
+
+Don't use actions for:
+
+❌ **Quick operations** - Use services instead
+❌ **Continuous streams** - Use topics instead
+❌ **Fire-and-forget** - Use topics instead
+
+## Action Structure
+
+Actions have three parts:
+
+**1. Goal** - What to achieve
+```
+# Example: Fibonacci action goal
+int32 order  # Generate Fibonacci sequence up to this order
+```
+
+**2. Feedback** - Progress updates (periodic)
+```
+# Example: Fibonacci action feedback
+int32[] partial_sequence  # Current sequence so far
+```
+
+**3. Result** - Final outcome
+```
+# Example: Fibonacci action result
+int32[] sequence  # Complete Fibonacci sequence
+```
+
+## Action CLI Commands
+
+```bash
+# List all actions
+ros2 action list
+
+# Show action info
+ros2 action info /fibonacci
+
+# Send goal
+ros2 action send_goal /fibonacci action_tutorials_interfaces/action/Fibonacci "{order: 5}"
+
+# Send goal with feedback
+ros2 action send_goal --feedback /fibonacci action_tutorials_interfaces/action/Fibonacci "{order: 10}"
+```
+
+## Python Action Server Example
+
+```python
+import rclpy
+from rclpy.action import ActionServer
+from rclpy.node import Node
+from action_tutorials_interfaces.action import Fibonacci
+
+class FibonacciActionServer(Node):
+    def __init__(self):
+        super().__init__('fibonacci_action_server')
+
+        self._action_server = ActionServer(
+            self,
+            Fibonacci,
+            'fibonacci',
+            self.execute_callback
+        )
+
+    def execute_callback(self, goal_handle):
+        self.get_logger().info('Executing goal...')
+
+        # Prepare feedback
+        feedback_msg = Fibonacci.Feedback()
+        feedback_msg.partial_sequence = [0, 1]
+
+        # Generate Fibonacci sequence
+        for i in range(1, goal_handle.request.order):
+            # Check if goal was cancelled
+            if goal_handle.is_cancel_requested:
+                goal_handle.canceled()
+                return Fibonacci.Result()
+
+            # Calculate next number
+            feedback_msg.partial_sequence.append(
+                feedback_msg.partial_sequence[i] + feedback_msg.partial_sequence[i-1]
+            )
+
+            # Publish feedback
+            goal_handle.publish_feedback(feedback_msg)
+
+            # Sleep to simulate work
+            time.sleep(1)
+
+        # Goal succeeded
+        goal_handle.succeed()
+
+        # Return result
+        result = Fibonacci.Result()
+        result.sequence = feedback_msg.partial_sequence
+        return result
+```
+
+## Python Action Client Example
+
+```python
+from action_tutorials_interfaces.action import Fibonacci
+from rclpy.action import ActionClient
+
+class FibonacciActionClient(Node):
+    def __init__(self):
+        super().__init__('fibonacci_action_client')
+
+        self._action_client = ActionClient(
+            self,
+            Fibonacci,
+            'fibonacci'
+        )
+
+    def send_goal(self, order):
+        goal_msg = Fibonacci.Goal()
+        goal_msg.order = order
+
+        # Wait for server
+        self._action_client.wait_for_server()
+
+        # Send goal
+        self._send_goal_future = self._action_client.send_goal_async(
+            goal_msg,
+            feedback_callback=self.feedback_callback
+        )
+
+        self._send_goal_future.add_done_callback(self.goal_response_callback)
+
+    def goal_response_callback(self, future):
+        goal_handle = future.result()
+
+        if not goal_handle.accepted:
+            self.get_logger().info('Goal rejected')
+            return
+
+        self.get_logger().info('Goal accepted')
+
+        # Get result
+        self._get_result_future = goal_handle.get_result_async()
+        self._get_result_future.add_done_callback(self.get_result_callback)
+
+    def feedback_callback(self, feedback_msg):
+        feedback = feedback_msg.feedback
+        self.get_logger().info(f'Progress: {feedback.partial_sequence}')
+
+    def get_result_callback(self, future):
+        result = future.result().result
+        self.get_logger().info(f'Result: {result.sequence}')
+```
+
+## Key Features
+
+- **Goal Acceptance**: Server can accept or reject goals
+- **Feedback**: Periodic progress updates
+- **Cancellation**: Client can cancel goals mid-execution
+- **Result**: Final outcome with success/failure status
+- **Async**: Client doesn't block while action executes
+
+## Key Takeaways
+
+:::note Summary
+
+- **Actions** are for long-running, goal-oriented tasks
+- **Three components**: Goal, Feedback (periodic), Result
+- **Cancellable**: Goals can be aborted mid-execution
+- **Async with feedback**: Client gets progress updates without blocking
+- **Use for**: Navigation, manipulation, long computations
+- **CLI**: `ros2 action list`, `send_goal`, `info`
+
+:::
+
+---
+
+**Next**: [Quality of Service (QoS) →](./qos-profiles)
+
+**Previous**: [← Services](./services-reqrep)

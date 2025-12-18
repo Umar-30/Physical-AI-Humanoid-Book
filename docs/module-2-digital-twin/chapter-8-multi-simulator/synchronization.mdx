@@ -1,0 +1,463 @@
+---
+id: synchronization
+title: "8.3: State Synchronization"
+sidebar_label: "8.3 Synchronization"
+sidebar_position: 4
+description: Synchronizing robot state between Gazebo physics and Unity rendering
+keywords: [synchronization, timing, clock, latency, state-management]
+---
+
+# 8.3: State Synchronization
+
+## Overview
+
+Learn how to keep Gazebo's physics state and Unity's visual representation synchronized with minimal latency.
+
+**Time Required**: 40 minutes
+**Difficulty**: Intermediate-Advanced
+
+## The Synchronization Challenge
+
+**Problem**: Gazebo and Unity run at different rates:
+- Gazebo: 100-1000 Hz (physics simulation)
+- Unity: 30-60 FPS (rendering)
+
+**Goal**: Unity displays the **correct robot pose** with **minimal delay**.
+
+## Synchronization Strategies
+
+### Strategy 1: Latest Message (Simplest)
+
+Unity always uses the most recent message from Gazebo.
+
+```csharp
+// Unity C# code
+public class RobotSync : MonoBehaviour
+{
+    private JointState latestJointState;
+
+    void OnJointStateReceived(JointState msg)
+    {
+        // Store latest, don't queue
+        latestJointState = msg;
+    }
+
+    void Update()  // Called ~60 times/sec
+    {
+        if (latestJointState != null)
+        {
+            UpdateRobotPose(latestJointState);
+        }
+    }
+}
+```
+
+**Pros**: Simple, low latency
+**Cons**: May skip some physics states
+
+### Strategy 2: Timestamp Matching
+
+Match Unity's render time to message timestamps.
+
+```csharp
+void OnJointStateReceived(JointState msg)
+{
+    double msgTime = msg.header.stamp.sec + msg.header.stamp.nanosec * 1e-9;
+    messageBuffer.Add(msgTime, msg);
+}
+
+void Update()
+{
+    double currentSimTime = GetSimulationTime();
+
+    // Find message closest to current time
+    var closestMsg = messageBuffer.GetClosest(currentSimTime);
+
+    if (closestMsg != null)
+    {
+        UpdateRobotPose(closestMsg);
+    }
+}
+```
+
+**Pros**: More accurate temporal alignment
+**Cons**: Requires clock synchronization
+
+### Strategy 3: Interpolation
+
+Smooth transitions between states.
+
+```csharp
+private Queue<JointState> stateQueue = new Queue<JointState>();
+
+void OnJointStateReceived(JointState msg)
+{
+    stateQueue.Enqueue(msg);
+    if (stateQueue.Count > 10) stateQueue.Dequeue();  // Keep buffer size
+}
+
+void Update()
+{
+    if (stateQueue.Count >= 2)
+    {
+        var state1 = stateQueue.ElementAt(0);
+        var state2 = stateQueue.ElementAt(1);
+
+        // Interpolate between states
+        float alpha = ComputeAlpha(state1, state2, Time.time);
+        UpdateRobotPose(Lerp(state1, state2, alpha));
+    }
+}
+```
+
+**Pros**: Smoothest visuals
+**Cons**: Adds latency (buffering delay)
+
+## Clock Synchronization
+
+### Using ROS `/clock` Topic
+
+Gazebo publishes simulation time:
+
+```python
+# Gazebo plugin (Python example)
+clock_msg = Clock()
+clock_msg.clock = self.get_clock().now().to_msg()
+self.clock_pub.publish(clock_msg)
+```
+
+Unity subscribes:
+
+```csharp
+private double simulationTime = 0.0;
+
+void OnClockReceived(Clock msg)
+{
+    simulationTime = msg.clock.sec + msg.clock.nanosec * 1e-9;
+}
+
+void Update()
+{
+    // Use simulationTime instead of Time.time
+    double dt = simulationTime - lastSimulationTime;
+    // ... update logic using dt
+}
+```
+
+**When to use**:
+- Recording/playback
+- Slow-motion debugging
+- Deterministic testing
+
+**When NOT to use**:
+- Real-time visualization (adds complexity)
+- Simple use cases (wall clock sufficient)
+
+## Handling Latency
+
+### Measuring End-to-End Latency
+
+```csharp
+void OnJointStateReceived(JointState msg)
+{
+    double msgTime = msg.header.stamp.sec + msg.header.stamp.nanosec * 1e-9;
+    double receiveTime = Time.timeAsDouble;
+    double latency = receiveTime - msgTime;
+
+    Debug.Log($"Latency: {latency * 1000:F1} ms");
+
+    if (latency > 0.1)  // &gt;100ms
+    {
+        Debug.LogWarning("High latency detected!");
+    }
+}
+```
+
+### Latency Compensation Techniques
+
+#### 1. Extrapolation
+
+Predict future state based on velocity:
+
+```csharp
+JointState PredictState(JointState current, double dt)
+{
+    var predicted = new JointState();
+    predicted.position = new double[current.position.Length];
+
+    for (int i = 0; i &lt; current.position.Length; i++)
+    {
+        // position_future = position_now + velocity * dt
+        predicted.position[i] = current.position[i] + current.velocity[i] * dt;
+    }
+
+    return predicted;
+}
+
+void Update()
+{
+    double latency = MeasureLatency(latestJointState);
+    var compensated = PredictState(latestJointState, latency);
+    UpdateRobotPose(compensated);
+}
+```
+
+#### 2. Adaptive Buffering
+
+Adjust buffer size based on latency:
+
+```csharp
+private int bufferSize = 5;
+
+void OnJointStateReceived(JointState msg)
+{
+    double latency = MeasureLatency(msg);
+
+    // Increase buffer if latency is high
+    if (latency > 0.05) bufferSize = 10;
+    else bufferSize = 3;
+
+    messageBuffer.Enqueue(msg);
+    while (messageBuffer.Count > bufferSize)
+        messageBuffer.Dequeue();
+}
+```
+
+## Transform (TF) Synchronization
+
+### Subscribing to `/tf`
+
+```csharp
+private Dictionary<string, Transform> tfTree = new Dictionary<string, Transform>();
+
+void OnTFReceived(TFMessage msg)
+{
+    foreach (var transform in msg.transforms)
+    {
+        string childFrame = transform.child_frame_id;
+
+        // Convert ROS transform to Unity transform
+        Vector3 position = ROSToUnity(transform.transform.translation);
+        Quaternion rotation = ROSToUnity(transform.transform.rotation);
+
+        // Update Unity GameObject
+        if (robotLinks.ContainsKey(childFrame))
+        {
+            robotLinks[childFrame].position = position;
+            robotLinks[childFrame].rotation = rotation;
+        }
+    }
+}
+```
+
+### Coordinate Frame Conversion
+
+ROS (right-handed, Z-up) → Unity (left-handed, Y-up):
+
+```csharp
+Vector3 ROSToUnity(Vector3 rosPos)
+{
+    return new Vector3(rosPos.x, rosPos.z, rosPos.y);  // Swap Y/Z
+}
+
+Quaternion ROSToUnity(Quaternion rosRot)
+{
+    // Flip handedness
+    return new Quaternion(-rosRot.x, -rosRot.z, -rosRot.y, rosRot.w);
+}
+```
+
+## Joint State Synchronization
+
+### Full Joint State Update
+
+```csharp
+public class JointController : MonoBehaviour
+{
+    public ArticulationBody[] joints;  // Unity articulation bodies
+
+    void OnJointStateReceived(JointState msg)
+    {
+        for (int i = 0; i &lt; msg.name.Length; i++)
+        {
+            string jointName = msg.name[i];
+            double position = msg.position[i];
+            double velocity = msg.velocity[i];
+
+            // Find corresponding Unity joint
+            var joint = FindJoint(jointName);
+            if (joint != null)
+            {
+                // Set target position
+                var drive = joint.xDrive;
+                drive.target = (float)(position * Mathf.Rad2Deg);
+                joint.xDrive = drive;
+
+                // Optionally set velocity
+                joint.jointVelocity = new ArticulationReducedSpace((float)velocity);
+            }
+        }
+    }
+}
+```
+
+## Monitoring Synchronization Quality
+
+### Metrics to Track
+
+```csharp
+public class SyncMonitor : MonoBehaviour
+{
+    private float messageRate = 0;
+    private float avgLatency = 0;
+    private int messageCount = 0;
+
+    void OnJointStateReceived(JointState msg)
+    {
+        messageCount++;
+
+        // Calculate message rate
+        messageRate = messageCount / Time.time;
+
+        // Calculate average latency
+        double latency = Time.timeAsDouble - GetMessageTime(msg);
+        avgLatency = (avgLatency * (messageCount - 1) + (float)latency) / messageCount;
+    }
+
+    void OnGUI()
+    {
+        GUI.Label(new Rect(10, 10, 200, 20), $"Message Rate: {messageRate:F1} Hz");
+        GUI.Label(new Rect(10, 30, 200, 20), $"Avg Latency: {avgLatency * 1000:F1} ms");
+
+        // Warning indicators
+        if (messageRate &lt; 10) GUI.color = Color.red;
+        if (avgLatency > 0.1f) GUI.color = Color.yellow;
+    }
+}
+```
+
+### Performance Targets
+
+| Metric | Target | Acceptable | Poor |
+|--------|--------|-----------|------|
+| Message Rate | &gt;100 Hz | 30-100 Hz | &lt;30 Hz |
+| Latency | &lt;50ms | 50-100ms | &gt;100ms |
+| Jitter | &lt;10ms | 10-20ms | &gt;20ms |
+
+## Troubleshooting Sync Issues
+
+### Issue 1: Choppy Movement
+
+**Symptoms**: Robot moves in jerky steps
+
+**Causes**:
+- Low message rate (&lt;30 Hz)
+- No interpolation
+
+**Solutions**:
+```csharp
+// Enable interpolation
+private bool useInterpolation = true;
+```
+
+### Issue 2: Lag Behind Gazebo
+
+**Symptoms**: Unity is delayed
+
+**Causes**:
+- High network latency
+- Buffering delay
+
+**Solutions**:
+- Reduce buffer size
+- Use extrapolation
+- Check network connection
+
+### Issue 3: Desynced Joints
+
+**Symptoms**: Some joints don't move
+
+**Causes**:
+- Name mismatch between URDF and Unity
+- Missing joint states
+
+**Solutions**:
+```csharp
+void OnJointStateReceived(JointState msg)
+{
+    foreach (var name in msg.name)
+    {
+        if (!jointMap.ContainsKey(name))
+        {
+            Debug.LogWarning($"Unknown joint: {name}");
+        }
+    }
+}
+```
+
+## Best Practices
+
+1. **Use BEST_EFFORT QoS** for joint_states (low latency)
+2. **Keep buffer small** (1-5 messages) for real-time
+3. **Monitor latency** continuously
+4. **Log desync events** for debugging
+5. **Test at target rates** (Gazebo 100Hz, Unity 30FPS)
+
+## Testing Synchronization
+
+### Manual Test
+
+```bash
+# Terminal 1: Run multi-sim
+ros2 launch humanoid_sim multi_sim.launch.py
+
+# Terminal 2: Echo joint states
+ros2 topic echo /joint_states --no-arr
+
+# Terminal 3: Check rate
+ros2 topic hz /joint_states
+```
+
+### Automated Test
+
+```python
+# test_sync.py
+import rclpy
+from sensor_msgs.msg import JointState
+import time
+
+class SyncTester:
+    def __init__(self):
+        self.last_time = None
+        self.latencies = []
+
+    def callback(self, msg):
+        now = time.time()
+        msg_time = msg.header.stamp.sec + msg.header.stamp.nanosec * 1e-9
+        latency = now - msg_time
+
+        self.latencies.append(latency)
+
+        if len(self.latencies) >= 100:
+            avg = sum(self.latencies) / len(self.latencies)
+            print(f"Avg latency: {avg*1000:.1f} ms")
+            self.latencies.clear()
+```
+
+## What's Next
+
+With synchronized states, let's optimize performance!
+
+👉 **[Next: Performance Optimization →](./performance)**
+
+---
+
+## Summary
+
+- ✅ Implemented state synchronization strategies (latest, timestamp, interpolation)
+- ✅ Configured clock synchronization using `/clock` topic
+- ✅ Handled coordinate frame conversions (ROS ↔ Unity)
+- ✅ Measured and compensated for latency
+- ✅ Monitored synchronization quality with metrics
+
+**Time Invested**: ~40 minutes | **Status**: Synchronization Working ✓

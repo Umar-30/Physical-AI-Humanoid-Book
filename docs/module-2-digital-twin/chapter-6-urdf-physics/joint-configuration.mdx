@@ -1,0 +1,71 @@
+---
+id: joint-configuration
+title: Joint Configuration
+---
+
+# Joint Limits and Dynamics
+
+Configure realistic joint behavior for stable walking and manipulation.
+
+## Joint Types for Humanoids
+
+```xml
+<!-- Revolute: ankle, knee, hip, shoulder, elbow -->
+<joint name="knee_joint" type="revolute">
+  <parent link="thigh"/>
+  <child link="shin"/>
+  <axis xyz="0 1 0"/>
+  <limit effort="100" lower="-2.0" upper="0.0" velocity="10"/>
+  <dynamics damping="1.0" friction="0.1"/>
+</joint>
+```
+
+## Key Parameters
+
+| Parameter | Typical Range | Effect |
+|-----------|--------------|--------|
+| **effort** | 50-200 N⋅m | Max joint torque |
+| **velocity** | 5-15 rad/s | Max speed |
+| **damping** | 0.5-2.0 | Joint stiffness |
+| **friction** | 0.1-0.5 | Energy loss |
+
+## Humanoid Joint Limits
+
+```xml
+<!-- Knee (flexion only) -->
+<limit lower="-2.0" upper="0.0"/>
+
+<!-- Hip (3 DOF, use 3 joints) -->
+<limit lower="-1.57" upper="1.57"/>  <!-- ±90° -->
+
+<!-- Ankle -->
+<limit lower="-0.5" upper="0.5"/>    <!-- ±30° -->
+```
+
+## Transmission for Control
+
+```xml
+<transmission name="knee_trans">
+  <type>transmission_interface/SimpleTransmission</type>
+  <joint name="knee_joint">
+    <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+  </joint>
+  <actuator name="knee_motor">
+    <mechanicalReduction>1</mechanicalReduction>
+  </actuator>
+</transmission>
+```
+
+## Test Joint Control
+
+```bash
+# Publish joint commands
+ros2 topic pub /joint_commands sensor_msgs/msg/JointState "{
+  name: ['knee_joint'],
+  position: [-0.5]
+}"
+```
+
+---
+
+**Check**: Robot should stand stable without falling when spawned.

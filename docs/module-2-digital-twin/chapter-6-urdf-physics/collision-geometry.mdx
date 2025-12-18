@@ -1,0 +1,67 @@
+---
+id: collision-geometry
+title: Collision Geometry
+---
+
+# Collision Shapes for Physics
+
+Simplified collision geometry improves physics performance significantly.
+
+## Basic Shapes
+
+**Box** (for torso, feet):
+```xml
+<collision>
+  <geometry>
+    <box size="0.3 0.2 0.4"/>
+  </geometry>
+</collision>
+```
+
+**Cylinder** (for limbs):
+```xml
+<collision>
+  <geometry>
+    <cylinder radius="0.05" length="0.3"/>
+  </geometry>
+</collision>
+```
+
+**Sphere** (for head, joints):
+```xml
+<collision>
+  <geometry>
+    <sphere radius="0.1"/>
+  </geometry>
+</collision>
+```
+
+## Best Practices
+
+- Use **simple shapes** for collision (not mesh)
+- Visual mesh can be complex
+- Collision should be 50-70% of visual size
+- Add `<mu1>0.8</mu1><mu2>0.8</mu2>` for friction
+
+## Example: Simplified Leg
+
+```xml
+<link name="shin">
+  <!-- Visual: detailed mesh -->
+  <visual>
+    <geometry><mesh filename="shin.dae"/></geometry>
+  </visual>
+
+  <!-- Collision: simple cylinder -->
+  <collision>
+    <geometry><cylinder radius="0.04" length="0.25"/></geometry>
+    <surface>
+      <friction><ode><mu>0.8</mu></ode></friction>
+    </surface>
+  </collision>
+</link>
+```
+
+---
+
+**Performance**: Simple collisions = 10x faster physics updates

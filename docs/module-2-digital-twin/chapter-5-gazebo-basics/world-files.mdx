@@ -1,0 +1,188 @@
+---
+id: sdf-world-files
+title: "5.2: SDF World File Structure"
+sidebar_label: "5.2 World Files"
+sidebar_position: 3
+description: Understanding and creating Gazebo SDF world files for humanoid robot simulation
+keywords: [sdf, world, gazebo, simulation, structure]
+---
+
+# 5.2: SDF World File Structure
+
+## Overview
+
+Learn to create **SDF (Simulation Description Format)** world files that define your simulation environment.
+
+**Time**: 30 minutes | **Difficulty**: Beginner
+
+## SDF File Anatomy
+
+An SDF world file contains:
+
+```xml
+<sdf version="1.9">
+  <world name="my_world">
+    <physics>       <!-- Physics engine settings -->
+    <gravity>       <!-- Gravity vector -->
+    <model>         <!-- Objects in world (ground, obstacles) -->
+    <light>         <!-- Lighting sources -->
+    <scene>         <!-- Rendering settings -->
+  </world>
+</sdf>
+```
+
+## Example Files
+
+We've provided 3 example world files:
+
+### 1. Minimal World (`minimal_world.sdf`)
+
+**Purpose**: Bare-bones starting point
+
+**Contains**:
+- Ground plane
+- Basic physics (1ms timestep)
+- Single directional light
+
+**Launch**:
+```bash
+gz sim /path/to/minimal_world.sdf
+```
+
+📁 [Download: minimal_world.sdf](/files/module-2/sdf/minimal_world.sdf)
+
+### 2. Humanoid World (`humanoid_world.sdf`)
+
+**Purpose**: Production-ready for bipedal robots
+
+**Features**:
+- High friction ground (μ=1.0) for stable walking
+- Optimized physics (1000 Hz)
+- Good lighting (sun + fill light)
+- Atmospheric effects
+
+**Launch**:
+```bash
+gz sim /path/to/humanoid_world.sdf
+```
+
+📁 [Download: humanoid_world.sdf](/files/module-2/sdf/humanoid_world.sdf)
+
+### 3. Complex World (`complex_world.sdf`)
+
+**Purpose**: Testing navigation and collision avoidance
+
+**Contains**:
+- Multiple obstacles (box, cylinder, ramp, wall)
+- Varied terrain
+- Multiple light sources
+
+**Launch**:
+```bash
+gz sim /path/to/complex_world.sdf
+```
+
+📁 [Download: complex_world.sdf](/files/module-2/sdf/complex_world.sdf)
+
+## Key SDF Elements
+
+### Physics Configuration
+
+```xml
+<physics name="1ms" type="bullet">
+  <max_step_size>0.001</max_step_size>  <!-- 1ms = 1000 Hz -->
+  <real_time_factor>1.0</real_time_factor>
+</physics>
+```
+
+**Parameters**:
+- `max_step_size`: Smaller = more accurate, slower (0.001-0.002 recommended)
+- `type`: Physics engine (bullet, dart, ode)
+- `real_time_factor`: Target speed (1.0 = real-time)
+
+### Gravity
+
+```xml
+<gravity>0 0 -9.81</gravity>  <!-- Standard Earth gravity -->
+```
+
+### Ground Plane
+
+```xml
+<model name="ground_plane">
+  <static>true</static>  <!-- Doesn't move -->
+  <link name="link">
+    <collision>  <!-- For physics -->
+      <geometry><plane>...</plane></geometry>
+    </collision>
+    <visual>     <!-- For rendering -->
+      <geometry><plane>...</plane></geometry>
+    </visual>
+  </link>
+</model>
+```
+
+### Lighting
+
+```xml
+<light type="directional" name="sun">
+  <cast_shadows>true</cast_shadows>
+  <diffuse>1.0 1.0 1.0 1</diffuse>
+  <direction>-0.5 0.1 -0.9</direction>
+</light>
+```
+
+**Light types**: `directional` (sun), `point` (bulb), `spot` (flashlight)
+
+## Creating Your Own World
+
+**Step-by-step**:
+
+1. Copy `minimal_world.sdf` as starting point
+2. Modify `world name` attribute
+3. Adjust physics parameters if needed
+4. Add obstacles/objects (copy `<model>` blocks)
+5. Test: `gz sim my_world.sdf`
+
+## Common Patterns
+
+**High friction ground** (for walking robots):
+```xml
+<surface>
+  <friction>
+    <ode><mu>1.0</mu><mu2>1.0</mu2></ode>
+  </friction>
+</surface>
+```
+
+**Add a box obstacle**:
+```xml
+<model name="box">
+  <static>true</static>
+  <pose>x y z roll pitch yaw</pose>
+  <link name="link">
+    <collision><geometry><box><size>0.5 0.5 0.5</size></box></geometry></collision>
+    <visual><geometry><box><size>0.5 0.5 0.5</size></box></geometry></visual>
+  </link>
+</model>
+```
+
+## Quick Reference
+
+| Element | Purpose |
+|---------|---------|
+| `<physics>` | Simulation timestep, engine selection |
+| `<gravity>` | Gravitational acceleration (m/s²) |
+| `<model>` | Objects in world (static or dynamic) |
+| `<light>` | Illumination sources |
+| `<scene>` | Visual settings (shadows, ambient) |
+
+## What's Next
+
+Now that you can create worlds, let's spawn robots in them!
+
+👉 **[Next: Robot Spawning →](./robot-spawning)**
+
+---
+
+**Summary**: You learned SDF structure, used 3 example worlds, and understand key elements for creating simulation environments.

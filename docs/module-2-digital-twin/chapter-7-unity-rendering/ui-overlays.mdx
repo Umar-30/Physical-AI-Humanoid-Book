@@ -1,0 +1,141 @@
+---
+id: ui-overlays
+title: 7.5 UI Overlays and Data Display
+---
+
+# UI Overlays and Data Display
+
+Create user interfaces to display robot data and controls.
+
+## Create Canvas
+
+1. **GameObject → UI → Canvas**
+2. Canvas Scaler: `Scale with Screen Size`
+3. Reference Resolution: `1920 x 1080`
+
+## Display Joint Positions
+
+Create `Assets/Scripts/JointUI.cs`:
+
+```csharp
+using Unity.Robotics.ROSTCPConnector;
+using RosMessageTypes.Sensor;
+using UnityEngine;
+using UnityEngine.UI;
+
+public class JointUI : MonoBehaviour
+{
+    public Text jointDataText;
+
+    void Start()
+    {
+        ROSConnection.GetOrCreateInstance().Subscribe<JointStateMsg>("/joint_states", UpdateUI);
+    }
+
+    void UpdateUI(JointStateMsg msg)
+    {
+        string display = "Joint Positions:\n";
+        for (int i = 0; i < msg.name.Length; i++)
+        {
+            display += $"{msg.name[i]}: {msg.position[i]:F2}\n";
+        }
+        jointDataText.text = display;
+    }
+}
+```
+
+Add UI Text:
+1. **GameObject → UI → Text - TextMeshPro**
+2. Position: Top-left corner
+3. Assign to script in Inspector
+
+## Connection Status Indicator
+
+```csharp
+using UnityEngine;
+using UnityEngine.UI;
+
+public class ConnectionStatus : MonoBehaviour
+{
+    public Image statusIndicator;
+    float lastMessageTime;
+
+    void UpdateStatus()
+    {
+        if (Time.time - lastMessageTime < 1f)
+        {
+            statusIndicator.color = Color.green; // Connected
+        }
+        else
+        {
+            statusIndicator.color = Color.red; // Disconnected
+        }
+    }
+}
+```
+
+## Control Buttons
+
+Send commands to Gazebo:
+
+```csharp
+using Unity.Robotics.ROSTCPConnector;
+using RosMessageTypes.Std;
+using UnityEngine;
+using UnityEngine.UI;
+
+public class ResetButton : MonoBehaviour
+{
+    void Start()
+    {
+        GetComponent<Button>().onClick.AddListener(OnResetClicked);
+    }
+
+    void OnResetClicked()
+    {
+        ROSConnection.GetOrCreateInstance().Publish("/reset_simulation", new EmptyMsg());
+        Debug.Log("Reset command sent");
+    }
+}
+```
+
+## Performance Metrics
+
+Display FPS and latency:
+
+```csharp
+public class PerformanceUI : MonoBehaviour
+{
+    public Text metricsText;
+    float fps;
+
+    void Update()
+    {
+        fps = 1f / Time.deltaTime;
+        metricsText.text = $"FPS: {fps:F0}\nLatency: {latency:F0}ms";
+    }
+}
+```
+
+## Layout Example
+
+```
+┌────────────────────────────────────┐
+│ Status: ● Connected    FPS: 60     │
+├────────────────────────────────────┤
+│                                    │
+│        [Robot 3D View]             │
+│                                    │
+├────────────────────────────────────┤
+│ Joint Positions:                   │
+│ - shoulder_pan: 0.52               │
+│ - shoulder_tilt: -0.31             │
+│ - elbow: 1.15                      │
+├────────────────────────────────────┤
+│ [Reset] [Start] [Stop]             │
+└────────────────────────────────────┘
+```
+
+---
+
+👉 **[Next: Exercises →](./exercises)**

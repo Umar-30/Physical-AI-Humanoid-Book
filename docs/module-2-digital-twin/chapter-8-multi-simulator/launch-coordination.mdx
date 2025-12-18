@@ -1,0 +1,392 @@
+---
+id: launch-coordination
+title: "8.2: Launch Coordination"
+sidebar_label: "8.2 Launch Coordination"
+sidebar_position: 3
+description: Coordinating Gazebo and Unity startup using ROS 2 launch files
+keywords: [ros2-launch, launch-files, coordination, startup, multi-simulator]
+---
+
+# 8.2: Launch Coordination
+
+## Overview
+
+Learn how to launch both Gazebo and Unity simulators together using ROS 2 launch files, ensuring proper startup sequence and parameter configuration.
+
+**Time Required**: 45 minutes
+**Difficulty**: Intermediate
+
+## Why Launch Files?
+
+Manual startup is error-prone:
+```bash
+# Terminal 1
+ros2 run gazebo_ros gazebo
+
+# Terminal 2 (wait... how long?)
+ros2 run unity_bridge unity_connector
+
+# Terminal 3
+ros2 run robot_state_publisher robot_state_publisher
+```
+
+**Problems**:
+- Timing issues (Unity starts before Gazebo is ready)
+- Missing parameters
+- Difficult to reproduce
+- Hard to debug
+
+**Solution**: Single launch file coordinates everything.
+
+## Basic Launch File
+
+Create `multi_sim.launch.py`:
+
+```python
+from launch import LaunchDescription
+from launch.actions import ExecuteProcess, TimerAction
+from launch_ros.actions import Node
+
+def generate_launch_description():
+    return LaunchDescription([
+        # 1. Start Gazebo (headless)
+        ExecuteProcess(
+            cmd=['gz', 'sim', '-r', '-s', 'humanoid_world.sdf'],
+            name='gazebo',
+            output='screen'
+        ),
+
+        # 2. Wait 5 seconds for Gazebo to initialize
+        TimerAction(
+            period=5.0,
+            actions=[
+                # 3. Start ROS-Gazebo bridge
+                Node(
+                    package='ros_gz_bridge',
+                    executable='parameter_bridge',
+                    arguments=[
+                        '/joint_states@sensor_msgs/msg/JointState@gz.msgs.Model',
+                        '/clock@rosgraph_msgs/msg/Clock@gz.msgs.Clock',
+                    ],
+                    output='screen'
+                ),
+            ]
+        ),
+
+        # 4. Robot state publisher
+        Node(
+            package='robot_state_publisher',
+            executable='robot_state_publisher',
+            parameters=[{'robot_description': 'path/to/urdf'}],
+            output='screen'
+        ),
+    ])
+```
+
+**Launch**:
+```bash
+ros2 launch humanoid_sim multi_sim.launch.py
+```
+
+## Launch Strategies
+
+### Strategy 1: Sequential Launch
+
+Start components one after another:
+
+```python
+from launch.actions import TimerAction
+
+LaunchDescription([
+    ExecuteProcess(cmd=['gz', 'sim', 'world.sdf']),  # T=0s
+
+    TimerAction(period=3.0, actions=[
+        Node(package='ros_gz_bridge', ...)  # T=3s
+    ]),
+
+    TimerAction(period=5.0, actions=[
+        ExecuteProcess(cmd=['unity-launcher'])  # T=5s
+    ]),
+])
+```
+
+**Pros**: Predictable, safe
+**Cons**: Slow startup
+
+### Strategy 2: Parallel Launch with Health Checks
+
+Start together, wait for readiness:
+
+```python
+from launch.actions import RegisterEventHandler
+from launch.event_handlers import OnProcessStart
+
+LaunchDescription([
+    # Start Gazebo
+    ExecuteProcess(cmd=['gz', 'sim'], name='gazebo'),
+
+    # When Gazebo starts, check if it's ready
+    RegisterEventHandler(
+        OnProcessStart(
+            target_action='gazebo',
+            on_start=[
+                ExecuteProcess(cmd=['gz', 'service', '-s', '/world/default/control'])
+            ]
+        )
+    ),
+])
+```
+
+**Pros**: Faster startup
+**Cons**: More complex
+
+### Strategy 3: Declarative Dependencies
+
+Use launch dependencies:
+
+```python
+from launch.actions import GroupAction
+
+gazebo_group = GroupAction([
+    ExecuteProcess(cmd=['gz', 'sim']),
+    Node(package='ros_gz_bridge', ...),
+])
+
+unity_group = GroupAction([
+    ExecuteProcess(cmd=['unity']),
+])
+
+# Unity depends on Gazebo
+LaunchDescription([
+    gazebo_group,
+    TimerAction(period=5.0, actions=[unity_group])
+])
+```
+
+## Parameter Configuration
+
+### Passing Parameters
+
+```python
+Node(
+    package='ros_gz_bridge',
+    executable='parameter_bridge',
+    parameters=[{
+        'use_sim_time': True,
+        'qos_overrides./joint_states.reliability': 'best_effort',
+    }],
+    remappings=[
+        ('/gazebo/joint_states', '/joint_states'),
+    ]
+)
+```
+
+### Using YAML Files
+
+```python
+import os
+from ament_index_python.packages import get_package_share_directory
+
+config = os.path.join(
+    get_package_share_directory('humanoid_sim'),
+    'config',
+    'sim_params.yaml'
+)
+
+Node(
+    package='ros_gz_bridge',
+    executable='parameter_bridge',
+    parameters=[config]
+)
+```
+
+**sim_params.yaml**:
+```yaml
+/**:
+  ros__parameters:
+    use_sim_time: true
+    qos_overrides:
+      /joint_states:
+        reliability: best_effort
+        depth: 1
+```
+
+## ROS-Gazebo Bridge Setup
+
+Essential topic bridges:
+
+```python
+bridge_args = [
+    '/joint_states@sensor_msgs/msg/JointState[gz.msgs.Model',
+    '/tf@tf2_msgs/msg/TFMessage[gz.msgs.Pose_V',
+    '/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock',
+    '/camera/image@sensor_msgs/msg/Image[gz.msgs.Image',
+]
+
+Node(
+    package='ros_gz_bridge',
+    executable='parameter_bridge',
+    arguments=bridge_args,
+    output='screen'
+)
+```
+
+**Bridge syntax**: `topic@ros_type[gz_type`
+
+## Unity Integration
+
+### Manual Unity Launch
+
+Start Unity separately (for development):
+
+```python
+# Launch file only starts Gazebo + ROS
+# Unity connects when manually started
+```
+
+**Unity settings**:
+- ROS TCP Endpoint: `127.0.0.1:10000`
+- Auto-connect on play
+
+### Automated Unity Launch (Linux)
+
+```python
+ExecuteProcess(
+    cmd=['/path/to/unity/executable', '-batchmode', '-nographics'],
+    name='unity'
+)
+```
+
+**Note**: Requires Unity build, not editor.
+
+## Complete Example
+
+**Full multi_sim.launch.py**:
+
+```python
+import os
+from launch import LaunchDescription
+from launch.actions import ExecuteProcess, TimerAction, DeclareLaunchArgument
+from launch.substitutions import LaunchConfiguration
+from launch_ros.actions import Node
+from ament_index_python.packages import get_package_share_directory
+
+def generate_launch_description():
+    # Arguments
+    use_sim_time = LaunchConfiguration('use_sim_time', default='true')
+    world_file = LaunchConfiguration('world', default='empty.sdf')
+
+    # Paths
+    pkg_share = get_package_share_directory('humanoid_sim')
+    urdf_file = os.path.join(pkg_share, 'urdf', 'humanoid.urdf')
+
+    return LaunchDescription([
+        # Declare arguments
+        DeclareLaunchArgument('use_sim_time', default_value='true'),
+        DeclareLaunchArgument('world', default_value='empty.sdf'),
+
+        # 1. Gazebo
+        ExecuteProcess(
+            cmd=['gz', 'sim', '-r', world_file],
+            name='gazebo',
+            output='screen'
+        ),
+
+        # 2. Wait and start bridge
+        TimerAction(
+            period=3.0,
+            actions=[
+                Node(
+                    package='ros_gz_bridge',
+                    executable='parameter_bridge',
+                    arguments=[
+                        '/joint_states@sensor_msgs/msg/JointState[gz.msgs.Model',
+                        '/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock',
+                    ],
+                    parameters=[{'use_sim_time': use_sim_time}],
+                    output='screen'
+                ),
+            ]
+        ),
+
+        # 3. Robot state publisher
+        Node(
+            package='robot_state_publisher',
+            executable='robot_state_publisher',
+            parameters=[
+                {'robot_description': open(urdf_file).read()},
+                {'use_sim_time': use_sim_time}
+            ],
+            output='screen'
+        ),
+    ])
+```
+
+**Usage**:
+```bash
+# Default world
+ros2 launch humanoid_sim multi_sim.launch.py
+
+# Custom world
+ros2 launch humanoid_sim multi_sim.launch.py world:=warehouse.sdf
+```
+
+## Debugging Launch Files
+
+### Check what's running
+
+```bash
+ros2 node list
+ros2 topic list
+```
+
+### View launch output
+
+```bash
+ros2 launch humanoid_sim multi_sim.launch.py --show-args
+```
+
+### Test individual components
+
+```bash
+# Test Gazebo alone
+gz sim -r empty.sdf
+
+# Test bridge alone
+ros2 run ros_gz_bridge parameter_bridge /joint_states@sensor_msgs/msg/JointState[gz.msgs.Model
+```
+
+## Best Practices
+
+1. **Use timers** for sequential dependencies
+2. **Set `use_sim_time: true`** for all nodes
+3. **Output to screen** during development
+4. **Add launch arguments** for flexibility
+5. **Document required dependencies** in package.xml
+
+## Troubleshooting
+
+| Issue | Cause | Solution |
+|-------|-------|----------|
+| Unity connects before Gazebo ready | No delay | Add `TimerAction` before Unity |
+| Topics not bridged | Wrong bridge syntax | Check message types match |
+| `use_sim_time` mismatch | Not set globally | Set parameter for all nodes |
+| Launch hangs | Process blocks | Use `output='screen'` to debug |
+
+## What's Next
+
+Now that you can launch both simulators, let's synchronize their states!
+
+👉 **[Next: Synchronization →](./synchronization)**
+
+---
+
+## Summary
+
+- ✅ Created ROS 2 launch files for multi-simulator coordination
+- ✅ Implemented sequential and parallel launch strategies
+- ✅ Configured ROS-Gazebo bridge for topic mapping
+- ✅ Learned parameter passing and YAML configuration
+- ✅ Debugged common launch issues
+
+**Time Invested**: ~45 minutes | **Status**: Launch System Ready ✓

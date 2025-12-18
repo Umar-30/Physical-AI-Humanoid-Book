@@ -1,0 +1,491 @@
+---
+sidebar_position: 2
+title: rclpy Overview
+description: Understanding the ROS 2 Python client library (rclpy)
+keywords: [ros2, rclpy, python, api, node, lifecycle]
+---
+
+# rclpy Overview
+
+Learn the fundamentals of rclpy, the official Python client library for ROS 2.
+
+## What is rclpy?
+
+:::tip Definition
+
+**rclpy** (ROS Client Library for Python) is the official Python API for creating ROS 2 nodes, publishers, subscribers, services, actions, and more. It provides a Pythonic interface to ROS 2 functionality.
+
+:::
+
+## Why rclpy?
+
+**Advantages**:
+- ✅ **Pythonic** - Natural Python idioms and patterns
+- ✅ **Rapid prototyping** - Fast development and iteration
+- ✅ **Rich ecosystem** - Access to Python libraries (NumPy, OpenCV, TensorFlow)
+- ✅ **Easy to learn** - Simpler than C++ for beginners
+- ✅ **Full-featured** - Supports all ROS 2 capabilities
+
+**When to use C++ instead**:
+- Need maximum performance (real-time control loops)
+- Memory-constrained systems
+- Low-latency requirements (< 1ms)
+
+## Core Concepts
+
+### 1. The Node
+
+A **node** is the fundamental building block in ROS 2.
+
+```python
+from rclpy.node import Node
+
+class MyNode(Node):
+    def __init__(self):
+        super().__init__('my_node_name')
+        self.get_logger().info('Node started!')
+```
+
+**Key characteristics**:
+- Inherits from `rclpy.node.Node`
+- Has a unique name
+- Can publish, subscribe, provide services, etc.
+- Lives in a computation graph
+
+### 2. The Executor
+
+An **executor** manages callback execution.
+
+```python
+import rclpy
+
+rclpy.init()
+node = MyNode()
+
+# Spin (blocks until Ctrl+C)
+rclpy.spin(node)
+
+node.destroy_node()
+rclpy.shutdown()
+```
+
+## Node Lifecycle
+
+![Node Lifecycle](/img/module-1/node-lifecycle.svg)
+
+### Phase 1: Initialization
+
+```python
+import rclpy
+from rclpy.node import Node
+
+# 1. Initialize ROS 2 context
+rclpy.init(args=args)
+
+# 2. Create node instance
+node = MyNode()
+
+# 3. Node is ready to operate
+```
+
+**What happens**:
+- `rclpy.init()` sets up communication middleware
+- Node connects to ROS 2 network
+- Publishers/subscribers are registered
+
+### Phase 2: Spinning (Active Operation)
+
+```python
+# Process callbacks indefinitely
+rclpy.spin(node)
+```
+
+**What happens**:
+- Executor runs event loop
+- Subscription callbacks are triggered when messages arrive
+- Timer callbacks fire at specified intervals
+- Service callbacks handle requests
+- Action callbacks manage goals
+
+**Spin variants**:
+
+```python
+# Block until Ctrl+C
+rclpy.spin(node)
+
+# Process one callback and return
+rclpy.spin_once(node, timeout_sec=1.0)
+
+# Spin until a condition is met
+while rclpy.ok() and not done:
+    rclpy.spin_once(node, timeout_sec=0.1)
+```
+
+### Phase 3: Shutdown
+
+```python
+# Cleanup
+node.destroy_node()
+rclpy.shutdown()
+```
+
+**What happens**:
+- Node disconnects from network
+- Resources are released
+- Publishers/subscribers are destroyed
+
+## Common Node Patterns
+
+### Pattern 1: Timer-Based Publisher
+
+Publish data periodically:
+
+```python
+class TimerPublisher(Node):
+    def __init__(self):
+        super().__init__('timer_publisher')
+
+        self.publisher = self.create_publisher(String, 'topic', 10)
+
+        # Create timer (fires every 1.0 seconds)
+        self.timer = self.create_timer(1.0, self.timer_callback)
+
+        self.count = 0
+
+    def timer_callback(self):
+        msg = String()
+        msg.data = f'Hello {self.count}'
+        self.publisher.publish(msg)
+        self.count += 1
+```
+
+### Pattern 2: Subscription Callback
+
+React to incoming messages:
+
+```python
+class Subscriber(Node):
+    def __init__(self):
+        super().__init__('subscriber')
+
+        self.subscription = self.create_subscription(
+            String,
+            'topic',
+            self.listener_callback,
+            10
+        )
+
+    def listener_callback(self, msg):
+        self.get_logger().info(f'Received: {msg.data}')
+```
+
+### Pattern 3: Service Server
+
+Handle requests:
+
+```python
+class ServiceServer(Node):
+    def __init__(self):
+        super().__init__('service_server')
+
+        self.srv = self.create_service(
+            AddTwoInts,
+            'add_two_ints',
+            self.add_callback
+        )
+
+    def add_callback(self, request, response):
+        response.sum = request.a + request.b
+        return response
+```
+
+### Pattern 4: Action Server
+
+Handle long-running goals:
+
+```python
+from rclpy.action import ActionServer
+
+class FibonacciActionServer(Node):
+    def __init__(self):
+        super().__init__('fibonacci_action_server')
+
+        self._action_server = ActionServer(
+            self,
+            Fibonacci,
+            'fibonacci',
+            self.execute_callback
+        )
+
+    def execute_callback(self, goal_handle):
+        # Process goal, send feedback
+        goal_handle.succeed()
+        result = Fibonacci.Result()
+        return result
+```
+
+## Key rclpy Methods
+
+### Node Creation
+
+```python
+from rclpy.node import Node
+
+class MyNode(Node):
+    def __init__(self):
+        super().__init__(
+            'node_name',
+            namespace='/',  # Optional namespace
+            allow_undeclared_parameters=False,  # Parameter behavior
+            automatically_declare_parameters_from_overrides=False
+        )
+```
+
+### Publishers
+
+```python
+# Create publisher
+self.publisher = self.create_publisher(
+    msg_type=String,         # Message type
+    topic='my_topic',        # Topic name
+    qos_profile=10          # QoS (int or QoSProfile)
+)
+
+# Publish message
+msg = String()
+msg.data = 'Hello'
+self.publisher.publish(msg)
+```
+
+### Subscribers
+
+```python
+# Create subscriber
+self.subscription = self.create_subscription(
+    msg_type=String,
+    topic='my_topic',
+    callback=self.listener_callback,
+    qos_profile=10
+)
+
+def listener_callback(self, msg):
+    self.get_logger().info(f'Received: {msg.data}')
+```
+
+### Timers
+
+```python
+# Create timer (fires every 0.5 seconds)
+self.timer = self.create_timer(
+    timer_period_sec=0.5,
+    callback=self.timer_callback
+)
+
+def timer_callback(self):
+    self.get_logger().info('Timer fired!')
+```
+
+### Services
+
+```python
+# Create service
+self.srv = self.create_service(
+    srv_type=AddTwoInts,
+    srv_name='add_two_ints',
+    callback=self.service_callback
+)
+
+def service_callback(self, request, response):
+    response.sum = request.a + request.b
+    return response
+
+# Create client
+self.client = self.create_client(AddTwoInts, 'add_two_ints')
+
+# Call service asynchronously
+request = AddTwoInts.Request()
+request.a = 5
+request.b = 3
+future = self.client.call_async(request)
+```
+
+### Logging
+
+```python
+# Get logger
+logger = self.get_logger()
+
+# Log at different levels
+logger.debug('Debug message')
+logger.info('Info message')
+logger.warn('Warning message')
+logger.error('Error message')
+logger.fatal('Fatal message')
+```
+
+### Parameters
+
+```python
+# Declare parameter with default value
+self.declare_parameter('my_param', 'default_value')
+
+# Get parameter value
+param_value = self.get_parameter('my_param').value
+
+# Set parameter value
+self.set_parameters([rclpy.parameter.Parameter(
+    'my_param',
+    rclpy.Parameter.Type.STRING,
+    'new_value'
+)])
+```
+
+## Complete Node Example
+
+```python
+#!/usr/bin/env python3
+
+import rclpy
+from rclpy.node import Node
+from std_msgs.msg import String
+from example_interfaces.srv import AddTwoInts
+
+
+class CompleteExample(Node):
+    def __init__(self):
+        super().__init__('complete_example')
+
+        # Publisher
+        self.publisher = self.create_publisher(String, 'chatter', 10)
+
+        # Subscriber
+        self.subscription = self.create_subscription(
+            String,
+            'input',
+            self.listener_callback,
+            10
+        )
+
+        # Service
+        self.srv = self.create_service(
+            AddTwoInts,
+            'add_two_ints',
+            self.add_callback
+        )
+
+        # Timer
+        self.timer = self.create_timer(1.0, self.timer_callback)
+
+        # State
+        self.count = 0
+
+        self.get_logger().info('Node initialized!')
+
+    def timer_callback(self):
+        msg = String()
+        msg.data = f'Count: {self.count}'
+        self.publisher.publish(msg)
+        self.get_logger().info(f'Publishing: {msg.data}')
+        self.count += 1
+
+    def listener_callback(self, msg):
+        self.get_logger().info(f'Received: {msg.data}')
+
+    def add_callback(self, request, response):
+        response.sum = request.a + request.b
+        self.get_logger().info(f'Service called: {request.a} + {request.b} = {response.sum}')
+        return response
+
+
+def main(args=None):
+    # Initialize ROS 2
+    rclpy.init(args=args)
+
+    # Create node
+    node = CompleteExample()
+
+    try:
+        # Spin (process callbacks)
+        rclpy.spin(node)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        # Cleanup
+        node.destroy_node()
+        rclpy.shutdown()
+
+
+if __name__ == '__main__':
+    main()
+```
+
+## Error Handling
+
+### Handle Initialization Errors
+
+```python
+def main(args=None):
+    try:
+        rclpy.init(args=args)
+        node = MyNode()
+        rclpy.spin(node)
+    except Exception as e:
+        print(f'Error: {e}')
+    finally:
+        if rclpy.ok():
+            node.destroy_node()
+            rclpy.shutdown()
+```
+
+### Handle Service Call Failures
+
+```python
+# Wait for service
+if not self.client.wait_for_service(timeout_sec=5.0):
+    self.get_logger().error('Service not available')
+    return
+
+# Call with error handling
+future = self.client.call_async(request)
+rclpy.spin_until_future_complete(self, future)
+
+if future.result() is not None:
+    response = future.result()
+else:
+    self.get_logger().error('Service call failed')
+```
+
+## Best Practices
+
+:::tip rclpy Best Practices
+
+1. **Always inherit from `Node`** - Use class-based nodes for modularity
+2. **Initialize in `__init__`** - Set up publishers, subscribers, timers
+3. **Use `get_logger()`** - Leverage ROS 2 logging system
+4. **Handle cleanup** - Always call `destroy_node()` and `shutdown()`
+5. **Don't block in callbacks** - Keep callbacks fast
+6. **Use timers for periodic tasks** - Don't use `sleep()` in loops
+7. **Declare parameters** - Make nodes configurable
+8. **Check `rclpy.ok()`** - Respect shutdown signals
+
+:::
+
+## Key Takeaways
+
+:::note Summary
+
+- **rclpy** is the Python client library for ROS 2
+- **Nodes** are the fundamental building blocks
+- **Lifecycle**: Initialize → Spin → Shutdown
+- **Key methods**: `create_publisher()`, `create_subscription()`, `create_service()`, `create_timer()`
+- **Patterns**: Timer-based publishing, subscription callbacks, service servers
+- **Always cleanup**: `destroy_node()` and `shutdown()`
+- **Use logging**: `get_logger().info()` for visibility
+
+:::
+
+---
+
+**Next**: [Package Setup →](./package-setup)
+
+**Previous**: [← Chapter 3 Introduction](./index)

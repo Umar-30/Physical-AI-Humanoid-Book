@@ -1,0 +1,47 @@
+<svg width="700" height="450" xmlns="http://www.w3.org/2000/svg">
+  <!-- Title -->
+  <text x="350" y="30" font-size="20" font-weight="bold" text-anchor="middle" fill="#333">ROS 2 Layered Architecture</text>
+
+  <!-- Application/User Layer -->
+  <rect x="50" y="60" width="600" height="70" fill="#e3f2fd" stroke="#1976d2" stroke-width="2" rx="5"/>
+  <text x="350" y="85" font-size="16" font-weight="bold" text-anchor="middle" fill="#1565c0">Application / User Code Layer</text>
+  <text x="350" y="105" font-size="13" text-anchor="middle" fill="#555">Your Robot Nodes (Python, C++)</text>
+  <text x="350" y="120" font-size="12" text-anchor="middle" fill="#777">(Perception, Planning, Control, etc.)</text>
+
+  <!-- ROS 2 Client Libraries -->
+  <rect x="50" y="150" width="600" height="70" fill="#fff3e0" stroke="#f57c00" stroke-width="2" rx="5"/>
+  <text x="350" y="175" font-size="16" font-weight="bold" text-anchor="middle" fill="#e65100">ROS 2 Client Libraries</text>
+  <text x="200" y="195" font-size="13" text-anchor="middle" fill="#555">rclpy (Python)</text>
+  <text x="350" y="195" font-size="13" text-anchor="middle" fill="#555">rclcpp (C++)</text>
+  <text x="500" y="195" font-size="13" text-anchor="middle" fill="#555">rcljs (JavaScript)</text>
+  <text x="350" y="210" font-size="11" text-anchor="middle" fill="#777">Nodes, Topics, Services, Actions, Parameters</text>
+
+  <!-- ROS 2 Middleware Interface (rmw) -->
+  <rect x="50" y="240" width="600" height="50" fill="#f3e5f5" stroke="#7b1fa2" stroke-width="2" rx="5"/>
+  <text x="350" y="265" font-size="16" font-weight="bold" text-anchor="middle" fill="#6a1b9a">ROS 2 Middleware Interface (rmw)</text>
+  <text x="350" y="280" font-size="12" text-anchor="middle" fill="#555">Abstraction layer for pluggable DDS implementations</text>
+
+  <!-- DDS Implementation Layer -->
+  <rect x="50" y="310" width="600" height="50" fill="#e1bee7" stroke="#8e24aa" stroke-width="2" rx="5"/>
+  <text x="350" y="335" font-size="16" font-weight="bold" text-anchor="middle" fill="#7b1fa2">DDS Implementation</text>
+  <text x="200" y="350" font-size="12" text-anchor="middle" fill="#555">Fast DDS</text>
+  <text x="350" y="350" font-size="12" text-anchor="middle" fill="#555">CycloneDDS</text>
+  <text x="500" y="350" font-size="12" text-anchor="middle" fill="#555">Connext DDS</text>
+
+  <!-- Transport Layer -->
+  <rect x="50" y="380" width="600" height="50" fill="#e8f5e9" stroke="#388e3c" stroke-width="2" rx="5"/>
+  <text x="350" y="405" font-size="16" font-weight="bold" text-anchor="middle" fill="#2e7d32">Network Transport / OS</text>
+  <text x="350" y="420" font-size="12" text-anchor="middle" fill="#555">UDP/TCP, Shared Memory, Linux/Windows/macOS</text>
+
+  <!-- Arrows -->
+  <defs>
+    <marker id="arrow3" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#666" />
+    </marker>
+  </defs>
+
+  <line x1="350" y1="130" x2="350" y2="150" stroke="#666" stroke-width="2" marker-end="url(#arrow3)"/>
+  <line x1="350" y1="220" x2="350" y2="240" stroke="#666" stroke-width="2" marker-end="url(#arrow3)"/>
+  <line x1="350" y1="290" x2="350" y2="310" stroke="#666" stroke-width="2" marker-end="url(#arrow3)"/>
+  <line x1="350" y1="360" x2="350" y2="380" stroke="#666" stroke-width="2" marker-end="url(#arrow3)"/>
+</svg>

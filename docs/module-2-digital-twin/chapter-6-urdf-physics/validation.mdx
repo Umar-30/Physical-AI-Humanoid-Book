@@ -1,0 +1,67 @@
+---
+id: validation
+title: URDF Validation
+---
+
+# Testing Your URDF
+
+Validate URDF before spawning in Gazebo.
+
+## Command-Line Check
+
+```bash
+check_urdf your_humanoid.urdf
+```
+
+**Expected output**:
+```
+robot name is: humanoid
+---------- Successfully Parsed XML ---------------
+root Link: base_link has 1 child(ren)
+    child(1):  torso
+        child(1):  head
+        child(2):  left_shoulder
+        ...
+```
+
+## Common Errors
+
+| Error | Fix |
+|-------|-----|
+| "joint has no parent" | Check `<parent link="..."/>` |
+| "inertia not positive definite" | Fix inertia matrix |
+| "collision geometry undefined" | Add `<collision>` tags |
+
+## Visual Check in RViz
+
+```bash
+# Terminal 1
+ros2 run robot_state_publisher robot_state_publisher --ros-args -p robot_description:="$(cat your_humanoid.urdf)"
+
+# Terminal 2
+ros2 run joint_state_publisher_gui joint_state_publisher_gui
+
+# Terminal 3
+rviz2
+```
+
+Add `RobotModel` display, set Fixed Frame to `base_link`.
+
+## Test in Gazebo
+
+```bash
+gz sim -v 4  # Verbose mode
+
+# Check for warnings:
+# - Missing collision geometry
+# - Invalid inertia
+# - Joint limit violations
+```
+
+---
+
+**Checklist**:
+- ✅ `check_urdf` passes
+- ✅ Robot appears correctly in RViz
+- ✅ No Gazebo warnings on spawn
+- ✅ Robot stands stable (doesn't fall through floor)

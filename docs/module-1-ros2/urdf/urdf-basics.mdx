@@ -1,0 +1,400 @@
+---
+sidebar_position: 2
+title: URDF Basics
+description: Understanding the Unified Robot Description Format
+keywords: [ros2, urdf, xml, robot description, kinematics]
+---
+
+# URDF Basics
+
+Learn URDF (Unified Robot Description Format) - the standard way to describe robot kinematics and dynamics in ROS 2.
+
+## What is URDF?
+
+:::tip Definition
+
+**URDF** (Unified Robot Description Format) is an XML-based format for describing a robot's physical structure:
+- **Links** (rigid bodies)
+- **Joints** (connections)
+- **Visual properties** (appearance)
+- **Collision geometry** (physics)
+- **Inertial properties** (mass, inertia)
+
+:::
+
+## Why URDF?
+
+URDF is the single source of truth for your robot, used by:
+
+- **RViz** - Visualization
+- **Gazebo** - Simulation
+- **MoveIt** - Motion planning
+- **robot_state_publisher** - TF broadcasting
+- **Controllers** - Control systems
+
+:::note Key Insight
+
+Write URDF once, use everywhere in ROS 2!
+
+:::
+
+## URDF File Structure
+
+```xml
+<?xml version="1.0"?>
+<robot name="my_robot">
+
+  <!-- Links (rigid bodies) -->
+  <link name="base_link">
+    <!-- Visual, collision, inertial -->
+  </link>
+
+  <!-- Joints (connections) -->
+  <joint name="base_to_arm" type="revolute">
+    <parent link="base_link"/>
+    <child link="arm_link"/>
+  </joint>
+
+</robot>
+```
+
+**Key elements**:
+- `<robot>` - Root element
+- `<link>` - Rigid body
+- `<joint>` - Connection
+
+## Minimal URDF Example
+
+```xml
+<?xml version="1.0"?>
+<robot name="simple_box">
+
+  <link name="base_link">
+
+    <!-- Visual -->
+    <visual>
+      <geometry>
+        <box size="1 1 1"/>  <!-- 1m cube -->
+      </geometry>
+      <material name="blue">
+        <color rgba="0 0 1 1"/>
+      </material>
+    </visual>
+
+    <!-- Collision -->
+    <collision>
+      <geometry>
+        <box size="1 1 1"/>
+      </geometry>
+    </collision>
+
+    <!-- Inertial -->
+    <inertial>
+      <mass value="10.0"/>
+      <inertia ixx="1.0" ixy="0.0" ixz="0.0"
+               iyy="1.0" iyz="0.0"
+               izz="1.0"/>
+    </inertial>
+
+  </link>
+
+</robot>
+```
+
+## Basic Geometry Types
+
+### Box
+
+```xml
+<geometry>
+  <box size="length width height"/>
+</geometry>
+```
+
+### Cylinder
+
+```xml
+<geometry>
+  <cylinder radius="0.5" length="2.0"/>
+</geometry>
+```
+
+### Sphere
+
+```xml
+<geometry>
+  <sphere radius="0.3"/>
+</geometry>
+```
+
+### Mesh (3D Model)
+
+```xml
+<geometry>
+  <mesh filename="package://my_robot/meshes/arm.dae"/>
+</geometry>
+```
+
+## Colors and Materials
+
+```xml
+<!-- Define colors -->
+<material name="red">
+  <color rgba="1 0 0 1"/>  <!-- R G B A (0-1) -->
+</material>
+
+<material name="blue">
+  <color rgba="0 0 1 1"/>
+</material>
+
+<!-- Use in visual -->
+<visual>
+  <geometry>
+    <box size="1 1 1"/>
+  </geometry>
+  <material name="red"/>
+</visual>
+```
+
+**Common colors**:
+```xml
+<material name="red">    <color rgba="1 0 0 1"/></material>
+<material name="green">  <color rgba="0 1 0 1"/></material>
+<material name="blue">   <color rgba="0 0 1 1"/></material>
+<material name="white">  <color rgba="1 1 1 1"/></material>
+<material name="gray">   <color rgba="0.5 0.5 0.5 1"/></material>
+```
+
+## Origin and Transformations
+
+```xml
+<origin xyz="x y z" rpy="roll pitch yaw"/>
+```
+
+- `xyz` - Position (meters)
+- `rpy` - Orientation (radians)
+
+### Examples
+
+```xml
+<!-- At origin -->
+<origin xyz="0 0 0" rpy="0 0 0"/>
+
+<!-- Translate 1m up -->
+<origin xyz="0 0 1" rpy="0 0 0"/>
+
+<!-- Rotate 90° around Z-axis -->
+<origin xyz="0 0 0" rpy="0 0 1.5708"/>
+```
+
+**Euler angle reference**:
+```
+0°   = 0 rad
+45°  = 0.785 rad (π/4)
+90°  = 1.571 rad (π/2)
+180° = 3.142 rad (π)
+```
+
+## Package Organization
+
+```
+my_robot_description/
+├── urdf/
+│   └── my_robot.urdf
+├── meshes/
+│   └── base.dae
+├── config/
+│   └── rviz_config.rviz
+├── launch/
+│   └── display.launch.py
+├── package.xml
+└── CMakeLists.txt
+```
+
+### Package Setup
+
+**package.xml**:
+```xml
+<?xml version="1.0"?>
+<package format="3">
+  <name>my_robot_description</name>
+  <version>0.0.1</version>
+  <description>URDF description</description>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <exec_depend>robot_state_publisher</exec_depend>
+  <exec_depend>joint_state_publisher_gui</exec_depend>
+  <exec_depend>rviz2</exec_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>
+```
+
+**CMakeLists.txt**:
+```cmake
+cmake_minimum_required(VERSION 3.8)
+project(my_robot_description)
+
+find_package(ament_cmake REQUIRED)
+
+install(DIRECTORY urdf meshes launch config
+  DESTINATION share/${PROJECT_NAME}
+)
+
+ament_package()
+```
+
+## Viewing URDF
+
+### Command Line
+
+```bash
+# Check syntax
+check_urdf my_robot.urdf
+
+# Convert to tree
+urdf_to_graphviz my_robot.urdf
+```
+
+### Launch File
+
+**launch/display.launch.py**:
+```python
+from launch import LaunchDescription
+from launch_ros.actions import Node
+import os
+from ament_index_python.packages import get_package_share_directory
+
+def generate_launch_description():
+    urdf_file = os.path.join(
+        get_package_share_directory('my_robot_description'),
+        'urdf', 'my_robot.urdf'
+    )
+
+    with open(urdf_file, 'r') as file:
+        robot_desc = file.read()
+
+    return LaunchDescription([
+        Node(
+            package='robot_state_publisher',
+            executable='robot_state_publisher',
+            parameters=[{'robot_description': robot_desc}]
+        ),
+        Node(
+            package='joint_state_publisher_gui',
+            executable='joint_state_publisher_gui'
+        ),
+        Node(
+            package='rviz2',
+            executable='rviz2'
+        )
+    ])
+```
+
+**Run**:
+```bash
+ros2 launch my_robot_description display.launch.py
+```
+
+## URDF vs Xacro
+
+**URDF** is verbose. **Xacro** (XML Macros) adds:
+- Variables
+- Math
+- Macros
+- File inclusion
+
+### URDF (Repetitive)
+
+```xml
+<link name="wheel_front_left">
+  <visual>
+    <geometry>
+      <cylinder radius="0.3" length="0.1"/>
+    </geometry>
+  </visual>
+</link>
+
+<!-- Repeat for 4 wheels... -->
+```
+
+### Xacro (DRY)
+
+```xml
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:property name="wheel_radius" value="0.3"/>
+
+  <xacro:macro name="wheel" params="name">
+    <link name="wheel_${name}">
+      <visual>
+        <geometry>
+          <cylinder radius="${wheel_radius}" length="0.1"/>
+        </geometry>
+      </visual>
+    </link>
+  </xacro:macro>
+
+  <xacro:wheel name="front_left"/>
+  <xacro:wheel name="front_right"/>
+</robot>
+```
+
+**Convert**:
+```bash
+xacro my_robot.urdf.xacro > my_robot.urdf
+```
+
+:::tip Recommendation
+
+Use Xacro for real robots - it's more maintainable.
+
+:::
+
+## Debugging URDF
+
+### Common Errors
+
+**"Link not connected to root"**
+- Solution: Add missing joints
+
+**"Failed to parse URDF"**
+- Solution: Check XML syntax
+
+**"Could not find mesh"**
+- Solution: Use correct `package://` URI
+
+### Validation
+
+```bash
+check_urdf my_robot.urdf
+
+# Expected:
+# Successfully Parsed XML
+# root Link: base_link has 2 child(ren)
+```
+
+## Key Takeaways
+
+:::note Summary
+
+- **URDF** is XML format for robot structure
+- **Links** are rigid bodies (visual, collision, inertial)
+- **Joints** connect links and define motion
+- **Geometry**: box, cylinder, sphere, mesh
+- **Materials**: RGBA colors (0-1)
+- **Origin**: xyz (position), rpy (rotation in radians)
+- **Package**: Organized with urdf/, meshes/, launch/
+- **Xacro**: Use for real robots (reduces repetition)
+- **Tools**: check_urdf, robot_state_publisher, RViz
+
+:::
+
+---
+
+**Next**: [Links and Joints →](./links-joints)
+
+**Previous**: [← Chapter 4 Introduction](./index)

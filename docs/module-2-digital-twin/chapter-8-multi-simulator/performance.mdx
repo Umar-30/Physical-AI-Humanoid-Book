@@ -1,0 +1,484 @@
+---
+id: performance
+title: "8.4: Performance Optimization"
+sidebar_label: "8.4 Performance"
+sidebar_position: 5
+description: Optimizing Gazebo-Unity multi-simulator for 100+ Hz physics and 30+ FPS rendering
+keywords: [performance, optimization, profiling, tuning, benchmarking]
+---
+
+# 8.4: Performance Optimization
+
+## Overview
+
+Learn how to achieve target performance: Gazebo at 100+ Hz and Unity at 30+ FPS with &lt;100ms latency.
+
+**Time Required**: 45 minutes
+**Difficulty**: Advanced
+
+## Performance Targets
+
+| Component | Target | Minimum | Optimal |
+|-----------|--------|---------|---------|
+| Gazebo Physics | 100-1000 Hz | 50 Hz | 1000 Hz |
+| Unity Rendering | 30-60 FPS | 20 FPS | 60 FPS |
+| End-to-End Latency | &lt;100ms | &lt;200ms | &lt;50ms |
+| Real-Time Factor (RTF) | &gt;0.95 | &gt;0.7 | 1.0 |
+
+**Real-Time Factor** = simulation_time / wall_clock_time
+- RTF = 1.0: Real-time (perfect)
+- RTF &gt; 1.0: Faster than real-time
+- RTF &lt; 1.0: Slower than real-time (bad)
+
+## Profiling Tools
+
+### Gazebo Performance Metrics
+
+Check real-time factor:
+
+```bash
+# Monitor real-time factor
+gz topic -e -t /stats
+
+# Sample output
+real_time_factor: 0.98  # Good!
+sim_time: 120.5
+real_time: 122.9
+```
+
+### Unity Performance
+
+Use Unity Profiler:
+
+```csharp
+// In Unity, Window → Analysis → Profiler
+// Monitor:
+// - FPS (target: 30-60)
+// - CPU Usage (target: <80%)
+// - Rendering time (target: <16ms for 60 FPS)
+```
+
+### ROS 2 Topic Rates
+
+```bash
+# Check message rates
+ros2 topic hz /joint_states  # Should be 100-1000 Hz
+ros2 topic hz /tf            # Should match physics rate
+ros2 topic bw /joint_states  # Check bandwidth usage
+```
+
+## Gazebo Optimization
+
+### 1. Run Headless (No GUI)
+
+**Huge performance gain** - Gazebo GUI uses significant CPU/GPU.
+
+```python
+# Launch file: Run headless
+ExecuteProcess(
+    cmd=['gz', 'sim', '-r', '-s', 'world.sdf'],  # -s = server only
+    name='gazebo'
+)
+```
+
+**Savings**: ~30-50% CPU reduction
+
+### 2. Optimize Physics Settings
+
+**world.sdf**:
+```xml
+<world name="default">
+  <physics name="fast_physics" type="bullet">
+    <!-- Increase step size (less accuracy, more speed) -->
+    <max_step_size>0.002</max_step_size>  <!-- Default: 0.001 -->
+
+    <!-- Real-time factor target -->
+    <real_time_factor>1.0</real_time_factor>
+
+    <!-- Iterations (lower = faster, less stable) -->
+    <bullet>
+      <solver>
+        <iters>20</iters>  <!-- Default: 50 -->
+      </solver>
+    </bullet>
+  </physics>
+</world>
+```
+
+**Trade-off**: Speed vs accuracy
+
+### 3. Simplify Collision Meshes
+
+```xml
+<!-- URDF: Use primitive shapes for collision -->
+<collision name="foot_collision">
+  <geometry>
+    <box size="0.2 0.1 0.05"/>  <!-- Simple box, not complex mesh -->
+  </geometry>
+</collision>
+```
+
+**Rule of thumb**: Collision meshes should have 10-20% triangles of visual mesh.
+
+### 4. Reduce Sensor Rates
+
+```xml
+<!-- Camera: 30 Hz instead of 60 Hz -->
+<sensor name="camera" type="camera">
+  <update_rate>30</update_rate>  <!-- Match Unity FPS -->
+</sensor>
+
+<!-- IMU: 100 Hz instead of 1000 Hz -->
+<sensor name="imu" type="imu">
+  <update_rate>100</update_rate>
+</sensor>
+```
+
+### 5. Disable Unused Features
+
+```xml
+<world>
+  <!-- Disable shadows if not needed -->
+  <scene>
+    <shadows>false</shadows>
+  </scene>
+
+  <!-- Disable GUI plugins -->
+  <!-- Remove all <plugin> tags for GUI -->
+</world>
+```
+
+## Unity Optimization
+
+### 1. Reduce Rendering Quality
+
+**Edit → Project Settings → Quality**:
+- Shadows: Disable or low quality
+- Anti-aliasing: 2x or disabled
+- VSync: Off (let Unity run at max FPS)
+- Texture Quality: Medium
+
+**In script**:
+```csharp
+void Start()
+{
+    QualitySettings.vSyncCount = 0;  // Disable VSync
+    Application.targetFrameRate = 60;  // Cap at 60 FPS
+    QualitySettings.shadows = ShadowQuality.Disable;
+}
+```
+
+### 2. Optimize ROS Message Handling
+
+```csharp
+// BAD: Processing every message individually
+void OnJointStateReceived(JointState msg)
+{
+    foreach (var joint in msg.name)
+    {
+        UpdateJoint(joint);  // Expensive per-joint update
+    }
+}
+
+// GOOD: Batch updates
+private bool updatePending = false;
+private JointState latestState;
+
+void OnJointStateReceived(JointState msg)
+{
+    latestState = msg;  // Just store
+    updatePending = true;
+}
+
+void LateUpdate()
+{
+    if (updatePending)
+    {
+        UpdateAllJoints(latestState);  // Batch update once per frame
+        updatePending = false;
+    }
+}
+```
+
+### 3. Level of Detail (LOD)
+
+```csharp
+// Add LODGroup component to robot
+LODGroup lodGroup = robotModel.AddComponent<LODGroup>();
+
+LOD[] lods = new LOD[3];
+lods[0] = new LOD(0.5f, highDetailRenderers);  // Close
+lods[1] = new LOD(0.15f, mediumDetailRenderers);  // Medium
+lods[2] = new LOD(0.01f, lowDetailRenderers);  // Far
+
+lodGroup.SetLODs(lods);
+```
+
+### 4. Object Pooling
+
+```csharp
+// For spawning/despawning objects frequently
+public class ObjectPool
+{
+    private Queue<GameObject> pool = new Queue<GameObject>();
+
+    public GameObject Get()
+    {
+        if (pool.Count > 0)
+            return pool.Dequeue();
+        else
+            return Instantiate(prefab);
+    }
+
+    public void Return(GameObject obj)
+    {
+        obj.SetActive(false);
+        pool.Enqueue(obj);
+    }
+}
+```
+
+## Network/ROS Optimization
+
+### 1. Use Optimal QoS
+
+```python
+# Fast topics (joint_states, tf)
+from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy
+
+fast_qos = QoSProfile(
+    reliability=ReliabilityPolicy.BEST_EFFORT,  # Drop old messages
+    history=HistoryPolicy.KEEP_LAST,
+    depth=1  # Only latest message
+)
+
+# Reliable topics (commands)
+reliable_qos = QoSProfile(
+    reliability=ReliabilityPolicy.RELIABLE,
+    history=HistoryPolicy.KEEP_LAST,
+    depth=10
+)
+```
+
+### 2. Reduce Message Frequency
+
+```python
+# Publish joint states at Unity's frame rate
+class ThrottledPublisher:
+    def __init__(self, rate_hz=30):
+        self.rate = self.create_rate(rate_hz)
+        self.last_msg = None
+
+    def publish(self, msg):
+        self.last_msg = msg
+
+    def timer_callback(self):
+        if self.last_msg:
+            self.publisher.publish(self.last_msg)
+```
+
+### 3. Compress Large Messages
+
+```python
+# For images
+from sensor_msgs.msg import CompressedImage
+
+# Publish compressed instead of raw
+image_pub = self.create_publisher(CompressedImage, '/camera/image/compressed', 10)
+```
+
+## Resource Allocation
+
+### Single Machine Setup
+
+Allocate resources intelligently:
+
+```bash
+# Run Gazebo with CPU affinity (cores 0-3)
+taskset -c 0-3 gz sim world.sdf
+
+# Run Unity on remaining cores (4-7)
+taskset -c 4-7 ./Unity.x86_64
+```
+
+### Distributed Setup
+
+**Machine 1 (Linux Server)**: Gazebo only
+```bash
+# Powerful CPU, no GPU needed
+gz sim -s world.sdf  # Headless
+```
+
+**Machine 2 (Workstation)**: Unity only
+```bash
+# Requires GPU
+# Unity connects via ROS 2 network
+```
+
+**Network config** (`~/.bashrc`):
+```bash
+export ROS_DOMAIN_ID=42
+export RMW_IMPLEMENTATION=rmw_fastrtps_cpp
+```
+
+## Benchmarking
+
+### Create Performance Test
+
+```python
+# benchmark.py
+import rclpy
+from rclpy.node import Node
+import time
+
+class Benchmark(Node):
+    def __init__(self):
+        super().__init__('benchmark')
+        self.start_time = time.time()
+        self.msg_count = 0
+
+        self.subscription = self.create_subscription(
+            JointState, '/joint_states', self.callback, 10
+        )
+
+    def callback(self, msg):
+        self.msg_count += 1
+
+        if self.msg_count % 1000 == 0:
+            elapsed = time.time() - self.start_time
+            rate = self.msg_count / elapsed
+            print(f'Message rate: {rate:.1f} Hz')
+```
+
+**Run test**:
+```bash
+ros2 run my_package benchmark
+# Target: >100 Hz
+```
+
+### Unity FPS Monitor
+
+```csharp
+public class FPSMonitor : MonoBehaviour
+{
+    private float deltaTime = 0.0f;
+
+    void Update()
+    {
+        deltaTime += (Time.unscaledDeltaTime - deltaTime) * 0.1f;
+    }
+
+    void OnGUI()
+    {
+        float fps = 1.0f / deltaTime;
+        GUI.Label(new Rect(10, 10, 200, 20), $"FPS: {fps:F1}");
+
+        if (fps &lt; 30) GUI.color = Color.red;
+        else if (fps &lt; 60) GUI.color = Color.yellow;
+        else GUI.color = Color.green;
+    }
+}
+```
+
+## Common Bottlenecks
+
+| Symptom | Likely Cause | Solution |
+|---------|-------------|----------|
+| Gazebo RTF &lt; 0.5 | Complex physics | Simplify collision meshes, reduce solver iterations |
+| Unity &lt; 20 FPS | Heavy rendering | Reduce quality, disable shadows, use LODs |
+| High latency (&gt;200ms) | Network issues | Check topic rates, use BEST_EFFORT QoS |
+| Choppy visualization | Low message rate | Increase Gazebo publish rate, reduce Unity processing |
+
+## Optimization Checklist
+
+Before running multi-simulator:
+
+**Gazebo**:
+- [ ] Running headless (-s flag)
+- [ ] Physics step size ≤ 0.002s
+- [ ] Collision meshes simplified
+- [ ] Unused sensors disabled
+- [ ] Shadows disabled
+
+**Unity**:
+- [ ] VSync disabled
+- [ ] Target FPS set (30-60)
+- [ ] Quality settings reduced
+- [ ] Batch message updates
+- [ ] LODs configured
+
+**ROS 2**:
+- [ ] QoS: BEST_EFFORT for joint_states
+- [ ] Topic depth = 1
+- [ ] Large messages compressed
+- [ ] Unused topics unsubscribed
+
+## Advanced: GPU Utilization
+
+### Unity GPU Profiling
+
+```csharp
+// Check GPU usage
+void OnGUI()
+{
+    GUI.Label(new Rect(10, 50, 300, 20),
+        $"GPU: {SystemInfo.graphicsDeviceType} - {SystemInfo.graphicsMemorySize} MB");
+}
+```
+
+### Gazebo GPU (For GUI)
+
+If running Gazebo GUI:
+```bash
+# Use specific GPU (multi-GPU system)
+export CUDA_VISIBLE_DEVICES=1  # Use GPU 1
+gz sim world.sdf
+```
+
+## Monitoring Dashboard
+
+Create comprehensive monitor:
+
+```python
+# monitor.py
+import rclpy
+from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus
+
+class SystemMonitor(Node):
+    def __init__(self):
+        super().__init__('system_monitor')
+        self.pub = self.create_publisher(DiagnosticArray, '/diagnostics', 10)
+        self.timer = self.create_timer(1.0, self.publish_status)
+
+    def publish_status(self):
+        array = DiagnosticArray()
+
+        # Gazebo status
+        gz_status = DiagnosticStatus()
+        gz_status.name = "Gazebo"
+        gz_status.level = DiagnosticStatus.OK if rtf &gt; 0.9 else DiagnosticStatus.WARN
+        gz_status.message = f"RTF: {rtf:.2f}"
+        array.status.append(gz_status)
+
+        # Add Unity, ROS stats...
+
+        self.pub.publish(array)
+```
+
+## What's Next
+
+With optimized performance, let's learn to troubleshoot common issues!
+
+👉 **[Next: Troubleshooting →](./troubleshooting)**
+
+---
+
+## Summary
+
+- ✅ Achieved target performance (Gazebo 100+ Hz, Unity 30+ FPS)
+- ✅ Profiled and optimized Gazebo physics settings
+- ✅ Reduced Unity rendering overhead with quality settings
+- ✅ Configured optimal ROS 2 QoS for low latency
+- ✅ Benchmarked system performance with monitoring tools
+
+**Time Invested**: ~45 minutes | **Status**: System Optimized ✓
