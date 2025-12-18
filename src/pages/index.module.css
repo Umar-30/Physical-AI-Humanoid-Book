@@ -1,204 +1,587 @@
-/* src/pages/index.module.css */
+/* ============================================
+   PANAVERSITY-STYLE LANDING PAGE
+   Physical AI & Humanoid Robotics
+   ============================================ */
 
-/* Define some base colors for the neon theme */
-:root {
-  --pana-dark-bg: #0d1117;
-  --pana-gradient-start: #111827;   /* Dark blue-gray for background gradient */
-  --pana-gradient-end: #0c0d12;     /* Very dark almost black for background gradient */
-  --pana-neon-blue: #00e5ff;        /* Bright cyan-blue for neon effects */
-  --pana-neon-purple: #a020f0;      /* Vibrant purple for neon effects */
-  --pana-text-light: #e0e0e0;       /* Light gray for primary text */
-  --pana-text-medium: #b0b0b0;      /* Medium gray for secondary text */
-  --pana-separator-color: #3f3f46;  /* Gray-700 for separators */
-}
+/* ============================================
+   HERO SECTION - SPLIT LAYOUT
+   ============================================ */
 
-/* Ensure consistency in dark mode if Docusaurus's default dark mode is active */
-html[data-theme='dark'] {
-  --pana-gradient-start: #111827;
-  --pana-gradient-end: #0c0d12;
-  --pana-text-light: #e0e0e0;
-  --pana-text-medium: #b0b0b0;
-}
-
-.heroBanner {
-  background-image: linear-gradient(135deg, var(--pana-gradient-start) 0%, var(--pana-gradient-end) 100%);
-  padding: 3rem 0; /* Vertical padding for the hero section */
-  min-height: 80vh; /* Ensure hero takes significant vertical space */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--pana-text-light); /* Default text color for the hero section */
-  position: relative; /* Allows positioning of child elements relative to this */
-}
-
-.heroContainer {
-  max-width: 1200px; /* Maximum width for the content within the hero */
-  width: 100%;
-  padding: 0 2rem; /* Horizontal padding for responsiveness */
-}
-
-.twoColumnLayout {
-  display: grid;
-  grid-template-columns: 1fr 1.5fr; /* Left column (book) is smaller, right column (text) is larger */
-  gap: 3rem; /* Space between the two columns */
-  align-items: center; /* Vertically align items in the grid */
-  justify-content: center; /* Horizontally center items in the grid */
-}
-
-/* Responsive adjustments for smaller screens (e.g., mobile) */
-@media screen and (max-width: 996px) {
-  .twoColumnLayout {
-    grid-template-columns: 1fr; /* Stack columns vertically on smaller screens */
-    gap: 3rem; /* Reduced gap when stacked */
-  }
-  .bookCoverCard {
-    order: 2; /* Move book cover below text on mobile */
-    margin: 0 auto; /* Center book cover horizontally */
-  }
-  .rightColumnContent {
-    order: 1; /* Move text above book cover on mobile */
-    text-align: center; /* Center text content for better mobile readability */
-  }
-  .badgesContainer, .ctaButtonsContainer {
-    justify-content: center; /* Center badges and buttons horizontally on mobile */
-  }
-}
-
-.bookCoverCard {
+.heroSection {
   position: relative;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 50%, #16213e 100%);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  padding: 2rem;
+}
+
+/* Background Elements */
+.backgroundGradient {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(
+    circle at 30% 50%,
+    rgba(0, 240, 255, 0.1) 0%,
+    transparent 50%
+  ),
+  radial-gradient(
+    circle at 70% 50%,
+    rgba(255, 0, 255, 0.08) 0%,
+    transparent 50%
+  );
+  z-index: 0;
+}
+
+.gridPattern {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image:
+    linear-gradient(rgba(0, 240, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 240, 255, 0.05) 1px, transparent 1px);
+  background-size: 50px 50px;
+  opacity: 0.3;
+  animation: gridFloat 20s linear infinite;
+  z-index: 0;
+}
+
+@keyframes gridFloat {
+  0% {
+    transform: translateY(0) translateX(0);
+  }
+  100% {
+    transform: translateY(-50px) translateX(-50px);
+  }
+}
+
+/* Hero Container */
+.heroContainer {
+  max-width: 1400px;
+  margin: 0 auto;
   width: 100%;
-  max-width: 650px; /* Maximum width for the book cover container */
-  padding: 1.5rem; /* Padding inside the card around the image */
-  border-radius: 20px; /* Slightly rounded corners for the card container */
-  background-color: rgba(0, 0, 0, 0.3); /* Semi-transparent dark background for the card */
-  /* Neon blue glow effect for the book cover card */
-  box-shadow: 
-    0 0 15px rgba(0, 229, 255, 0.4), /* Outer neon blue glow */
-    0 0 30px rgba(0, 229, 255, 0.2), /* Larger, softer neon blue glow */
-    inset 0 0 5px rgba(0, 229, 255, 0.6); /* Inner neon blue glow */
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+}
+
+/* ============================================
+   BOOK COVER SECTION (LEFT SIDE)
+   ============================================ */
+
+.bookCoverSection {
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-left: auto; /* Pushes the card to the right within its grid column */
-  margin-right: auto; /* Helps center on smaller screens when layout changes */
+  position: relative;
+}
+
+.bookCoverWrapper {
+  position: relative;
+  max-width: 450px;
+  width: 100%;
+  animation: floatBook 6s ease-in-out infinite;
+}
+
+@keyframes floatBook {
+  0%, 100% {
+    transform: translateY(0) rotateY(0deg);
+  }
+  50% {
+    transform: translateY(-20px) rotateY(5deg);
+  }
 }
 
 .bookCover {
-  max-width: 100%; /* Ensure the image fits within its container */
-  height: auto; /* Maintain aspect ratio */
-  border-radius: 8px; /* Slight rounding on the book image itself */
-  display: block; /* Removes extra space below the image */
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.5),
+    0 0 80px rgba(0, 240, 255, 0.3);
+  transition: all 0.4s ease;
+  position: relative;
+  z-index: 2;
 }
 
-.rightColumnContent {
+.bookCover:hover {
+  transform: scale(1.05) rotateY(10deg);
+  box-shadow:
+    0 25px 80px rgba(0, 0, 0, 0.6),
+    0 0 100px rgba(0, 240, 255, 0.5);
+}
+
+.bookGlow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 120%;
+  height: 120%;
+  background: radial-gradient(
+    circle,
+    rgba(0, 240, 255, 0.2) 0%,
+    transparent 70%
+  );
+  filter: blur(40px);
+  z-index: 1;
+  animation: pulseGlow 3s ease-in-out infinite;
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    opacity: 0.5;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: translate(-50%, -50%) scale(1.1);
+  }
+}
+
+/* ============================================
+   CONTENT SECTION (RIGHT SIDE)
+   ============================================ */
+
+.contentSection {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem; /* Spacing between text elements (title, quote, subtitle) */
+  gap: 1.5rem;
 }
 
-.bookTitle {
-  font-size: 3.5rem; /* Large font size for the main title (H1) */
-  font-weight: 800; /* Extra bold font weight */
-  line-height: 1.1; /* Tighter line spacing for heading */
-  color: var(--pana-text-light); /* Light text color */
-  /* Neon glow effect for the title text */
-  text-shadow: 
-    0 0 5px var(--pana-neon-blue), /* Blue glow */
-    0 0 10px var(--pana-neon-purple); /* Purple glow */
-}
-
-.welcomeQuoteText {
-  font-size: 1.3rem; /* Font size for the welcome quote */
-  font-style: italic; /* Italic style for quotes */
-  color: var(--pana-text-medium); /* Medium gray text color */
-  margin-top: -0.5rem; /* Adjust spacing with the title above */
-  margin-bottom: 0; /* Remove default bottom margin */
-  line-height: 1.5; /* Standard line height for readability */
-}
-
-.bookSubtitle {
-  font-size: 1.6rem; /* Font size for the subtitle */
-  font-weight: 500; /* Medium font weight */
-  line-height: 1.4; /* Slightly tighter line height */
-  color: var(--pana-text-medium); /* Medium gray text color */
-}
-
-.separator {
-  width: 100%; /* Full width within its container */
-  height: 2px; /* Thickness of the separator line */
-  background-color: var(--pana-separator-color); /* Separator color */
-  border: none; /* Remove default border */
-  margin: 1rem 0; /* Spacing above and below the separator */
-  box-shadow: 0 0 5px var(--pana-neon-blue); /* Subtle neon blue glow for the separator */
-}
-
-.badgesContainer {
+/* Main Title */
+.mainTitle {
+  font-size: 3.5rem;
+  font-weight: 900;
+  line-height: 1.1;
+  margin: 0;
   display: flex;
-  flex-wrap: wrap; /* Allow badges to wrap to the next line if space is limited */
-  gap: 0.75rem; /* Space between individual badges */
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
-.badgePill {
-  background-color: rgba(0, 229, 255, 0.1); /* Semi-transparent light neon background */
-  color: var(--pana-neon-blue); /* Neon blue text color */
-  padding: 0.5rem 1.2rem; /* Padding inside the badge */
-  border-radius: 9999px; /* Extremely high border-radius for a perfect pill shape */
-  font-size: 0.9rem; /* Smaller font size for badges */
-  font-weight: 600; /* Semi-bold font weight */
-  border: 1px solid rgba(0, 229, 255, 0.4); /* Subtle neon blue border */
-  box-shadow: 0 0 8px rgba(0, 229, 255, 0.3); /* Subtle neon glow for badges */
-  transition: all 0.3s ease; /* Smooth transition for hover effects */
+.titleLine1 {
+  color: #fff;
+  text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
 }
 
-.badgePill:hover {
-  background-color: rgba(0, 229, 255, 0.2); /* Slightly more opaque background on hover */
-  box-shadow: 0 0 15px rgba(0, 229, 255, 0.5); /* Enhanced glow on hover */
+.titleLine2 {
+  background: linear-gradient(135deg, #00f0ff 0%, #ff00ff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 0 40px rgba(0, 240, 255, 0.5);
+  animation: neonFlicker 3s ease-in-out infinite;
 }
 
-.ctaButtonsContainer {
+@keyframes neonFlicker {
+  0%, 100% {
+    opacity: 1;
+    filter: brightness(1);
+  }
+  50% {
+    opacity: 0.95;
+    filter: brightness(1.1);
+  }
+}
+
+/* Welcome Quote */
+.welcomeQuote {
+  font-size: 1.3rem;
+  font-style: italic;
+  color: #00f0ff;
+  margin: 0;
+  padding-left: 1rem;
+  border-left: 3px solid #00f0ff;
+  line-height: 1.6;
+  text-shadow: 0 0 10px rgba(0, 240, 255, 0.3);
+}
+
+/* Subtitle */
+.subtitle {
+  font-size: 1.1rem;
+  color: #ccc;
+  line-height: 1.7;
+  margin: 0;
+}
+
+/* ============================================
+   FEATURE BADGES
+   ============================================ */
+
+.featureBadges {
   display: flex;
-  flex-wrap: wrap; /* Allow buttons to wrap if space is limited */
-  gap: 1.5rem; /* Space between CTA buttons */
-  margin-top: 1rem; /* Space above the buttons */
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 0.5rem;
 }
 
-.ctaButtonCommon {
-  padding: 1rem 2.5rem; /* Padding inside the buttons */
-  border-radius: 9999px; /* Extremely high border-radius for a perfect pill shape */
-  font-size: 1.1rem; /* Font size for buttons */
-  font-weight: 700; /* Bold font weight */
-  text-decoration: none; /* Remove underline from links */
-  transition: all 0.3s ease; /* Smooth transition for hover effects */
-  min-width: 200px; /* Ensure buttons have a minimum width for consistent sizing */
-  text-align: center; /* Center text within buttons */
+.badge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.2rem;
+  background: rgba(0, 240, 255, 0.1);
+  border: 1px solid rgba(0, 240, 255, 0.3);
+  border-radius: 50px;
+  font-size: 0.95rem;
+  color: #fff;
+  transition: all 0.3s ease;
 }
 
-.ctaPrimary {
-  background-image: linear-gradient(45deg, var(--pana-neon-blue) 0%, var(--pana-neon-purple) 100%); /* Gradient background for primary CTA */
-  color: var(--pana-dark-bg); /* Dark text on bright gradient */
-  border: none; /* No border for primary button */
-  /* Combined neon glow for primary CTA */
-  box-shadow: 
-    0 0 15px rgba(0, 229, 255, 0.6), /* Blue glow */
-    0 0 30px rgba(160, 32, 240, 0.4); /* Purple glow */
+.badge:hover {
+  background: rgba(0, 240, 255, 0.2);
+  border-color: #00f0ff;
+  box-shadow: 0 0 20px rgba(0, 240, 255, 0.4);
+  transform: translateY(-2px);
 }
 
-.ctaPrimary:hover {
-  transform: translateY(-3px); /* Slight lift effect on hover */
-  box-shadow: 
-    0 0 20px rgba(0, 229, 255, 0.8), /* Enhanced blue glow on hover */
-    0 0 40px rgba(160, 32, 240, 0.6); /* Enhanced purple glow on hover */
+.badgeIcon {
+  font-size: 1.2rem;
 }
 
-.ctaSecondary {
-  background-color: transparent; /* Transparent background for secondary CTA */
-  color: var(--pana-neon-blue); /* Neon blue text color */
-  border: 2px solid var(--pana-neon-blue); /* Neon blue border */
-  box-shadow: 0 0 10px rgba(0, 229, 255, 0.4); /* Subtle neon glow for secondary CTA */
+.badgeText {
+  font-weight: 600;
 }
 
-.ctaSecondary:hover {
-  background-color: rgba(0, 229, 255, 0.1); /* Slight background fill on hover */
-  transform: translateY(-3px); /* Slight lift effect on hover */
-  box-shadow: 0 0 15px rgba(0, 229, 255, 0.6); /* Enhanced neon glow on hover */
+/* ============================================
+   CTA BUTTONS
+   ============================================ */
+
+.ctaButtons {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.ctaButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem 2rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.ctaButton::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.5s, height 0.5s;
+}
+
+.ctaButton:hover::before {
+  width: 300px;
+  height: 300px;
+}
+
+.primaryButton {
+  background: #00f0ff;
+  color: #000;
+  box-shadow:
+    0 4px 20px rgba(0, 240, 255, 0.4),
+    0 0 40px rgba(0, 240, 255, 0.2);
+}
+
+.primaryButton:hover {
+  background: #00d4e6;
+  transform: translateY(-3px);
+  box-shadow:
+    0 8px 30px rgba(0, 240, 255, 0.6),
+    0 0 60px rgba(0, 240, 255, 0.4);
+  color: #000;
+}
+
+.secondaryButton {
+  background: transparent;
+  color: #fff;
+  border: 2px solid #00f0ff;
+}
+
+.secondaryButton:hover {
+  background: rgba(0, 240, 255, 0.1);
+  border-color: #00f0ff;
+  transform: translateY(-3px);
+  box-shadow: 0 0 30px rgba(0, 240, 255, 0.3);
+  color: #fff;
+}
+
+.buttonIcon {
+  font-size: 1.3rem;
+  position: relative;
+  z-index: 1;
+}
+
+.ctaButton span {
+  position: relative;
+  z-index: 1;
+}
+
+/* ============================================
+   TECH STACK INDICATOR
+   ============================================ */
+
+.techStack {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.techStackLabel {
+  font-size: 0.85rem;
+  color: #999;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 0.75rem;
+}
+
+.techStackItems {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.techItem {
+  font-size: 0.9rem;
+  color: #00f0ff;
+  font-weight: 600;
+}
+
+.techDivider {
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 0.8rem;
+}
+
+/* ============================================
+   SCROLL INDICATOR
+   ============================================ */
+
+.scrollIndicator {
+  position: absolute;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  z-index: 2;
+  animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateX(-50%) translateY(0);
+  }
+  50% {
+    transform: translateX(-50%) translateY(-10px);
+  }
+}
+
+.scrollMouse {
+  width: 30px;
+  height: 50px;
+  border: 2px solid rgba(0, 240, 255, 0.5);
+  border-radius: 15px;
+  position: relative;
+}
+
+.scrollWheel {
+  width: 4px;
+  height: 10px;
+  background: #00f0ff;
+  border-radius: 2px;
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  animation: scrollWheel 2s infinite;
+}
+
+@keyframes scrollWheel {
+  0% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(20px);
+  }
+}
+
+.scrollText {
+  font-size: 0.8rem;
+  color: rgba(0, 240, 255, 0.6);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin: 0;
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+
+/* Tablet */
+@media screen and (max-width: 996px) {
+  .heroContainer {
+    grid-template-columns: 1fr;
+    gap: 3rem;
+    padding-top: 2rem;
+  }
+
+  .bookCoverSection {
+    order: 1;
+  }
+
+  .contentSection {
+    order: 2;
+    text-align: center;
+    align-items: center;
+  }
+
+  .bookCoverWrapper {
+    max-width: 350px;
+  }
+
+  .mainTitle {
+    font-size: 2.5rem;
+  }
+
+  .welcomeQuote {
+    font-size: 1.1rem;
+    padding-left: 0;
+    border-left: none;
+    text-align: center;
+  }
+
+  .subtitle {
+    font-size: 1rem;
+  }
+
+  .featureBadges {
+    justify-content: center;
+  }
+
+  .ctaButtons {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .techStack {
+    text-align: center;
+  }
+
+  .techStackItems {
+    justify-content: center;
+  }
+
+  .scrollIndicator {
+    display: none;
+  }
+}
+
+/* Mobile */
+@media screen and (max-width: 600px) {
+  .heroSection {
+    padding: 1.5rem 1rem;
+    min-height: auto;
+  }
+
+  .heroContainer {
+    gap: 2rem;
+  }
+
+  .bookCoverWrapper {
+    max-width: 280px;
+  }
+
+  .mainTitle {
+    font-size: 2rem;
+  }
+
+  .titleLine1,
+  .titleLine2 {
+    font-size: 2rem;
+  }
+
+  .welcomeQuote {
+    font-size: 1rem;
+  }
+
+  .subtitle {
+    font-size: 0.95rem;
+  }
+
+  .featureBadges {
+    gap: 0.75rem;
+  }
+
+  .badge {
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+  }
+
+  .ctaButtons {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .ctaButton {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .techStackItems {
+    font-size: 0.85rem;
+  }
+}
+
+/* ============================================
+   ACCESSIBILITY
+   ============================================ */
+
+.ctaButton:focus {
+  outline: 3px solid #00f0ff;
+  outline-offset: 3px;
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  .gridPattern,
+  .bookCoverWrapper,
+  .bookGlow,
+  .titleLine2,
+  .scrollIndicator,
+  .scrollWheel,
+  .badge,
+  .ctaButton {
+    animation: none;
+    transition: none;
+  }
+
+  .ctaButton:hover,
+  .badge:hover {
+    transform: none;
+  }
 }
