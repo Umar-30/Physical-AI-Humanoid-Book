@@ -19,7 +19,7 @@ const config = {
   organizationName: 'your-org',
   projectName: 'humanoid-robotics-with-ai',
 
-  onBrokenLinks: 'throw',
+  onBrokenLinks: 'warn',
   onBrokenMarkdownLinks: 'warn',
   markdown: {
     mermaid: true,

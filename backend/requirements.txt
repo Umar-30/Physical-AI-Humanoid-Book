@@ -1,0 +1,6 @@
+cohere>=5.20.1
+qdrant-client>=1.16.2
+beautifulsoup4>=4.14.3
+requests>=2.32.5
+lxml>=6.0.2
+python-dotenv>=1.0.0
