@@ -1,0 +1,85 @@
+/* ============================================
+   LANGUAGE TOGGLE - DARK SCHOLARLY THEME
+   ============================================ */
+
+.languageToggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: transparent;
+  border: 1px solid rgba(201, 162, 39, 0.25);
+  border-radius: 6px;
+  color: var(--ifm-font-color-base);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 14px;
+  font-weight: 500;
+  margin-left: 12px;
+}
+
+[data-theme='dark'] .languageToggle {
+  color: #e0e0e0;
+  border-color: rgba(201, 162, 39, 0.3);
+}
+
+.languageToggle:hover:not(:disabled) {
+  background: rgba(201, 162, 39, 0.08);
+  border-color: #c9a227;
+  transform: translateY(-1px);
+}
+
+[data-theme='dark'] .languageToggle:hover:not(:disabled) {
+  background: rgba(201, 162, 39, 0.1);
+  border-color: #d4af37;
+  color: #e8d9b5;
+}
+
+.languageToggle:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.languageBadge {
+  font-weight: 600;
+  font-size: 13px;
+}
+
+[data-theme='dark'] .languageBadge {
+  color: #c9a227;
+}
+
+.icon {
+  font-size: 16px;
+}
+
+.spinner {
+  display: inline-flex;
+}
+
+.spinnerSvg {
+  width: 16px;
+  height: 16px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.spinnerCircle {
+  opacity: 0.25;
+}
+
+[data-theme='dark'] .spinnerCircle {
+  stroke: rgba(201, 162, 39, 0.3);
+}
+
+.spinnerPath {
+  opacity: 0.75;
+}
+
+[data-theme='dark'] .spinnerPath {
+  stroke: #c9a227;
+}

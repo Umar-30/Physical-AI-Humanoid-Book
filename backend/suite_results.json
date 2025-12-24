@@ -1,0 +1,114 @@
+{
+  "test_suite": "test_queries.json",
+  "total_tests": 15,
+  "successful": 14,
+  "failed": 1,
+  "success_rate": 0.9333333333333333,
+  "results": [
+    {
+      "test_id": 1,
+      "query": "What is DDS in ROS 2?",
+      "success": true,
+      "result_count": 5,
+      "top_score": 0.634
+    },
+    {
+      "test_id": 2,
+      "query": "How do QoS profiles work?",
+      "success": true,
+      "result_count": 5,
+      "top_score": 0.552
+    },
+    {
+      "test_id": 3,
+      "query": "Explain URDF syntax",
+      "success": true,
+      "result_count": 5,
+      "top_score": 0.6374
+    },
+    {
+      "test_id": 4,
+      "query": "How does ROS 2 differ from ROS 1?",
+      "success": true,
+      "result_count": 5,
+      "top_score": 0.7131
+    },
+    {
+      "test_id": 5,
+      "query": "What is a digital twin?",
+      "success": true,
+      "result_count": 5,
+      "top_score": 0.4792
+    },
+    {
+      "test_id": 6,
+      "query": "Why use Unity for robot simulation?",
+      "success": true,
+      "result_count": 5,
+      "top_score": 0.6525
+    },
+    {
+      "test_id": 7,
+      "query": "How to create a ROS 2 publisher in Python?",
+      "success": true,
+      "result_count": 5,
+      "top_score": 0.6536
+    },
+    {
+      "test_id": 8,
+      "query": "How to configure Gazebo physics?",
+      "success": true,
+      "result_count": 5,
+      "top_score": 0.5931
+    },
+    {
+      "test_id": 9,
+      "query": "How to integrate Unity with ROS 2?",
+      "success": true,
+      "result_count": 5,
+      "top_score": 0.7679
+    },
+    {
+      "test_id": 10,
+      "query": "Robot visualization and simulation",
+      "success": true,
+      "result_count": 5,
+      "top_score": 0.6369
+    },
+    {
+      "test_id": 11,
+      "query": "ROS 2 communication patterns",
+      "success": true,
+      "result_count": 5,
+      "top_score": 0.6743
+    },
+    {
+      "test_id": 12,
+      "query": "",
+      "success": false,
+      "result_count": 0,
+      "top_score": 0.0
+    },
+    {
+      "test_id": 13,
+      "query": "quantum entanglement",
+      "success": true,
+      "result_count": 5,
+      "top_score": 0.2951
+    },
+    {
+      "test_id": 14,
+      "query": "ros2",
+      "success": true,
+      "result_count": 5,
+      "top_score": 0.5597
+    },
+    {
+      "test_id": 15,
+      "query": "a",
+      "success": true,
+      "result_count": 3,
+      "top_score": 0.2085
+    }
+  ]
+}

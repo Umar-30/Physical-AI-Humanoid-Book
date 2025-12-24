@@ -209,6 +209,106 @@ python verify_metadata.py      # Metadata completeness check
 python test_embeddings.py      # Embedding quality validation
 ```
 
+---
+
+## Retrieval Pipeline Testing
+
+### Overview
+
+The retrieval pipeline validates that embedded website content can be accurately retrieved from Qdrant for RAG usage.
+
+### Prerequisites
+
+- Complete 004-website-embedding feature (Qdrant has embedded vectors)
+- Valid `.env` file with API keys
+
+### Quick Start
+
+**Single Query**:
+```bash
+python test_retrieval.py --query "What is ROS 2?"
+```
+
+**Custom Top-K**:
+```bash
+python test_retrieval.py --query "Unity integration" --top-k 10
+```
+
+**Save Results**:
+```bash
+python test_retrieval.py --query "DDS explained" --output results.json
+```
+
+**Run Full Test Suite**:
+```bash
+python test_retrieval.py --test-suite test_queries.json
+```
+
+### Module API
+
+The `retrieval.py` module can be imported for programmatic use:
+
+```python
+from retrieval import embed_query, search_qdrant, format_results
+
+# Generate query embedding
+embedding = embed_query("What is a digital twin?")
+
+# Search Qdrant
+results = search_qdrant(embedding, top_k=5)
+
+# Format as JSON
+response = format_results("What is a digital twin?", results, top_k=5)
+```
+
+### Response Schema
+
+```json
+{
+  "query": "string",
+  "top_k": 5,
+  "result_count": 5,
+  "results": [
+    {
+      "rank": 1,
+      "score": 0.95,
+      "text": "...",
+      "metadata": {
+        "url": "https://...",
+        "page_title": "...",
+        "chunk_index": 0,
+        "total_chunks": 5,
+        "source": "website"
+      }
+    }
+  ]
+}
+```
+
+### Troubleshooting
+
+**Issue**: `ValueError: COHERE_API_KEY not found`
+- **Solution**: Ensure `.env` file exists with valid `COHERE_API_KEY`
+
+**Issue**: `Collection 'website_embeddings' not found`
+- **Solution**: Run embedding pipeline first (004-website-embedding)
+
+**Issue**: Low similarity scores (<0.7)
+- **Solution**: Verify query is relevant to documentation content
+
+**Issue**: Connection timeout
+- **Solution**: Check network connectivity to Cohere and Qdrant APIs
+
+### Performance
+
+- **Target Latency**: p95 < 2 seconds
+- **Success Rate**: 93%+ (based on test results)
+- **Cost**: ~$0.01/month for testing
+
+See [TEST_RESULTS.md](TEST_RESULTS.md) for detailed test results.
+
+---
+
 ## References
 
 - [Cohere Documentation](https://docs.cohere.com/)
@@ -216,6 +316,8 @@ python test_embeddings.py      # Embedding quality validation
 - [Feature Specification](../specs/004-website-embedding/spec.md)
 - [Implementation Plan](../specs/004-website-embedding/plan.md)
 - [Task List](../specs/004-website-embedding/tasks.md)
+- [Retrieval Testing Specification](../specs/001-retrieval-pipeline-testing/spec.md)
+- [Retrieval Testing Plan](../specs/001-retrieval-pipeline-testing/plan.md)
 
 ## License
 

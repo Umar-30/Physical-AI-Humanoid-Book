@@ -31,13 +31,21 @@ yarn-error.log*
 *.swo
 *~
 
-# ROS 2 specific
+# Python / ROS 2 specific
 build/
 install/
 log/
 *.pyc
 __pycache__/
 *.egg-info/
+.venv/
+venv/
+env/
+ENV/
+dist/
+*.pyo
+*.pyd
+.Python
 
 # ROS 2 workspaces (in examples/)
 examples/**/build/
@@ -53,3 +61,4 @@ examples/**/log/
 Thumbs.db
 
 nul
+.env

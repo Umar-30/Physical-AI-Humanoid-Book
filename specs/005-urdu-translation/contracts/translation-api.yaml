@@ -1,0 +1,347 @@
+openapi: 3.0.3
+info:
+  title: Translation Service API
+  description: |
+    API for translating documentation content from English to Urdu.
+    Provides translation service with caching support for the Urdu Translation Agent Integration feature.
+  version: 1.0.0
+  contact:
+    name: Backend Team
+    email: backend@example.com
+
+servers:
+  - url: http://localhost:8000/api
+    description: Local development server
+
+paths:
+  /translate:
+    post:
+      summary: Translate text from English to Urdu
+      description: |
+        Translates provided text content from English to Urdu using mBART translation model.
+        Supports HTML content preservation. Results are cached server-side for 24 hours.
+      operationId: translateText
+      tags:
+        - Translation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TranslationRequest'
+            examples:
+              htmlContent:
+                summary: HTML content translation
+                value:
+                  text: "<p>Welcome to the <strong>Physical AI</strong> guide</p>"
+                  source_language: "en"
+                  target_language: "ur"
+                  content_hash: "a3f5e8c9d2b14f6c8e7a9b2c3d4e5f6g"
+                  preserve_html: true
+              plainText:
+                summary: Plain text translation
+                value:
+                  text: "What is ROS 2?"
+                  source_language: "en"
+                  target_language: "ur"
+                  preserve_html: false
+      responses:
+        '200':
+          description: Translation successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TranslationResponse'
+              examples:
+                cachedResult:
+                  summary: Translation from cache
+                  value:
+                    translated_text: "<p>فزیکل AI گائیڈ میں <strong>خوش آمدید</strong></p>"
+                    source_language: "en"
+                    target_language: "ur"
+                    cached: true
+                    model_used: "facebook/mbart-large-50"
+                    timestamp: "2025-12-22T10:30:00Z"
+                freshTranslation:
+                  summary: Fresh translation (not cached)
+                  value:
+                    translated_text: "ROS 2 کیا ہے؟"
+                    source_language: "en"
+                    target_language: "ur"
+                    cached: false
+                    model_used: "facebook/mbart-large-50"
+                    timestamp: "2025-12-22T10:30:15Z"
+        '400':
+          description: Invalid request (empty text, unsupported language)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TranslationError'
+              examples:
+                emptyText:
+                  summary: Empty text error
+                  value:
+                    error: "Text cannot be empty or whitespace-only"
+                    error_code: "INVALID_INPUT"
+                    timestamp: "2025-12-22T10:30:00Z"
+                invalidLanguage:
+                  summary: Unsupported language pair
+                  value:
+                    error: "Unsupported language pair: en-fr"
+                    error_code: "INVALID_LANGUAGE"
+                    timestamp: "2025-12-22T10:30:00Z"
+        '429':
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TranslationError'
+              examples:
+                rateLimit:
+                  summary: Rate limit error
+                  value:
+                    error: "Too many requests. Please try again later."
+                    error_code: "RATE_LIMIT"
+                    retry_after: 60
+                    timestamp: "2025-12-22T10:30:00Z"
+        '500':
+          description: Translation service internal error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TranslationError'
+              examples:
+                serviceDown:
+                  summary: Translation model not loaded
+                  value:
+                    error: "Translation service temporarily unavailable"
+                    error_code: "SERVICE_DOWN"
+                    retry_after: 60
+                    timestamp: "2025-12-22T10:30:00Z"
+        '504':
+          description: Translation timeout
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TranslationError'
+              examples:
+                timeout:
+                  summary: Translation timeout error
+                  value:
+                    error: "Translation took too long (>10 seconds)"
+                    error_code: "TIMEOUT"
+                    timestamp: "2025-12-22T10:30:00Z"
+
+  /translate/health:
+    get:
+      summary: Check translation service health
+      description: |
+        Health check endpoint to verify translation model is loaded and service is operational.
+      operationId: checkHealth
+      tags:
+        - Health
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [healthy]
+                  model_loaded:
+                    type: boolean
+                  model_name:
+                    type: string
+                  uptime_seconds:
+                    type: integer
+              example:
+                status: "healthy"
+                model_loaded: true
+                model_name: "facebook/mbart-large-50"
+                uptime_seconds: 3600
+        '503':
+          description: Service is unhealthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [unhealthy]
+                  error:
+                    type: string
+              example:
+                status: "unhealthy"
+                error: "Translation model not loaded"
+
+  /cache:
+    delete:
+      summary: Clear translation cache (admin only)
+      description: |
+        Clears all cached translations from server memory.
+        For development/testing purposes only.
+      operationId: clearCache
+      tags:
+        - Cache
+      responses:
+        '200':
+          description: Cache cleared successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  entries_cleared:
+                    type: integer
+              example:
+                message: "Cache cleared successfully"
+                entries_cleared: 42
+
+  /cache/stats:
+    get:
+      summary: Get cache statistics
+      description: |
+        Returns cache hit rate, size, and other statistics for monitoring.
+      operationId: getCacheStats
+      tags:
+        - Cache
+      responses:
+        '200':
+          description: Cache statistics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total_entries:
+                    type: integer
+                  total_size_mb:
+                    type: number
+                  hit_rate_percent:
+                    type: number
+                  oldest_entry_age_hours:
+                    type: number
+              example:
+                total_entries: 127
+                total_size_mb: 0.85
+                hit_rate_percent: 82.5
+                oldest_entry_age_hours: 18.3
+
+components:
+  schemas:
+    TranslationRequest:
+      type: object
+      required:
+        - text
+        - source_language
+        - target_language
+      properties:
+        text:
+          type: string
+          minLength: 1
+          maxLength: 50000
+          description: Text content to translate (can include HTML tags)
+          example: "<p>Welcome to the guide</p>"
+        source_language:
+          type: string
+          pattern: "^en$"
+          description: Source language code (only 'en' supported in MVP)
+          example: "en"
+        target_language:
+          type: string
+          pattern: "^ur$"
+          description: Target language code (only 'ur' supported in MVP)
+          example: "ur"
+        content_hash:
+          type: string
+          pattern: "^[a-f0-9]{32}$"
+          description: MD5 hash of text for cache lookup (optional)
+          example: "a3f5e8c9d2b14f6c8e7a9b2c3d4e5f6g"
+        preserve_html:
+          type: boolean
+          default: true
+          description: Whether to preserve HTML tags during translation
+          example: true
+
+    TranslationResponse:
+      type: object
+      required:
+        - translated_text
+        - source_language
+        - target_language
+        - cached
+        - model_used
+        - timestamp
+      properties:
+        translated_text:
+          type: string
+          description: Translated text in target language
+          example: "<p>گائیڈ میں خوش آمدید</p>"
+        source_language:
+          type: string
+          description: Source language code (echoed from request)
+          example: "en"
+        target_language:
+          type: string
+          description: Target language code (echoed from request)
+          example: "ur"
+        cached:
+          type: boolean
+          description: Whether result was served from cache
+          example: false
+        model_used:
+          type: string
+          description: Translation model identifier
+          example: "facebook/mbart-large-50"
+        timestamp:
+          type: string
+          format: date-time
+          description: Timestamp of translation (ISO 8601)
+          example: "2025-12-22T10:30:00Z"
+
+    TranslationError:
+      type: object
+      required:
+        - error
+        - error_code
+        - timestamp
+      properties:
+        error:
+          type: string
+          description: Human-readable error message
+          example: "Translation service temporarily unavailable"
+        error_code:
+          type: string
+          enum:
+            - SERVICE_DOWN
+            - RATE_LIMIT
+            - INVALID_LANGUAGE
+            - TIMEOUT
+            - INVALID_INPUT
+          description: Machine-readable error code
+          example: "SERVICE_DOWN"
+        retry_after:
+          type: integer
+          description: Seconds to wait before retry (for rate limits)
+          example: 60
+        timestamp:
+          type: string
+          format: date-time
+          description: Timestamp of error (ISO 8601)
+          example: "2025-12-22T10:30:00Z"
+
+  securitySchemes: {}
+
+tags:
+  - name: Translation
+    description: Text translation operations
+  - name: Health
+    description: Service health checks
+  - name: Cache
+    description: Cache management and statistics

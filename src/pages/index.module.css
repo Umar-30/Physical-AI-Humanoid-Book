@@ -1,42 +1,57 @@
 /* ============================================
-   PANAVERSITY-STYLE LANDING PAGE
+   LANDING PAGE - HIGH-TECH AI AESTHETIC
    Physical AI & Humanoid Robotics
+   Neon-accented, modern, futuristic design
    ============================================ */
 
 /* ============================================
-   HERO SECTION - SPLIT LAYOUT
+   HERO SECTION - FULL HEIGHT SPLIT LAYOUT
    ============================================ */
 
 .heroSection {
   position: relative;
   min-height: 100vh;
-  background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 50%, #16213e 100%);
+  background: linear-gradient(
+    135deg,
+    #0a0a0f 0%,
+    #0d1117 25%,
+    #161b22 50%,
+    #0d1117 75%,
+    #0a0a0f 100%
+  );
   overflow: hidden;
   display: flex;
   align-items: center;
-  padding: 2rem;
+  padding: 2rem 3rem;
 }
 
-/* Background Elements */
+/* Background Elements - Neon gradient glow */
 .backgroundGradient {
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: radial-gradient(
-    circle at 30% 50%,
-    rgba(0, 240, 255, 0.1) 0%,
-    transparent 50%
-  ),
-  radial-gradient(
-    circle at 70% 50%,
-    rgba(255, 0, 255, 0.08) 0%,
-    transparent 50%
-  );
+  background:
+    radial-gradient(
+      ellipse 80% 60% at 10% 20%,
+      rgba(0, 212, 255, 0.08) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      ellipse 60% 50% at 90% 80%,
+      rgba(139, 92, 246, 0.06) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      ellipse 50% 40% at 50% 50%,
+      rgba(236, 72, 153, 0.03) 0%,
+      transparent 50%
+    );
   z-index: 0;
 }
 
+/* Subtle grid pattern - tech aesthetic */
 .gridPattern {
   position: absolute;
   top: 0;
@@ -44,38 +59,28 @@
   right: 0;
   bottom: 0;
   background-image:
-    linear-gradient(rgba(0, 240, 255, 0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 240, 255, 0.05) 1px, transparent 1px);
-  background-size: 50px 50px;
-  opacity: 0.3;
-  animation: gridFloat 20s linear infinite;
+    linear-gradient(rgba(0, 212, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 212, 255, 0.03) 1px, transparent 1px);
+  background-size: 60px 60px;
+  opacity: 0.6;
   z-index: 0;
 }
 
-@keyframes gridFloat {
-  0% {
-    transform: translateY(0) translateX(0);
-  }
-  100% {
-    transform: translateY(-50px) translateX(-50px);
-  }
-}
-
-/* Hero Container */
+/* Hero Container - Two Column Grid */
 .heroContainer {
   max-width: 1400px;
   margin: 0 auto;
   width: 100%;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 4rem;
+  gap: 5rem;
   align-items: center;
   position: relative;
   z-index: 1;
 }
 
 /* ============================================
-   BOOK COVER SECTION (LEFT SIDE)
+   BOOK COVER SECTION (LEFT COLUMN)
    ============================================ */
 
 .bookCoverSection {
@@ -87,37 +92,41 @@
 
 .bookCoverWrapper {
   position: relative;
-  max-width: 450px;
+  max-width: 660px;
   width: 100%;
   animation: floatBook 6s ease-in-out infinite;
 }
 
 @keyframes floatBook {
   0%, 100% {
-    transform: translateY(0) rotateY(0deg);
+    transform: translateY(0);
   }
   50% {
-    transform: translateY(-20px) rotateY(5deg);
+    transform: translateY(-10px);
   }
 }
 
 .bookCover {
   width: 100%;
   height: auto;
-  border-radius: 12px;
+  border-radius: 16px;
   box-shadow:
-    0 20px 60px rgba(0, 0, 0, 0.5),
-    0 0 80px rgba(0, 240, 255, 0.3);
-  transition: all 0.4s ease;
+    0 30px 80px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(0, 212, 255, 0.1),
+    0 0 60px rgba(0, 212, 255, 0.08),
+    0 0 120px rgba(139, 92, 246, 0.05);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   z-index: 2;
 }
 
 .bookCover:hover {
-  transform: scale(1.05) rotateY(10deg);
+  transform: scale(1.02);
   box-shadow:
-    0 25px 80px rgba(0, 0, 0, 0.6),
-    0 0 100px rgba(0, 240, 255, 0.5);
+    0 40px 100px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(0, 212, 255, 0.2),
+    0 0 80px rgba(0, 212, 255, 0.12),
+    0 0 160px rgba(139, 92, 246, 0.08);
 }
 
 .bookGlow {
@@ -129,12 +138,13 @@
   height: 120%;
   background: radial-gradient(
     circle,
-    rgba(0, 240, 255, 0.2) 0%,
+    rgba(0, 212, 255, 0.1) 0%,
+    rgba(139, 92, 246, 0.05) 40%,
     transparent 70%
   );
-  filter: blur(40px);
+  filter: blur(60px);
   z-index: 1;
-  animation: pulseGlow 3s ease-in-out infinite;
+  animation: pulseGlow 4s ease-in-out infinite;
 }
 
 @keyframes pulseGlow {
@@ -143,13 +153,13 @@
     transform: translate(-50%, -50%) scale(1);
   }
   50% {
-    opacity: 0.8;
-    transform: translate(-50%, -50%) scale(1.1);
+    opacity: 0.7;
+    transform: translate(-50%, -50%) scale(1.05);
   }
 }
 
 /* ============================================
-   CONTENT SECTION (RIGHT SIDE)
+   CONTENT SECTION (RIGHT COLUMN)
    ============================================ */
 
 .contentSection {
@@ -158,60 +168,48 @@
   gap: 1.5rem;
 }
 
-/* Main Title */
+/* Main Title - Large Bold Heading */
 .mainTitle {
-  font-size: 3.5rem;
-  font-weight: 900;
-  line-height: 1.1;
+  font-size: 3.75rem;
+  font-weight: 700;
+  line-height: 1.15;
   margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+  color: #ffffff;
+  letter-spacing: -0.02em;
 }
 
-.titleLine1 {
-  color: #fff;
-  text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
-}
-
-.titleLine2 {
-  background: linear-gradient(135deg, #00f0ff 0%, #ff00ff 100%);
+.titleHighlight {
+  background: linear-gradient(
+    135deg,
+    #00d4ff 0%,
+    #8b5cf6 50%,
+    #ec4899 100%
+  );
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  text-shadow: 0 0 40px rgba(0, 240, 255, 0.5);
-  animation: neonFlicker 3s ease-in-out infinite;
+  font-weight: 700;
 }
 
-@keyframes neonFlicker {
-  0%, 100% {
-    opacity: 1;
-    filter: brightness(1);
-  }
-  50% {
-    opacity: 0.95;
-    filter: brightness(1.1);
-  }
+/* Bold Subtitle */
+.subtitle {
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.75);
+  line-height: 1.7;
+  margin: 0;
 }
 
 /* Welcome Quote */
 .welcomeQuote {
-  font-size: 1.3rem;
-  font-style: italic;
-  color: #00f0ff;
-  margin: 0;
-  padding-left: 1rem;
-  border-left: 3px solid #00f0ff;
-  line-height: 1.6;
-  text-shadow: 0 0 10px rgba(0, 240, 255, 0.3);
-}
-
-/* Subtitle */
-.subtitle {
   font-size: 1.1rem;
-  color: #ccc;
-  line-height: 1.7;
+  font-style: italic;
+  color: #00d4ff;
   margin: 0;
+  padding-left: 1.25rem;
+  border-left: 2px solid rgba(0, 212, 255, 0.4);
+  line-height: 1.7;
+  text-shadow: 0 0 30px rgba(0, 212, 255, 0.2);
 }
 
 /* ============================================
@@ -221,7 +219,7 @@
 .featureBadges {
   display: flex;
   flex-wrap: wrap;
-  gap: 1rem;
+  gap: 0.875rem;
   margin-top: 0.5rem;
 }
 
@@ -229,50 +227,52 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.6rem 1.2rem;
-  background: rgba(0, 240, 255, 0.1);
-  border: 1px solid rgba(0, 240, 255, 0.3);
-  border-radius: 50px;
+  padding: 0.625rem 1.25rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 100px;
   font-size: 0.95rem;
-  color: #fff;
-  transition: all 0.3s ease;
+  color: rgba(255, 255, 255, 0.85);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(10px);
 }
 
 .badge:hover {
-  background: rgba(0, 240, 255, 0.2);
-  border-color: #00f0ff;
-  box-shadow: 0 0 20px rgba(0, 240, 255, 0.4);
+  background: rgba(0, 212, 255, 0.08);
+  border-color: rgba(0, 212, 255, 0.3);
+  box-shadow: 0 0 20px rgba(0, 212, 255, 0.1);
   transform: translateY(-2px);
 }
 
 .badgeIcon {
-  font-size: 1.2rem;
+  font-size: 1.1rem;
 }
 
 .badgeText {
-  font-weight: 600;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.9);
 }
 
 /* ============================================
-   CTA BUTTONS
+   CTA BUTTONS - Large Prominent Style
    ============================================ */
 
 .ctaButtons {
   display: flex;
   gap: 1rem;
-  margin-top: 1rem;
+  margin-top: 1.5rem;
 }
 
 .ctaButton {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.625rem;
   padding: 1rem 2rem;
   font-size: 1.1rem;
-  font-weight: 700;
-  border-radius: 8px;
+  font-weight: 600;
+  border-radius: 12px;
   text-decoration: none;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
 }
@@ -285,49 +285,51 @@
   width: 0;
   height: 0;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.1);
   transform: translate(-50%, -50%);
   transition: width 0.5s, height 0.5s;
 }
 
 .ctaButton:hover::before {
-  width: 300px;
-  height: 300px;
+  width: 400px;
+  height: 400px;
 }
 
 .primaryButton {
-  background: #00f0ff;
-  color: #000;
+  background: linear-gradient(135deg, #00d4ff 0%, #0ea5e9 100%);
+  color: #000000;
   box-shadow:
-    0 4px 20px rgba(0, 240, 255, 0.4),
-    0 0 40px rgba(0, 240, 255, 0.2);
+    0 4px 20px rgba(0, 212, 255, 0.3),
+    0 0 40px rgba(0, 212, 255, 0.1);
+  border: none;
 }
 
 .primaryButton:hover {
-  background: #00d4e6;
+  background: linear-gradient(135deg, #22d3ee 0%, #00d4ff 100%);
   transform: translateY(-3px);
   box-shadow:
-    0 8px 30px rgba(0, 240, 255, 0.6),
-    0 0 60px rgba(0, 240, 255, 0.4);
-  color: #000;
+    0 8px 30px rgba(0, 212, 255, 0.4),
+    0 0 60px rgba(0, 212, 255, 0.15);
+  color: #000000;
 }
 
 .secondaryButton {
-  background: transparent;
-  color: #fff;
-  border: 2px solid #00f0ff;
+  background: rgba(255, 255, 255, 0.03);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
 }
 
 .secondaryButton:hover {
-  background: rgba(0, 240, 255, 0.1);
-  border-color: #00f0ff;
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(0, 212, 255, 0.4);
   transform: translateY(-3px);
-  box-shadow: 0 0 30px rgba(0, 240, 255, 0.3);
-  color: #fff;
+  box-shadow: 0 4px 20px rgba(0, 212, 255, 0.1);
+  color: #ffffff;
 }
 
 .buttonIcon {
-  font-size: 1.3rem;
+  font-size: 1.2rem;
   position: relative;
   z-index: 1;
 }
@@ -338,109 +340,27 @@
 }
 
 /* ============================================
-   TECH STACK INDICATOR
-   ============================================ */
-
-.techStack {
-  margin-top: 1.5rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.techStackLabel {
-  font-size: 0.85rem;
-  color: #999;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-bottom: 0.75rem;
-}
-
-.techStackItems {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.techItem {
-  font-size: 0.9rem;
-  color: #00f0ff;
-  font-weight: 600;
-}
-
-.techDivider {
-  color: rgba(255, 255, 255, 0.3);
-  font-size: 0.8rem;
-}
-
-/* ============================================
-   SCROLL INDICATOR
-   ============================================ */
-
-.scrollIndicator {
-  position: absolute;
-  bottom: 2rem;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-  z-index: 2;
-  animation: bounce 2s infinite;
-}
-
-@keyframes bounce {
-  0%, 100% {
-    transform: translateX(-50%) translateY(0);
-  }
-  50% {
-    transform: translateX(-50%) translateY(-10px);
-  }
-}
-
-.scrollMouse {
-  width: 30px;
-  height: 50px;
-  border: 2px solid rgba(0, 240, 255, 0.5);
-  border-radius: 15px;
-  position: relative;
-}
-
-.scrollWheel {
-  width: 4px;
-  height: 10px;
-  background: #00f0ff;
-  border-radius: 2px;
-  position: absolute;
-  top: 8px;
-  left: 50%;
-  transform: translateX(-50%);
-  animation: scrollWheel 2s infinite;
-}
-
-@keyframes scrollWheel {
-  0% {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0);
-  }
-  100% {
-    opacity: 0;
-    transform: translateX(-50%) translateY(20px);
-  }
-}
-
-.scrollText {
-  font-size: 0.8rem;
-  color: rgba(0, 240, 255, 0.6);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin: 0;
-}
-
-/* ============================================
    RESPONSIVE DESIGN
    ============================================ */
+
+/* Large screens */
+@media screen and (max-width: 1200px) {
+  .heroSection {
+    padding: 2rem;
+  }
+
+  .heroContainer {
+    gap: 4rem;
+  }
+
+  .mainTitle {
+    font-size: 3.25rem;
+  }
+
+  .bookCoverWrapper {
+    max-width: 400px;
+  }
+}
 
 /* Tablet */
 @media screen and (max-width: 996px) {
@@ -461,22 +381,22 @@
   }
 
   .bookCoverWrapper {
-    max-width: 350px;
+    max-width: 360px;
   }
 
   .mainTitle {
-    font-size: 2.5rem;
-  }
-
-  .welcomeQuote {
-    font-size: 1.1rem;
-    padding-left: 0;
-    border-left: none;
-    text-align: center;
+    font-size: 2.75rem;
   }
 
   .subtitle {
+    font-size: 1.125rem;
+  }
+
+  .welcomeQuote {
     font-size: 1rem;
+    padding-left: 0;
+    border-left: none;
+    text-align: center;
   }
 
   .featureBadges {
@@ -487,18 +407,6 @@
     justify-content: center;
     flex-wrap: wrap;
   }
-
-  .techStack {
-    text-align: center;
-  }
-
-  .techStackItems {
-    justify-content: center;
-  }
-
-  .scrollIndicator {
-    display: none;
-  }
 }
 
 /* Mobile */
@@ -506,10 +414,12 @@
   .heroSection {
     padding: 1.5rem 1rem;
     min-height: auto;
+    padding-top: 3rem;
+    padding-bottom: 3rem;
   }
 
   .heroContainer {
-    gap: 2rem;
+    gap: 2.5rem;
   }
 
   .bookCoverWrapper {
@@ -520,26 +430,21 @@
     font-size: 2rem;
   }
 
-  .titleLine1,
-  .titleLine2 {
-    font-size: 2rem;
-  }
-
-  .welcomeQuote {
+  .subtitle {
     font-size: 1rem;
   }
 
-  .subtitle {
+  .welcomeQuote {
     font-size: 0.95rem;
   }
 
   .featureBadges {
-    gap: 0.75rem;
+    gap: 0.625rem;
   }
 
   .badge {
     padding: 0.5rem 1rem;
-    font-size: 0.85rem;
+    font-size: 0.875rem;
   }
 
   .ctaButtons {
@@ -550,10 +455,8 @@
   .ctaButton {
     width: 100%;
     justify-content: center;
-  }
-
-  .techStackItems {
-    font-size: 0.85rem;
+    padding: 0.875rem 1.75rem;
+    font-size: 1rem;
   }
 }
 
@@ -562,8 +465,13 @@
    ============================================ */
 
 .ctaButton:focus {
-  outline: 3px solid #00f0ff;
+  outline: 2px solid #00d4ff;
   outline-offset: 3px;
+}
+
+.badge:focus {
+  outline: 2px solid #00d4ff;
+  outline-offset: 2px;
 }
 
 /* Reduce motion for users who prefer it */
@@ -571,9 +479,6 @@
   .gridPattern,
   .bookCoverWrapper,
   .bookGlow,
-  .titleLine2,
-  .scrollIndicator,
-  .scrollWheel,
   .badge,
   .ctaButton {
     animation: none;
@@ -581,7 +486,8 @@
   }
 
   .ctaButton:hover,
-  .badge:hover {
+  .badge:hover,
+  .bookCover:hover {
     transform: none;
   }
 }

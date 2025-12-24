@@ -6,8 +6,10 @@ import styles from './index.module.css';
 const modules = [
   {
     number: '01',
+    icon: '⚙️',
     title: 'The Robotic Nervous System (ROS 2)',
     focus: 'Middleware for robot control.',
+    image: 'https://automaticaddison.com/wp-content/uploads/2024/11/ros2-doctor.jpg',
     bullets: [
       'ROS 2 Nodes, Topics, and Services.',
       'Bridging Python Agents to ROS controllers using rclpy.',
@@ -17,8 +19,10 @@ const modules = [
   },
   {
     number: '02',
+    icon: '🌐',
     title: 'The Digital Twin (Gazebo & Unity)',
     focus: 'Physics simulation and environment building.',
+    image: 'https://thetechsstorm.com/wp-content/uploads/2024/05/Untitled-design-15-1.jpg',
     bullets: [
       'Simulating physics, gravity, and collisions in Gazebo.',
       'High-fidelity rendering and human-robot interaction in Unity.',
@@ -28,8 +32,10 @@ const modules = [
   },
   {
     number: '03',
+    icon: '🧠',
     title: 'The AI-Robot Brain (NVIDIA Isaac™)',
     focus: 'Advanced perception and training.',
+    image: 'https://studywarehouse.com/wp-content/uploads/2024/10/Nvidias-New-AI-Model-A-Game-Changer-in-the-AI-Space-Surpassing-OpenAIs-GPT-4.jpg',
     bullets: [
       'NVIDIA Isaac Sim: Photorealistic simulation and synthetic data generation.',
       'Isaac ROS: Hardware-accelerated VSLAM (Visual SLAM) and navigation.',
@@ -39,8 +45,10 @@ const modules = [
   },
   {
     number: '04',
+    icon: '👁️',
     title: 'Vision-Language-Action (VLA)',
     focus: 'The convergence of LLMs and Robotics.',
+    image: 'https://www.labellerr.com/blog/content/images/2025/02/vision-language-action-models.webp',
     bullets: [
       'Voice-to-Action: Using OpenAI Whisper for voice commands.',
       'Cognitive Planning: Using LLMs to translate natural language ("Clean the room") into a sequence of ROS 2 actions.',
@@ -72,25 +80,40 @@ function WelcomeSection() {
 function ModuleCard({ module }) {
   return (
     <article className={styles.moduleCard} aria-label={`Module ${module.number}: ${module.title}`}>
-      <div className={styles.moduleHeader}>
-        <span className={styles.moduleNumber}>{module.number}</span>
+      {/* Module Image */}
+      <div className={styles.moduleImageWrapper}>
+        <img
+          src={module.image}
+          alt={module.title}
+          className={styles.moduleImage}
+          loading="lazy"
+        />
+        <div className={styles.moduleImageOverlay}></div>
+        <span className={styles.moduleNumberBadge}>{module.number}</span>
       </div>
-      <h2 className={styles.moduleTitle}>{module.title}</h2>
-      <p className={styles.moduleFocus}>
-        <strong>Focus:</strong> {module.focus}
-      </p>
-      <ul className={styles.moduleBullets}>
-        {module.bullets.map((bullet, idx) => (
-          <li key={idx}>{bullet}</li>
-        ))}
-      </ul>
-      <Link
-        to={module.link}
-        className={styles.moduleButton}
-        aria-label={`Start ${module.title}`}
-      >
-        Start Module →
-      </Link>
+
+      {/* Module Content */}
+      <div className={styles.moduleContent}>
+        <div className={styles.moduleHeader}>
+          <span className={styles.moduleIcon}>{module.icon}</span>
+          <h2 className={styles.moduleTitle}>{module.title}</h2>
+        </div>
+        <p className={styles.moduleFocus}>
+          <strong>Focus:</strong> {module.focus}
+        </p>
+        <ul className={styles.moduleBullets}>
+          {module.bullets.map((bullet, idx) => (
+            <li key={idx}>{bullet}</li>
+          ))}
+        </ul>
+        <Link
+          to={module.link}
+          className={styles.moduleButton}
+          aria-label={`Start ${module.title}`}
+        >
+          Start Module →
+        </Link>
+      </div>
     </article>
   );
 }

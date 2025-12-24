@@ -4,8 +4,7 @@ from bs4 import BeautifulSoup
 from cohere import Client as CohereClient
 from qdrant_client import QdrantClient
 from qdrant_client.http import models
-from typing import List, Dict, Any
-import re
+from typing import List, Dict
 from urllib.parse import urljoin, urlparse
 import xml.etree.ElementTree as ET
 from dotenv import load_dotenv
@@ -73,6 +72,7 @@ def parse_sitemap(sitemap_url: str) -> Dict[str, List[str]]:
         sitemap_url: URL to the sitemap XML file
 
     Returns:
+    
         Dict with 'type' (either 'index', 'urlset', or 'error') and 'urls' (list of URLs)
     """
     try:
@@ -161,7 +161,7 @@ def get_all_urls_from_sitemap(sitemap_url: str) -> List[str]:
             initial_delay=1.0,
             component="SITEMAP"
         )
-    except Exception as e:
+    except Exception:
         log("ERROR", "SITEMAP", f"Failed to parse sitemap after retries: {sitemap_url}")
         return []
 
@@ -489,8 +489,17 @@ def main():
     log("INFO", "MAIN", f"Target website: {target_url}")
 
     # Step 1: Get all URLs
-    log("INFO", "MAIN", "Fetching URLs from sitemap...")
-    urls = get_all_urls(target_url)
+    # Try to load from urls.txt file first, then fall back to sitemap
+    urls_file = "urls.txt"
+    if os.path.exists(urls_file):
+        log("INFO", "MAIN", f"Loading URLs from {urls_file}...")
+        with open(urls_file, 'r') as f:
+            urls = [line.strip() for line in f if line.strip()]
+        log("INFO", "MAIN", f"Loaded {len(urls)} URLs from file")
+    else:
+        log("INFO", "MAIN", "Fetching URLs from sitemap...")
+        urls = get_all_urls(target_url)
+
     total_urls = len(urls)
     log("INFO", "MAIN", f"Found {total_urls} URLs to process")
 

@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAG Agent Query Interface</title>
+    <style>
+        /* Basic CSS styling for layout and typography */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .instructions {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        /* T013: Query input field styling */
+        .query-section {
+            margin-bottom: 20px;
+        }
+
+        #queryInput {
+            width: 100%;
+            min-height: 100px;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 15px;
+            resize: vertical;
+            transition: border-color 0.3s;
+        }
+
+        #queryInput:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        /* T014: Submit button styling */
+        #submitButton {
+            padding: 12px 24px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        #submitButton:hover {
+            background-color: #2980b9;
+        }
+
+        #submitButton:active {
+            transform: translateY(1px);
+        }
+
+        /* T022: Loading indicator styling */
+        #loadingIndicator {
+            display: none;
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            border-radius: 4px;
+            color: #1976d2;
+            font-weight: 500;
+        }
+
+        #loadingIndicator.visible {
+            display: block;
+        }
+
+        /* Validation error styling */
+        .validation-error {
+            display: none;
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #ffebee;
+            border-left: 4px solid #f44336;
+            border-radius: 4px;
+            color: #c62828;
+            font-size: 14px;
+        }
+
+        .validation-error.visible {
+            display: block;
+        }
+
+        /* T030 & T032: Answer display styling */
+        #answerContainer {
+            display: none;
+            margin: 30px 0;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-left: 4px solid #28a745;
+            border-radius: 4px;
+        }
+
+        #answerContainer.visible {
+            display: block;
+        }
+
+        #answerContainer h2 {
+            color: #2c3e50;
+            font-size: 20px;
+            margin-bottom: 15px;
+        }
+
+        #answerText {
+            font-size: 15px;
+            line-height: 1.8;
+            color: #333;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        /* T044 & T046: Error display styling */
+        #errorContainer {
+            display: none;
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #ffebee;
+            border-left: 4px solid #f44336;
+            border-radius: 4px;
+        }
+
+        #errorContainer.visible {
+            display: block;
+        }
+
+        #errorContainer h3 {
+            color: #c62828;
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        #errorMessage {
+            color: #c62828;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        /* T064 & T067: Sources display styling */
+        #sourcesContainer {
+            display: none;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid #e0e0e0;
+        }
+
+        #sourcesContainer.visible {
+            display: block;
+        }
+
+        #sourcesContainer h3 {
+            color: #2c3e50;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+
+        #sourcesList {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        #sourcesList li {
+            margin-bottom: 12px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            border-left: 3px solid #3498db;
+        }
+
+        /* T073: Source link styling */
+        #sourcesList a {
+            color: #3498db;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 15px;
+        }
+
+        #sourcesList a:hover {
+            text-decoration: underline;
+            color: #2980b9;
+        }
+
+        /* T074: Relevance score styling */
+        .relevance-score {
+            display: inline-block;
+            margin-left: 10px;
+            font-size: 13px;
+            color: #666;
+            font-weight: normal;
+        }
+
+        .no-sources {
+            color: #666;
+            font-style: italic;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>RAG Agent Query Interface</h1>
+        <p class="instructions">
+            Enter your question about the documentation below and click Submit to query the RAG agent.
+            The system will retrieve relevant information and generate an answer based on the documentation.
+        </p>
+
+        <!-- T011 & T012: Query input section -->
+        <div class="query-section">
+            <textarea
+                id="queryInput"
+                placeholder="Enter your question here... (e.g., What is ROS 2?)"
+                aria-label="Query input"
+            ></textarea>
+            <div id="validationError" class="validation-error"></div>
+        </div>
+
+        <button id="submitButton">Submit Query</button>
+
+        <!-- T021: Loading indicator -->
+        <div id="loadingIndicator">Processing your query...</div>
+
+        <!-- T029 & T031: Answer display container -->
+        <div id="answerContainer">
+            <h2>Answer</h2>
+            <div id="answerText"></div>
+
+            <!-- T063, T065, T066: Sources container within answer -->
+            <div id="sourcesContainer">
+                <h3>Sources</h3>
+                <ul id="sourcesList"></ul>
+            </div>
+
+            <!-- T084: Metadata display (optional) -->
+            <div id="metadataContainer" style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #e0e0e0; font-size: 13px; color: #666; display: none;">
+                <div id="metadataText"></div>
+            </div>
+        </div>
+
+        <!-- T043 & T045: Error display container -->
+        <div id="errorContainer">
+            <h3>Error</h3>
+            <div id="errorMessage"></div>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * Frontend-Backend Integration for RAG Agent Query Interface
+         *
+         * This implementation provides a web interface for querying the RAG Agent backend.
+         *
+         * Features implemented:
+         * - Query submission with validation (US1)
+         * - Answer display with preserved formatting (US2)
+         * - Source references with clickable links and relevance scores (US3)
+         * - Comprehensive error handling for network and backend errors (US4)
+         *
+         * Implementation notes:
+         * - Uses Vanilla JavaScript (no frameworks) for simplicity
+         * - Fetch API for HTTP requests to localhost:8000
+         * - State management with setState/render pattern
+         * - XSS prevention using textContent instead of innerHTML
+         * - CORS support (backend must enable CORS for this origin)
+         *
+         * Requirements:
+         * - Backend must be running on http://localhost:8000
+         * - Backend must have CORS enabled for frontend origin
+         * - Modern browser with Fetch API support (Chrome 90+, Firefox 88+, Safari 14+, Edge 90+)
+         *
+         * Testing notes:
+         * - All user stories implemented and ready for testing
+         * - Edge cases handled: empty queries, network errors, malformed responses
+         * - To test: Start backend (uvicorn rag_agent:app --reload), open this file in browser
+         *
+         * Assumptions:
+         * - Backend uses default parameters (top_k=5, model=xiaomi/mimo-v2-flash:free)
+         * - No authentication required
+         * - Local development only (not production-ready)
+         */
+
+        // T005: Application state object structure
+        const state = {
+            status: 'idle', // 'idle' | 'loading' | 'success' | 'error'
+            query: '',
+            response: null,
+            error: null
+        };
+
+        // T009: setState function to update state and trigger re-render
+        function setState(updates) {
+            Object.assign(state, updates);
+            console.log('State updated:', state);
+            render();
+        }
+
+        // T006, T023, T033-T038, T047-T048, T057-T058: Render function to update DOM based on state
+        function render() {
+            console.log('Render called with state:', state.status);
+
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            const validationError = document.getElementById('validationError');
+            const answerContainer = document.getElementById('answerContainer');
+            const answerText = document.getElementById('answerText');
+            const errorContainer = document.getElementById('errorContainer');
+            const errorMessage = document.getElementById('errorMessage');
+
+            // T023 & T058: Show/hide loading indicator
+            if (state.status === 'loading') {
+                loadingIndicator.classList.add('visible');
+            } else {
+                loadingIndicator.classList.remove('visible');
+            }
+
+            // Show/hide validation error
+            if (state.validationError) {
+                validationError.textContent = state.validationError;
+                validationError.classList.add('visible');
+            } else {
+                validationError.classList.remove('visible');
+            }
+
+            // T047-T048: Render error if status is error
+            if (state.status === 'error' && state.error) {
+                errorMessage.textContent = state.error;
+                errorContainer.classList.add('visible');
+            } else {
+                errorContainer.classList.remove('visible');
+            }
+
+            // T033-T038 & T068-T076 & T084: Render answer, sources, and metadata if success
+            if (state.status === 'success' && state.response) {
+                // T034: Use textContent to prevent XSS
+                answerText.textContent = state.response.answer || 'No answer available';
+
+                // T068-T076: Render sources
+                renderSources(state.response.sources || []);
+
+                // T084: Display metadata (optional)
+                const metadataContainer = document.getElementById('metadataContainer');
+                const metadataText = document.getElementById('metadataText');
+                if (state.response.model_used || state.response.tokens_used) {
+                    metadataText.textContent = `Model: ${state.response.model_used || 'N/A'} | Tokens: ${state.response.tokens_used || 'N/A'}`;
+                    metadataContainer.style.display = 'block';
+                }
+
+                answerContainer.classList.add('visible');
+            } else {
+                answerContainer.classList.remove('visible');
+            }
+        }
+
+        // T068-T075: Render sources function
+        function renderSources(sources) {
+            const sourcesContainer = document.getElementById('sourcesContainer');
+            const sourcesList = document.getElementById('sourcesList');
+
+            // Clear existing sources
+            sourcesList.innerHTML = '';
+
+            // T075: Handle empty sources array
+            if (!sources || sources.length === 0) {
+                sourcesList.innerHTML = '<li class="no-sources">No sources available</li>';
+                sourcesContainer.classList.add('visible');
+                return;
+            }
+
+            // T069-T074: Create list items for each source
+            sources.forEach(source => {
+                const li = document.createElement('li');
+
+                // T070: Create clickable link
+                const link = document.createElement('a');
+                link.href = source.url;
+                link.target = '_blank'; // Open in new tab
+                // T071: Use textContent for page title
+                link.textContent = source.page_title || source.url;
+
+                li.appendChild(link);
+
+                // T072: Display relevance score
+                if (source.relevance_score !== undefined && source.relevance_score !== null) {
+                    const scoreSpan = document.createElement('span');
+                    scoreSpan.className = 'relevance-score';
+                    scoreSpan.textContent = `(Relevance: ${(source.relevance_score * 100).toFixed(0)}%)`;
+                    li.appendChild(scoreSpan);
+                }
+
+                sourcesList.appendChild(li);
+            });
+
+            // T076: Show sources container
+            sourcesContainer.classList.add('visible');
+        }
+
+        // T007, T008, T049-T056: API client function using Fetch API
+        async function queryBackend(query) {
+            console.log('Submitting query:', query);
+
+            try {
+                const response = await fetch('http://localhost:8001/query', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ query })
+                });
+
+                console.log('Received response:', response.status);
+
+                // T051-T056: Handle HTTP error responses
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    let errorMessage = errorData.error_message || `HTTP ${response.status}`;
+
+                    // T054: Handle 422 Validation Error
+                    if (response.status === 422) {
+                        errorMessage = `Validation error: ${errorData.error_message || 'Invalid query format'}`;
+                    }
+                    // T055: Handle 500/502/503 Server Errors
+                    else if (response.status === 500) {
+                        errorMessage = `Backend error: ${errorData.error_message || 'Internal server error'}`;
+                    } else if (response.status === 502) {
+                        errorMessage = `Backend error: ${errorData.error_message || 'Bad gateway - generation service unavailable'}`;
+                    } else if (response.status === 503) {
+                        errorMessage = `Backend error: ${errorData.error_message || 'Service unavailable - retrieval service unavailable'}`;
+                    }
+                    // T056: Handle 429 Rate Limit
+                    else if (response.status === 429) {
+                        errorMessage = 'Rate limit exceeded. Please try again later.';
+                    }
+
+                    throw new Error(errorMessage);
+                }
+
+                const data = await response.json();
+                console.log('Response data:', data);
+                return data;
+
+            } catch (error) {
+                console.error('Error:', error);
+                throw error;
+            }
+        }
+
+        // T015, T017, T018, T019, T020: Handle submit with validation
+        async function handleSubmit() {
+            const queryInput = document.getElementById('queryInput');
+            const query = queryInput.value.trim();
+
+            // T017 & T018: Validate query
+            if (!query) {
+                setState({
+                    validationError: 'Please enter a question before submitting.',
+                    status: 'idle'
+                });
+                return;
+            }
+
+            // Clear validation error
+            setState({
+                validationError: null,
+                status: 'loading',
+                query: query,
+                error: null
+            });
+
+            try {
+                // T020: Call backend API
+                const data = await queryBackend(query);
+
+                setState({
+                    status: 'success',
+                    response: data,
+                    error: null
+                });
+            } catch (error) {
+                // T049-T050: Handle network or backend errors
+                let errorMessage = 'An error occurred while processing your query.';
+
+                // T050: Network connection error
+                if (error.name === 'TypeError' || error.message.includes('Failed to fetch')) {
+                    errorMessage = 'Cannot connect to backend at http://localhost:8000. Please ensure the backend server is running.';
+                } else {
+                    // T052-T053: Use backend error message
+                    errorMessage = error.message || errorMessage;
+                }
+
+                // T057: Clear error when new query is submitted (already done above with setState)
+                setState({
+                    status: 'error',
+                    error: errorMessage,
+                    response: null
+                });
+            }
+        }
+
+        // T016: Add Enter key handler (Ctrl+Enter or Cmd+Enter)
+        function handleKeyPress(event) {
+            if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
+                handleSubmit();
+            }
+        }
+
+        // Initialize event listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            const submitButton = document.getElementById('submitButton');
+            const queryInput = document.getElementById('queryInput');
+
+            submitButton.addEventListener('click', handleSubmit);
+            queryInput.addEventListener('keydown', handleKeyPress);
+
+            console.log('Frontend initialized');
+        });
+    </script>
+</body>
+</html>

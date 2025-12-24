@@ -1,0 +1,101 @@
+
+{
+  "description": "Retrieval pipeline test suite",
+  "default_top_k": 5,
+  "queries": [
+    {
+      "id": "tech-001",
+      "category": "technical",
+      "query": "What is DDS in ROS 2?",
+      "expected_topics": ["DDS", "middleware", "architecture"]
+    },
+    {
+      "id": "tech-002",
+      "category": "technical",
+      "query": "How do QoS profiles work?",
+      "expected_topics": ["QoS", "quality of service", "communication"]
+    },
+    {
+      "id": "tech-003",
+      "category": "technical",
+      "query": "Explain URDF syntax",
+      "expected_topics": ["URDF", "robot", "description"]
+    },
+    {
+      "id": "concept-001",
+      "category": "conceptual",
+      "query": "How does ROS 2 differ from ROS 1?",
+      "expected_topics": ["ROS 2", "ROS 1", "differences", "comparison"]
+    },
+    {
+      "id": "concept-002",
+      "category": "conceptual",
+      "query": "What is a digital twin?",
+      "expected_topics": ["digital twin", "simulation", "virtual"]
+    },
+    {
+      "id": "concept-003",
+      "category": "conceptual",
+      "query": "Why use Unity for robot simulation?",
+      "expected_topics": ["Unity", "simulation", "visualization"]
+    },
+    {
+      "id": "howto-001",
+      "category": "how-to",
+      "query": "How to create a ROS 2 publisher in Python?",
+      "expected_topics": ["publisher", "Python", "rclpy"]
+    },
+    {
+      "id": "howto-002",
+      "category": "how-to",
+      "query": "How to configure Gazebo physics?",
+      "expected_topics": ["Gazebo", "physics", "configuration"]
+    },
+    {
+      "id": "howto-003",
+      "category": "how-to",
+      "query": "How to integrate Unity with ROS 2?",
+      "expected_topics": ["Unity", "ROS 2", "integration"]
+    },
+    {
+      "id": "multi-001",
+      "category": "multi-topic",
+      "query": "Robot visualization and simulation",
+      "expected_topics": ["visualization", "simulation"]
+    },
+    {
+      "id": "multi-002",
+      "category": "multi-topic",
+      "query": "ROS 2 communication patterns",
+      "expected_topics": ["topics", "services", "actions"]
+    },
+    {
+      "id": "edge-001",
+      "category": "edge-case",
+      "query": "",
+      "expected_error": true,
+      "note": "Empty query should error"
+    },
+    {
+      "id": "edge-002",
+      "category": "edge-case",
+      "query": "quantum entanglement",
+      "expected_topics": [],
+      "note": "Irrelevant query should return low scores"
+    },
+    {
+      "id": "edge-003",
+      "category": "edge-case",
+      "query": "ros2",
+      "expected_topics": ["ROS 2"],
+      "note": "Very short query should still work"
+    },
+    {
+      "id": "edge-004",
+      "category": "edge-case",
+      "query": "a",
+      "top_k": 3,
+      "note": "Single character query"
+    }
+  ]
+}

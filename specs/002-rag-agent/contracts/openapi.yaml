@@ -1,0 +1,346 @@
+openapi: 3.0.3
+info:
+  title: RAG Agent API Service
+  description: |
+    REST API for querying embedded documentation and generating grounded answers using retrieval-augmented generation (RAG).
+
+    **Features**:
+    - Query documentation using natural language
+    - Retrieve relevant documentation chunks from vector database
+    - Generate answers using OpenAI models
+    - Source attribution with relevance scores
+
+    **Rate Limits**: None (development)
+
+    **Authentication**: None (development)
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: support@example.com
+  license:
+    name: MIT
+
+servers:
+  - url: http://localhost:8000
+    description: Development server
+  - url: http://localhost:8000/api
+    description: Development server with /api prefix
+
+paths:
+  /query:
+    post:
+      summary: Query documentation and get answer
+      description: |
+        Submit a natural language question to query the embedded documentation.
+        The system will:
+        1. Retrieve relevant documentation chunks from the vector database
+        2. Generate a grounded answer using an OpenAI model
+        3. Return the answer with source references
+
+        **Performance**: Typical response time is 2-4 seconds.
+
+        **Token Usage**: Included in response for monitoring.
+      operationId: queryDocumentation
+      tags:
+        - Query
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QueryRequest'
+            examples:
+              basic_query:
+                summary: Basic query with defaults
+                value:
+                  query: "How do I create a ROS 2 publisher in Python?"
+              custom_top_k:
+                summary: Query with custom number of sources
+                value:
+                  query: "What is a URDF file?"
+                  top_k: 10
+              gpt4_query:
+                summary: Query using GPT-4 model
+                value:
+                  query: "Explain the ROS 2 DDS architecture"
+                  top_k: 5
+                  model: "gpt-4"
+      responses:
+        '200':
+          description: Successful query with answer and sources
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QueryResponse'
+              examples:
+                successful_answer:
+                  summary: Answer with sources found
+                  value:
+                    query: "How do I create a ROS 2 publisher in Python?"
+                    answer: "To create a ROS 2 publisher in Python, you need to:\n\n1. Import the rclpy library\n2. Create a node class that inherits from Node\n3. In the constructor, call create_publisher() with your message type and topic name\n4. Use the publish() method to send messages\n\nHere's a basic example:\n```python\nimport rclpy\nfrom rclpy.node import Node\nfrom std_msgs.msg import String\n\nclass MinimalPublisher(Node):\n    def __init__(self):\n        super().__init__('minimal_publisher')\n        self.publisher_ = self.create_publisher(String, 'topic', 10)\n```\n\nFor complete working code, see the sources below."
+                    sources:
+                      - url: "https://docs.ros.org/en/rolling/Tutorials/Beginner-Client-Libraries/Writing-A-Simple-Py-Publisher.html"
+                        page_title: "Writing a simple publisher (Python)"
+                        relevance_score: 0.8642
+                        chunk_index: 2
+                      - url: "https://docs.ros.org/en/rolling/Tutorials/Beginner-Client-Libraries/Creating-A-Workspace.html"
+                        page_title: "Creating a workspace"
+                        relevance_score: 0.7234
+                        chunk_index: 5
+                    model_used: "gpt-3.5-turbo"
+                    tokens_used: 456
+                    retrieval_count: 5
+                no_sources_found:
+                  summary: No relevant documentation found
+                  value:
+                    query: "What is quantum computing?"
+                    answer: "I don't have enough information in the provided documentation to answer this question. The documentation focuses on ROS 2 and robotics topics, but does not cover quantum computing."
+                    sources: []
+                    model_used: "gpt-3.5-turbo"
+                    tokens_used: 89
+                    retrieval_count: 0
+        '422':
+          description: Validation error (invalid request)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                empty_query:
+                  summary: Empty query string
+                  value:
+                    error: true
+                    error_type: "ValidationError"
+                    error_message: "Query cannot be empty or whitespace"
+                    query: ""
+                    status_code: 422
+                invalid_top_k:
+                  summary: Invalid top_k value
+                  value:
+                    error: true
+                    error_type: "ValidationError"
+                    error_message: "top_k must be between 1 and 50"
+                    query: "What is ROS 2?"
+                    status_code: 422
+                invalid_model:
+                  summary: Invalid model name
+                  value:
+                    error: true
+                    error_type: "ValidationError"
+                    error_message: "Model must be one of ['gpt-3.5-turbo', 'gpt-4', 'gpt-4-turbo-preview']"
+                    query: "What is ROS 2?"
+                    status_code: 422
+        '429':
+          description: Rate limit exceeded (OpenAI)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: true
+                error_type: "RateLimitError"
+                error_message: "OpenAI API rate limit exceeded. Please try again in 60 seconds."
+                query: "How do I create a ROS 2 publisher?"
+                status_code: 429
+        '502':
+          description: Generation service error (OpenAI failure)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: true
+                error_type: "GenerationError"
+                error_message: "Failed to generate answer from OpenAI API. Please try again."
+                query: "How do I create a ROS 2 publisher?"
+                status_code: 502
+        '503':
+          description: Retrieval service unavailable (Qdrant down)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: true
+                error_type: "RetrievalError"
+                error_message: "Vector database is currently unavailable. Please try again later."
+                query: "How do I create a ROS 2 publisher?"
+                status_code: 503
+
+  /health:
+    get:
+      summary: Health check endpoint
+      description: Check if the API service is running and healthy
+      operationId: healthCheck
+      tags:
+        - Health
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "healthy"
+                  version:
+                    type: string
+                    example: "1.0.0"
+                  timestamp:
+                    type: string
+                    format: date-time
+                    example: "2025-12-21T10:30:00Z"
+
+components:
+  schemas:
+    QueryRequest:
+      type: object
+      required:
+        - query
+      properties:
+        query:
+          type: string
+          minLength: 1
+          maxLength: 2000
+          description: User's natural language question
+          example: "How do I create a ROS 2 publisher in Python?"
+        top_k:
+          type: integer
+          minimum: 1
+          maximum: 50
+          default: 5
+          description: Number of documentation chunks to retrieve
+          example: 5
+        model:
+          type: string
+          enum:
+            - gpt-3.5-turbo
+            - gpt-4
+            - gpt-4-turbo-preview
+          default: "gpt-3.5-turbo"
+          description: OpenAI model to use for answer generation
+          example: "gpt-3.5-turbo"
+
+    SourceReference:
+      type: object
+      required:
+        - url
+        - page_title
+        - relevance_score
+      properties:
+        url:
+          type: string
+          format: uri
+          description: URL of the source documentation page
+          example: "https://docs.ros.org/en/rolling/Tutorials/Beginner-Client-Libraries/Writing-A-Simple-Py-Publisher.html"
+        page_title:
+          type: string
+          minLength: 1
+          description: Human-readable title of the documentation page
+          example: "Writing a simple publisher (Python)"
+        relevance_score:
+          type: number
+          format: float
+          minimum: 0.0
+          maximum: 1.0
+          description: Similarity score from vector search (0.0-1.0, higher is more relevant)
+          example: 0.8642
+        chunk_index:
+          type: integer
+          minimum: 0
+          nullable: true
+          description: Position of the chunk within the page (0-indexed)
+          example: 2
+
+    QueryResponse:
+      type: object
+      required:
+        - query
+        - answer
+        - sources
+        - model_used
+        - tokens_used
+        - retrieval_count
+      properties:
+        query:
+          type: string
+          description: Original user query (echoed back)
+          example: "How do I create a ROS 2 publisher in Python?"
+        answer:
+          type: string
+          minLength: 1
+          description: Generated natural language answer
+          example: "To create a ROS 2 publisher in Python, you need to import rclpy, create a node class, and use create_publisher()..."
+        sources:
+          type: array
+          items:
+            $ref: '#/components/schemas/SourceReference'
+          description: List of source references (deduplicated by URL)
+          example:
+            - url: "https://docs.ros.org/en/rolling/Tutorials/Beginner-Client-Libraries/Writing-A-Simple-Py-Publisher.html"
+              page_title: "Writing a simple publisher (Python)"
+              relevance_score: 0.8642
+              chunk_index: 2
+        model_used:
+          type: string
+          description: Actual OpenAI model used for generation
+          example: "gpt-3.5-turbo"
+        tokens_used:
+          type: integer
+          minimum: 0
+          description: Total tokens consumed (prompt + completion)
+          example: 456
+        retrieval_count:
+          type: integer
+          minimum: 0
+          description: Number of chunks retrieved before deduplication
+          example: 5
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+        - error_type
+        - error_message
+        - status_code
+      properties:
+        error:
+          type: boolean
+          description: Error flag (always true for error responses)
+          example: true
+        error_type:
+          type: string
+          minLength: 1
+          description: Error classification
+          example: "ValidationError"
+          enum:
+            - ValidationError
+            - RetrievalError
+            - GenerationError
+            - RateLimitError
+            - TimeoutError
+            - UnknownError
+        error_message:
+          type: string
+          minLength: 1
+          description: Human-readable error description
+          example: "Query cannot be empty or whitespace"
+        query:
+          type: string
+          nullable: true
+          description: Original query if available
+          example: "How do I create a ROS 2 publisher?"
+        status_code:
+          type: integer
+          minimum: 400
+          maximum: 599
+          description: HTTP status code
+          example: 422
+
+tags:
+  - name: Query
+    description: Query endpoints for documentation Q&A
+  - name: Health
+    description: Health check and status endpoints

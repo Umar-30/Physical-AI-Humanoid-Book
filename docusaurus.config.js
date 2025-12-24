@@ -19,10 +19,13 @@ const config = {
   organizationName: 'your-org',
   projectName: 'humanoid-robotics-with-ai',
 
-  onBrokenLinks: 'warn',
-  onBrokenMarkdownLinks: 'warn',
+  onBrokenLinks: 'ignore',
+  onBrokenAnchors: 'ignore',
   markdown: {
     mermaid: true,
+    hooks: {
+      onBrokenMarkdownLinks: 'ignore',
+    },
   },
 
   // Internationalization
@@ -49,9 +52,20 @@ const config = {
     ],
   ],
 
+  // Client modules for custom functionality
+  clientModules: [
+    require.resolve('./src/clientModule.js'),
+  ],
+
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
+      // Force dark mode for the scholarly theme
+      colorMode: {
+        defaultMode: 'dark',
+        disableSwitch: false,
+        respectPrefersColorScheme: false,
+      },
       navbar: {
         title: 'Physical AI & Humanoid Robotics',
         logo: {

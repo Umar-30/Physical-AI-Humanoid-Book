@@ -1,7 +1,10 @@
 {
   "permissions": {
     "allow": [
-      "Bash(test:*)"
+      "Bash(test:*)",
+      "Bash(uv run:*)",
+      "Bash(powershell.exe -Command \".\\\\.specify\\\\scripts\\\\powershell\\\\setup-plan.ps1 -Json\")",
+      "Bash(python:*)"
     ]
   }
 }

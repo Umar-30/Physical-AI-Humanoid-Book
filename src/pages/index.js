@@ -19,7 +19,7 @@ function HeroSection() {
         <div className={styles.bookCoverSection}>
           <div className={styles.bookCoverWrapper}>
             <img
-              src="/img/physical-ai-cover.svg"
+              src="https://imageio.forbes.com/specials-images/imageserve/66bee357cf48b97789cbc270/0x0.jpg?format=jpg&height=900&width=1600&fit=bounds"
               alt="Physical AI & Humanoid Robotics Book Cover"
               className={styles.bookCover}
             />
@@ -29,21 +29,21 @@ function HeroSection() {
 
         {/* Right Side - Content */}
         <div className={styles.contentSection}>
-          {/* Main Title */}
+          {/* Main Title - Large Bold Heading */}
           <h1 className={styles.mainTitle}>
-            <span className={styles.titleLine1}>Physical AI &</span>
-            <span className={styles.titleLine2}>Humanoid Robotics</span>
+            Physical AI &<br />
+            <span className={styles.titleHighlight}>Humanoid Robotics</span>
           </h1>
+
+          {/* Bold Subtitle */}
+          <p className={styles.subtitle}>
+            A Hands-On Guide to Building AI-Powered Physical Systems and Humanoid Robotics —
+            The Spec & Co-Learning Way
+          </p>
 
           {/* Welcome Quote */}
           <p className={styles.welcomeQuote}>
             "Welcome to the frontier of intelligent machines — where physical AI meets human-like robotics."
-          </p>
-
-          {/* Subtitle */}
-          <p className={styles.subtitle}>
-            A Hands-On Guide to Building AI-Powered Physical Systems and Humanoid Robotics —
-            The Spec & Co-Learning Way
           </p>
 
           {/* Feature Badges */}
@@ -79,31 +79,7 @@ function HeroSection() {
               <span>Start Reading</span>
             </Link>
           </div>
-
-          {/* Tech Stack Indicator */}
-          <div className={styles.techStack}>
-            <div className={styles.techStackLabel}>Built with:</div>
-            <div className={styles.techStackItems}>
-              <span className={styles.techItem}>ROS 2</span>
-              <span className={styles.techDivider}>•</span>
-              <span className={styles.techItem}>Gazebo</span>
-              <span className={styles.techDivider}>•</span>
-              <span className={styles.techItem}>Unity</span>
-              <span className={styles.techDivider}>•</span>
-              <span className={styles.techItem}>NVIDIA Isaac</span>
-              <span className={styles.techDivider}>•</span>
-              <span className={styles.techItem}>AI Agents</span>
-            </div>
-          </div>
         </div>
-      </div>
-
-      {/* Scroll Indicator */}
-      <div className={styles.scrollIndicator}>
-        <div className={styles.scrollMouse}>
-          <div className={styles.scrollWheel}></div>
-        </div>
-        <p className={styles.scrollText}>Scroll to explore</p>
       </div>
     </div>
   );

@@ -1,0 +1,259 @@
+openapi: 3.0.3
+info:
+  title: RAG Chatbot API (Urdu Extension)
+  description: |
+    Extension to existing RAG Agent API to support multilingual responses.
+    This document describes the new `language` parameter added to the `/query` endpoint.
+    All other endpoints and functionality remain unchanged from 002-rag-agent specification.
+  version: 2.0.0
+  contact:
+    name: Backend Team
+    email: backend@example.com
+
+servers:
+  - url: http://localhost:8000
+    description: Local development server
+
+paths:
+  /query:
+    post:
+      summary: Query RAG agent with optional language preference
+      description: |
+        Submit a natural language question to the RAG agent.
+        NEW in v2.0: Supports `language` parameter to receive responses in Urdu.
+
+        **Behavior when language='ur'**:
+        1. Query embedding generated (language-agnostic)
+        2. Top-K chunks retrieved from Qdrant
+        3. Retrieved chunks translated to Urdu
+        4. LLM instructed to answer in Urdu
+        5. Source page titles translated to Urdu
+      operationId: queryAgent
+      tags:
+        - Query
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QueryRequest'
+            examples:
+              englishQuery:
+                summary: Standard English query (unchanged from v1.0)
+                value:
+                  query: "What is ROS 2?"
+                  top_k: 5
+                  model: "xiaomi/mimo-v2-flash:free"
+              urduQuery:
+                summary: Urdu language query (NEW in v2.0)
+                value:
+                  query: "ROS 2 کیا ہے؟"
+                  top_k: 5
+                  model: "xiaomi/mimo-v2-flash:free"
+                  language: "ur"
+      responses:
+        '200':
+          description: Query processed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QueryResponse'
+              examples:
+                englishResponse:
+                  summary: English response (default behavior)
+                  value:
+                    answer: "ROS 2 is a modern robotic operating system that provides communication infrastructure for distributed robotic systems..."
+                    sources:
+                      - url: "http://localhost:3000/docs/module-1-ros2"
+                        page_title: "Module 1: The Robotic Nervous System (ROS 2)"
+                        chunk_id: "chunk_042"
+                        relevance_score: 0.92
+                      - url: "http://localhost:3000/docs/module-1-ros2/introduction"
+                        page_title: "Introduction to ROS 2"
+                        chunk_id: "chunk_018"
+                        relevance_score: 0.88
+                    query: "What is ROS 2?"
+                    model: "xiaomi/mimo-v2-flash:free"
+                    timestamp: "2025-12-22T10:30:00Z"
+                urduResponse:
+                  summary: Urdu response (NEW in v2.0)
+                  value:
+                    answer: "ROS 2 ایک جدید روبوٹک آپریٹنگ سسٹم ہے جو تقسیم شدہ روبوٹک سسٹمز کے لیے مواصلاتی بنیادی ڈھانچہ فراہم کرتا ہے..."
+                    sources:
+                      - url: "http://localhost:3000/docs/module-1-ros2"
+                        page_title: "ماڈیول 1: روبوٹک اعصابی نظام (ROS 2)"
+                        chunk_id: "chunk_042"
+                        relevance_score: 0.92
+                      - url: "http://localhost:3000/docs/module-1-ros2/introduction"
+                        page_title: "ROS 2 کا تعارف"
+                        chunk_id: "chunk_018"
+                        relevance_score: 0.88
+                    query: "ROS 2 کیا ہے؟"
+                    model: "xiaomi/mimo-v2-flash:free"
+                    timestamp: "2025-12-22T10:30:05Z"
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                emptyQuery:
+                  summary: Empty query error
+                  value:
+                    error: "Query cannot be empty"
+                    timestamp: "2025-12-22T10:30:00Z"
+                invalidLanguage:
+                  summary: Unsupported language (NEW in v2.0)
+                  value:
+                    error: "Unsupported language: 'fr'. Supported languages: en, ur"
+                    timestamp: "2025-12-22T10:30:00Z"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                translationFailed:
+                  summary: Translation service failure (NEW error scenario in v2.0)
+                  value:
+                    error: "Translation service unavailable. Falling back to English response."
+                    timestamp: "2025-12-22T10:30:00Z"
+                llmError:
+                  summary: LLM generation error (unchanged from v1.0)
+                  value:
+                    error: "LLM service unavailable"
+                    timestamp: "2025-12-22T10:30:00Z"
+
+components:
+  schemas:
+    QueryRequest:
+      type: object
+      required:
+        - query
+      properties:
+        query:
+          type: string
+          minLength: 1
+          description: User's natural language question (can be in any language)
+          example: "What is ROS 2?"
+        top_k:
+          type: integer
+          minimum: 1
+          maximum: 50
+          default: 5
+          description: Number of relevant chunks to retrieve
+          example: 5
+        model:
+          type: string
+          default: "xiaomi/mimo-v2-flash:free"
+          description: LLM model to use for answer generation
+          example: "xiaomi/mimo-v2-flash:free"
+        language:
+          type: string
+          enum: [en, ur]
+          default: "en"
+          description: |
+            NEW in v2.0: Target language for response.
+            - 'en': English (default, backward compatible)
+            - 'ur': Urdu
+          example: "ur"
+
+    QueryResponse:
+      type: object
+      required:
+        - answer
+        - sources
+        - query
+        - model
+        - timestamp
+      properties:
+        answer:
+          type: string
+          description: |
+            Generated answer from LLM (in requested language).
+            Language matches the `language` parameter from request.
+          example: "ROS 2 is a modern robotic operating system..."
+        sources:
+          type: array
+          description: |
+            Retrieved source references.
+            Page titles translated to match requested language (NEW in v2.0).
+          items:
+            $ref: '#/components/schemas/SourceReference'
+        query:
+          type: string
+          description: Echoed user query (unchanged)
+          example: "What is ROS 2?"
+        model:
+          type: string
+          description: LLM model used for generation (unchanged)
+          example: "xiaomi/mimo-v2-flash:free"
+        timestamp:
+          type: string
+          format: date-time
+          description: Response timestamp (ISO 8601)
+          example: "2025-12-22T10:30:00Z"
+
+    SourceReference:
+      type: object
+      required:
+        - url
+        - page_title
+        - chunk_id
+        - relevance_score
+      properties:
+        url:
+          type: string
+          format: uri
+          description: Source documentation URL (unchanged)
+          example: "http://localhost:3000/docs/module-1-ros2"
+        page_title:
+          type: string
+          description: |
+            Page title (in requested language).
+            NEW in v2.0: Translated to match language parameter.
+          example: "Module 1: The Robotic Nervous System (ROS 2)"
+        chunk_id:
+          type: string
+          description: Unique identifier for retrieved chunk (unchanged)
+          example: "chunk_042"
+        relevance_score:
+          type: number
+          format: float
+          minimum: 0.0
+          maximum: 1.0
+          description: Cosine similarity score (unchanged)
+          example: 0.92
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+        - timestamp
+      properties:
+        error:
+          type: string
+          description: Human-readable error message
+          example: "Query cannot be empty"
+        timestamp:
+          type: string
+          format: date-time
+          description: Error timestamp (ISO 8601)
+          example: "2025-12-22T10:30:00Z"
+
+  securitySchemes: {}
+
+tags:
+  - name: Query
+    description: RAG agent query operations
+
+x-changelog:
+  version: 2.0.0
+    date: 2025-12-22
+    changes:
+      - Added `language` parameter to QueryRequest (optional, default 'en')
+      - SourceReference.page_title now translated to match requested language
+      - New error scenario: Translation service failure
+      - Backward compatible: Omitting `language` parameter defaults to English (v1.0 behavior)

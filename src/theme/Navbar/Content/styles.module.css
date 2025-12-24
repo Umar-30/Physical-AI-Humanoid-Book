@@ -1,0 +1,26 @@
+/**
+ * Navbar Content Styles
+ *
+ * Positions the LanguageToggle button as a navbar item.
+ */
+
+.languageToggleWrapper {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+  padding-left: 0.75rem;
+}
+
+/* Ensure proper spacing with other navbar items */
+@media (min-width: 997px) {
+  .languageToggleWrapper {
+    margin-left: 0.5rem;
+  }
+}
+
+/* Mobile adjustments */
+@media (max-width: 996px) {
+  .languageToggleWrapper {
+    padding-left: 0.5rem;
+  }
+}
