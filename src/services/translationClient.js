@@ -11,10 +11,10 @@
 
 import { generateCacheKey, getFromCache, saveToCache } from '../utils/cacheManager';
 
-// Separate ports: RAG on 8000, Translation on 8001
+// Both RAG and Translation on same HF Space
 // Browser-safe environment variable access
-const API_BASE_URL = (typeof process !== 'undefined' && process.env?.REACT_APP_API_URL) || 'http://localhost:8000';
-const TRANSLATION_API_URL = (typeof process !== 'undefined' && process.env?.REACT_APP_TRANSLATION_URL) || 'http://localhost:8001';
+const API_BASE_URL = (typeof process !== 'undefined' && process.env?.REACT_APP_API_URL) || 'https://umar-30-chatbot-deploy.hf.space';
+const TRANSLATION_API_URL = API_BASE_URL;
 const TRANSLATION_ENDPOINT = `${TRANSLATION_API_URL}/api/translate`;
 const REQUEST_TIMEOUT_MS = 10000; // 10 seconds
 
