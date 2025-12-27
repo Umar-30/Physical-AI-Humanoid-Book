@@ -1,0 +1,20 @@
+# Existing dependencies (from previous specs)
+cohere>=5.20.1
+qdrant-client>=1.16.2
+beautifulsoup4>=4.14.3
+requests>=2.32.5
+lxml>=6.0.2
+python-dotenv>=1.0.0
+
+# RAG Agent API dependencies (002-rag-agent)
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+pydantic>=2.0.0
+openai>=1.0.0
+tiktoken>=0.5.0
+httpx>=0.25.0
+
+# Urdu Translation Agent dependencies (005-urdu-translation)
+transformers>=4.36.0
+torch>=2.0.0
+sentencepiece>=0.1.99  # Required for mBART tokenizer

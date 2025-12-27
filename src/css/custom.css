@@ -718,3 +718,204 @@ html {
     transition: none;
   }
 }
+
+/* ============================================
+   RESPONSIVE - Mobile & Tablet
+   ============================================ */
+
+/* Mobile Navbar Fixes */
+@media (max-width: 996px) {
+  .navbar {
+    padding: 0.5rem 1rem;
+  }
+
+  .navbar__title {
+    font-size: 1rem;
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .navbar__brand {
+    margin-right: 0.5rem;
+  }
+
+  .navbar__logo {
+    height: 28px;
+    width: auto;
+  }
+
+  .navbar__toggle {
+    margin-right: 0.5rem;
+  }
+
+  /* Mobile sidebar menu */
+  .navbar-sidebar {
+    width: 80%;
+    max-width: 300px;
+  }
+
+  .navbar-sidebar__brand {
+    padding: 1rem;
+  }
+
+  .navbar-sidebar__brand .navbar__title {
+    max-width: 100%;
+    font-size: 1.1rem;
+  }
+}
+
+/* Small Mobile (< 576px) */
+@media (max-width: 576px) {
+  .navbar {
+    padding: 0.4rem 0.75rem;
+  }
+
+  .navbar__title {
+    font-size: 0.9rem;
+    max-width: 140px;
+  }
+
+  .navbar__logo {
+    height: 24px;
+  }
+
+  /* Typography adjustments */
+  h1 {
+    font-size: 1.75rem;
+  }
+
+  h2 {
+    font-size: 1.5rem;
+  }
+
+  h3 {
+    font-size: 1.25rem;
+  }
+
+  /* Footer responsive */
+  .footer {
+    padding: 2rem 1rem;
+  }
+
+  .footer__title {
+    font-size: 1rem;
+  }
+
+  /* Table responsive */
+  table {
+    font-size: 0.85rem;
+  }
+
+  /* Code blocks */
+  code {
+    font-size: 0.8em;
+    padding: 0.15rem 0.3rem;
+  }
+
+  /* Pagination */
+  .pagination-nav__link {
+    padding: 0.75rem;
+  }
+
+  .pagination-nav__sublabel {
+    font-size: 0.75rem;
+  }
+
+  .pagination-nav__label {
+    font-size: 0.9rem;
+  }
+}
+
+/* Tablet (768px - 996px) */
+@media (min-width: 577px) and (max-width: 996px) {
+  .navbar__title {
+    font-size: 1.1rem;
+    max-width: 220px;
+  }
+
+  h1 {
+    font-size: 2rem;
+  }
+
+  h2 {
+    font-size: 1.75rem;
+  }
+}
+
+/* Fix navbar items overflow */
+@media (max-width: 996px) {
+  .navbar__items {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .navbar__items::-webkit-scrollbar {
+    display: none;
+  }
+
+  .navbar__item {
+    flex-shrink: 0;
+  }
+}
+
+/* Mobile sidebar improvements */
+@media (max-width: 996px) {
+  .menu {
+    padding: 0.5rem;
+  }
+
+  .menu__link {
+    padding: 0.6rem 0.75rem;
+    font-size: 0.95rem;
+  }
+
+  .menu__list-item-collapsible > .menu__link {
+    padding: 0.6rem 0.75rem;
+  }
+}
+
+/* Doc page content responsive */
+@media (max-width: 996px) {
+  .markdown {
+    padding: 0 0.5rem;
+  }
+
+  .markdown img {
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* Admonitions */
+  .admonition {
+    padding: 0.75rem;
+    margin: 1rem 0;
+  }
+
+  /* Details/Summary */
+  details {
+    padding: 0.75rem;
+  }
+}
+
+/* TOC responsive - hide on mobile */
+@media (max-width: 996px) {
+  .table-of-contents {
+    display: none;
+  }
+}
+
+/* Breadcrumbs responsive */
+@media (max-width: 576px) {
+  .breadcrumbs__item {
+    font-size: 0.8rem;
+  }
+
+  .breadcrumbs__link {
+    padding: 0.25rem 0.5rem;
+  }
+}
