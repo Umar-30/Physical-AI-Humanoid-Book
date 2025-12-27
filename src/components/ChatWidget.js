@@ -39,7 +39,7 @@ export default function ChatWidget() {
     try {
       // Send query to RAG backend (English only)
       console.log('[ChatWidget] Querying RAG with:', userQuery);
-      const response = await fetch('http://localhost:8000/query', {
+      const response = await fetch('https://umar-30-chatbot-deploy.hf.space/query', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -75,7 +75,7 @@ export default function ChatWidget() {
       console.error('[ChatWidget] Error:', err);
       setError(
         err.message.includes('fetch') || err.message.includes('Failed to fetch')
-          ? 'Cannot connect to AI backend. Please ensure the server is running on localhost:8000.'
+          ? 'Cannot connect to AI backend. Please try again later.'
           : err.message
       );
     } finally {
